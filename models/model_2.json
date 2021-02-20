@@ -1,0 +1,17 @@
+{
+    "version": 0.1,
+    "model": {
+            "name": "model_2",
+            "file_name": "model_2.sql",
+            "columns": [
+                "column_1",
+                "column_5",
+                "column_6",
+                "column_7"
+            ],
+            "group_columns": [
+                "column_5",
+                "column_6"
+            ]
+    }
+}
