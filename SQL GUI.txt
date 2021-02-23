@@ -1,3 +1,11 @@
+Elevator pitch
+Catalog / lineage becomes the creation tool. To create a new model, select the catalog models that are needed, and click "create".
+This zooms into an Alteryx-like development screen, to step through:
+Write description
+Define join conditions
+Filter results
+Select / group by combo.
+
 Scope for alpha
     Display dummy models
     Interface to create dependent model
@@ -36,6 +44,7 @@ Work to do
 Potential Enhancements past alpha, to consider during early decisions
     Generate model list in backend (dummy for alpha)
     Backend parsing of dbt manifest.json / catalog.json
+    Zoom out / zoom in between lineage and new model / edit model screen
     Should suggest things that have been joined to currently selected models before
         Prioritise by user (self) and frequency
         Display in context menu of a field (right click on "lead id", menu should contain "join to...")

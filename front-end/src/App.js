@@ -1,5 +1,5 @@
 import React, { Component} from 'react';
-import {Collapse, Form} from 'react-bootstrap';
+import {Collapse} from 'react-bootstrap';
 import { XCircle } from 'react-bootstrap-icons';
 // import logo from './logo.svg';
 import './App.css';
@@ -17,7 +17,8 @@ class App extends Component {
     models: [],
     numberOfModels: 0,
     openCreatePanel: false,
-    selected_models: []
+    selectedModels: [],
+    modelIsDragging: 0
   }
 
 
@@ -41,7 +42,21 @@ class App extends Component {
     });
   }
 
+  selectModel = (e) => {
 
+    console.log(e);
+    var currentSelectionIndex = this.state.selectedModels.indexOf(e)
+    if (currentSelectionIndex !== -1) {
+      this.setState(prevState => ({ selectedModels: prevState.selectedModels.filter(selectedModels => selectedModels !== e) }));
+    } else {
+      this.setState(prevState => ({
+        selectedModels: [...prevState.selectedModels, e]
+      }))
+    }
+    console.log(this.state.selectedModels);
+
+      /* TODO: stop select events on drag */
+  }
 
   render() {
     return (
@@ -55,7 +70,7 @@ class App extends Component {
             >
           </JsonFilenameInput> */}
           <div className="col">
-          <DisplayModel models={this.state.models}></DisplayModel>
+          <DisplayModel models={this.state.models} selectModel={this.selectModel} selectedModels={this.state.selectedModels}></DisplayModel>
           </div>
         </div>
         <Collapse in={ this.state.openCreatePanel } timeout={2000} dimension={'width'}>
@@ -64,7 +79,7 @@ class App extends Component {
             <div className="sideBarExitButton">
               <XCircle onClick={() => this.setState({openCreatePanel: false})}></XCircle>
             </div>
-            <NewModel selected_models={ this.state.selected_models }></NewModel>
+            <NewModel selectedModels={ this.state.selectedModels } models={this.state.models}></NewModel>
           </div>
           </div>
           </Collapse>

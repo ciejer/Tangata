@@ -1,9 +1,17 @@
 import React from 'react'
 import Draggable from 'react-draggable'
 
-export const DisplayModel = ({models}) => {
+
+export const DisplayModel = ({models, selectModel, selectedModels}) => {
     console.log(models);
     if (models.length === 0) return null
+
+    var highlightIfSelected = (modelName) => {
+        if(selectedModels.indexOf(modelName) !== -1) {
+            return("border-primary");
+        }
+        
+      }
 
     const ColumnRow = (column,index) => {
 
@@ -20,13 +28,13 @@ export const DisplayModel = ({models}) => {
         return(
             <div key = {index}>
                 <Draggable handle="strong">
-                    <div className="noCursor bg-white">
+                    <div className={"noCursor w-25 mb-4 border " + highlightIfSelected(models.response.models[index].name)} onClick={() => selectModel(models.response.models[index].name)}>
                     <strong className="cursor">
-                        <div className="w-25 bg-secondary text-white text-center">
+                        <div className="w-100 bg-secondary text-white text-center">
                             {models.response.models[index].name}
                         </div>
                     </strong>
-                        <table className="table table-bordered table-striped table-hover w-25">
+                        <table className="table table-bordered table-striped table-hover w-100">
                             <tbody>
                                 {columnRows}
                             </tbody>
