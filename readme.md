@@ -1,4 +1,4 @@
-#Elevator pitch
+# Elevator pitch
 Catalog / lineage becomes the creation tool. To create a new model, select the catalog models that are needed, and click "create".
 This zooms into an Alteryx-like development screen, to step through:
 Write description
@@ -6,15 +6,15 @@ Define join conditions
 Filter results
 Select / group by combo.
 
-#Requirements
-##Scope for alpha
+# Requirements
+## Scope for alpha
 - Display dummy models
 - Interface to create dependent model
 - SQL generation for join, select, criteria, group, and basic aggregation functions
 - Modular approach
     - Assume all languages have SELECT -> FROM/JOIN -> WHERE -> GROUP structure, but use a modular approach within
 
-##Framework Requirements
+## Framework Requirements
 - Backend:
     - Generate model list on change
     - Receive & store usage data (for suggested joins)
@@ -26,13 +26,13 @@ Select / group by combo.
 - Beautiful front end
 - Open source
 
-##Behaviour expectations
+## Behaviour expectations
 - Front end should pull just the list of all models
 - Front end should pull down details of requested models quickly
 
-#Things to plan for post alpha
+# Things to plan for post alpha
 
-##Design questions
+## Design questions
 - Untangle lineage lines with many models on screen
 - Highlight join logic
     - field = field
@@ -41,7 +41,7 @@ Select / group by combo.
 - Table vs View
 - Show field type category
 
-##Potential Enhancements past alpha, to consider during early decisions
+## Potential Enhancements past alpha, to consider during early decisions
 - Generate model list in backend (dummy for alpha)
 - Backend parsing of dbt manifest.json / catalog.json
 - Zoom out / zoom in between lineage and new model / edit model screen
@@ -69,7 +69,7 @@ Select / group by combo.
 - Read only access to lineage view as data catalog
 - Descriptions - interaction with dbt metadata
 
-#Design
+# Design
 - Backend metadata
     - model_list.json
     - model_1.json
