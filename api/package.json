@@ -1,0 +1,29 @@
+{
+  "name": "sql-gui",
+  "version": "0.1",
+  "description": "Lineage-based SQL Gui",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.bundle.js",
+    "build": "webpack",
+    "dev": "nodemon ./server.js localhost 3080"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ciejer/sqlgui.git"
+  },
+  "author": "Bhargav Bachina",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ciejer/sqlgui/issues"
+  },
+  "homepage": "https://github.com/ciejer/sqlgui",
+  "devDependencies": {
+    "nodemon": "^2.0.7",
+    "webpack": "^4.43.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1"
+  }
+}
