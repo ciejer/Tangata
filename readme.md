@@ -1,10 +1,10 @@
 # Elevator pitch
 Catalog / lineage becomes the creation tool. To create a new model, select the catalog models that are needed, and click "create".
 This zooms into an Alteryx-like development screen, to step through:
-Write description
-Define join conditions
-Filter results
-Select / group by combo.
+- Write description
+- Define join conditions
+- Filter results
+- Select / group by combo.
 
 # Requirements
 ## Scope for alpha
