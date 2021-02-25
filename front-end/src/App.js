@@ -21,7 +21,8 @@ class App extends Component {
     selectedModels: [],
     modelIsDragging: 0,
     joins: [],
-    reloadDummyComponent: false
+    reloadDummyComponent: false,
+    toggleDrag: true
   }
 
 
@@ -69,46 +70,28 @@ class App extends Component {
     this.state.selectedModels.forEach(thisModel => {
       selectedModels.push({"model": thisModel})
     });
-    var joinModels = {"models": selectedModels, "editing": false};
+    var joinModels = {"models": selectedModels};
     this.setState(prevState => ({
       joins: [...prevState.joins, joinModels]
     }));
   }
 
-  editJoin = (join) => {
-    console.log("edit join");
-    console.log(join);
-    this.setState(prevState => ({
-      joins: prevState.joins.filter(joins => joins !== join) 
-    }));
-    const newJoin = Object.assign({}, join);
-            newJoin.editing = true;
-    this.setState(prevState => ({
-      joins: [...prevState.joins, newJoin]
-    }));
-  }
 
   saveEditedJoin = (join, editedJoin) => {
-    console.log("saving join...");
-    console.log("edit join");
-    console.log(join);
-    console.log(editedJoin);
     this.setState(prevState => ({
       joins: prevState.joins.filter(joins => joins !== join) 
     }));
-    const newJoin = Object.assign({}, editedJoin);
-            newJoin.editing = false;
     this.setState(prevState => ({
-      joins: [...prevState.joins, newJoin]
+      joins: [...prevState.joins, editedJoin]
     }));
   }
 
+  
+
   removeJoin = (join) => {
-    console.log(this.state.joins);
-    console.log(join);
     this.setState(prevState => ({ joins: prevState.joins.filter(joins => joins !== join) }));
-    console.log(this.state.joins);
   }
+
   
 
   render() {

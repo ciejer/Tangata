@@ -5,22 +5,17 @@ import { EditJoinPanel } from './EditJoinPanel'
 
 
 export const JoinElements = ({ joins, editJoin, removeJoin, models, forceReload, saveEditedJoin }) => {
+    if (joins.length === 0) return null;
     console.log("models");
     console.log(models);
     console.log("joins");
     console.log(joins);
-    if (joins.length === 0) return null;
 
     const JoinElement = (join, index) => {
-        console.log("running join element");
         const joinIndex = index;
         const joinLine = (model, index) => {
             for (var modelIndex = 0; modelIndex < models.response.models.length; modelIndex ++) {
-                console.log(models.response.models[modelIndex].name);
-                console.log(model.model);
                 if(models.response.models[modelIndex].name === model.model) {
-                    console.log("matched");
-                    console.log("joinElement"+index);
                     return(
                         <div key={index+"-"+modelIndex}>
                             <Xarrow 
@@ -40,17 +35,15 @@ export const JoinElements = ({ joins, editJoin, removeJoin, models, forceReload,
         const allJoinLines = join.models.map((model, index) => joinLine(model, index))
         return (
             <div key = {index}>
-                <Draggable onStop={forceReload} onDrag={forceReload}>
+                <Draggable onStop={forceReload} onDrag={forceReload} cancel=".modal, button">
                     <div className="joinElement" >
-                        <div className="noCursor mb-4 border ">
-                            <strong className="cursor">
-                                <div className="w-100 bg-secondary text-white text-center">
-                                    Join {index}
-                                    <button type="button" onClick={() => removeJoin(join)}>
-                                        X
-                                    </button>
-                                </div>
-                            </strong>
+                        <div className="mb-4 border ">
+                            <div className="w-100 bg-secondary text-white text-center">
+                                Join {index}
+                                <button type="button" onClick={() => removeJoin(join)}>
+                                    X
+                                </button>
+                            </div>
                             <table className="table table-bordered table-striped table-hover w-100" id={"joinElement"+index} >
                                 <tbody>
                                     <tr>

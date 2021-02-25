@@ -34,3 +34,7 @@
   top: -100;
   left: 150px;
 }
+
+.sortableHelper {
+  z-index: 1051;
+}
