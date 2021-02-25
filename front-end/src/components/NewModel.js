@@ -3,7 +3,6 @@ import { Form } from 'react-bootstrap'
 
 export const NewModel = ({selectedModels, models}) => {
     var allFields = () => {
-        console.log(models);
         var compileFields = {fields:[]};
         models.response.models.forEach(model => {
             if(selectedModels.indexOf(model.name) !== -1) {
@@ -14,13 +13,10 @@ export const NewModel = ({selectedModels, models}) => {
                 })
             }
         })
-        console.log("compileFields:");
-        console.log(compileFields);
         return compileFields;
     };
 
     const modelColumnRow = (field) => {
-        console.log(field);
         return(
             <div className="row" key={field.modelName+field.columnName}>
                 <Form.Check
@@ -32,8 +28,6 @@ export const NewModel = ({selectedModels, models}) => {
     }
 
 
-    console.log(selectedModels);
-    console.log(models);
     if (selectedModels.length === 0) return(
         <div className="container">
             Please select models.

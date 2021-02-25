@@ -17,3 +17,20 @@
   right: 10px;
   top: 10px;
 }
+
+.joinElement {
+  position: absolute;
+  top: 200px;
+  left: 500px;
+
+}
+
+.zeroMaxWidth {
+  max-width:0;
+}
+
+.joinEditPane {
+  position: relative;
+  top: -100;
+  left: 150px;
+}

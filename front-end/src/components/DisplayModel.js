@@ -1,9 +1,8 @@
-import React from 'react'
+import React, {useState} from 'react'
 import Draggable from 'react-draggable'
 
 
-export const DisplayModel = ({models, selectModel, selectedModels}) => {
-    console.log(models);
+export const DisplayModel = ({models, selectModel, selectedModels, forceReload}) => {
     if (models.length === 0) return null
 
     var highlightIfSelected = (modelName) => {
@@ -27,8 +26,12 @@ export const DisplayModel = ({models, selectModel, selectedModels}) => {
         const columnRows = models.response.models[index].columns.map((column,index) => ColumnRow(column,index))
         return(
             <div key = {index}>
-                <Draggable handle="strong">
-                    <div className={"noCursor w-25 mb-4 border " + highlightIfSelected(models.response.models[index].name)} onClick={() => selectModel(models.response.models[index].name)}>
+                <Draggable handle="strong" onStop={forceReload} onDrag={forceReload}>
+                    <div 
+                        className={"noCursor w-25 mb-4 border " + highlightIfSelected(models.response.models[index].name)} 
+                        onClick={() => selectModel(models.response.models[index].name)}
+                        id={"model"+index}
+                        >
                     <strong className="cursor">
                         <div className="w-100 bg-secondary text-white text-center">
                             {models.response.models[index].name}

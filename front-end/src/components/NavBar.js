@@ -1,6 +1,6 @@
 import React from 'react'
 import Collapse from 'react-bootstrap/Collapse';
-export const NavBar = ({openCreatePanel}) => {
+export const NavBar = ({openCreatePanel, createJoin}) => {
     return(
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
         <a className="navbar-brand" href="/">SQL GUI</a>
@@ -9,6 +9,7 @@ export const NavBar = ({openCreatePanel}) => {
         </button>
         <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div className="navbar-nav">
+            <div className="nav-item nav-link active" role="button" onClick={() => createJoin()}>Create Join </div>
             <div className="nav-item nav-link active" role="button" onClick={() => openCreatePanel()}>Create Model </div>
             {/* <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>
             <a class="nav-item nav-link" href="#">Features</a>
