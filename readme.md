@@ -22,6 +22,9 @@ This zooms into an Alteryx-like development screen, to step through:
         - Create files
         - Edit files
         - Git commit & push as logged in user
+        - Squash commits at various points
+        - "Propose changes" for pull request
+        - Look at Looker for ideas on how git stuff is hidden
 - Clean flowing lines between models
 - Beautiful front end
 - Open source
