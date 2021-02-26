@@ -24,13 +24,15 @@ export const DisplayModel = ({models, selectModel, selectedModels, forceReload})
 
     const ModelTable = (model,index) => {
         const columnRows = models.response.models[index].columns.map((column,index) => ColumnRow(column,index))
+        const draggableNodeRef = React.useRef(null);
         return(
             <div key = {index}>
-                <Draggable handle="strong" onStop={forceReload} onDrag={forceReload}>
+                <Draggable handle="strong" onStop={forceReload} onDrag={forceReload} nodeRef={draggableNodeRef}>
                     <div 
                         className={"noCursor w-25 mb-4 border " + highlightIfSelected(models.response.models[index].name)} 
                         onClick={() => selectModel(models.response.models[index].name)}
                         id={"model"+index}
+                        ref={draggableNodeRef}
                         >
                     <strong className="cursor">
                         <div className="w-100 bg-secondary text-white text-center">

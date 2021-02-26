@@ -22,7 +22,8 @@ class App extends Component {
     modelIsDragging: 0,
     joins: [],
     reloadDummyComponent: false,
-    toggleDrag: true
+    toggleDrag: true,
+    showJoinModal: false
   }
 
 
@@ -33,6 +34,17 @@ class App extends Component {
   //       });
   //       console.log(this.state);
   // }
+
+  toggleJoinModal = () => {
+    console.log("toggling");
+    console.log(this.state.showJoinModal);
+    if(this.state.showJoinModal === false) {
+      this.setState({showJoinModal: true})
+    } else {
+      this.setState({showJoinModal: false})
+    }
+    console.log(this.state.showJoinModal);
+  }
 
   
   openCreatePanel = () => {
@@ -70,7 +82,7 @@ class App extends Component {
     this.state.selectedModels.forEach(thisModel => {
       selectedModels.push({"model": thisModel})
     });
-    var joinModels = {"models": selectedModels};
+    var joinModels = {"models": selectedModels, "conditions": []};
     this.setState(prevState => ({
       joins: [...prevState.joins, joinModels]
     }));
@@ -131,6 +143,8 @@ class App extends Component {
             forceReload={this.forceReload}
             editJoin={this.editJoin}
             saveEditedJoin={this.saveEditedJoin}
+            toggleJoinModal = { this.toggleJoinModal }
+            showJoinModal = {this.state.showJoinModal}
           ></JoinElements>
           </div>
           

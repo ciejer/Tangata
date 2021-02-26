@@ -4,12 +4,13 @@ import Xarrow from "react-xarrows"
 import { EditJoinPanel } from './EditJoinPanel'
 
 
-export const JoinElements = ({ joins, editJoin, removeJoin, models, forceReload, saveEditedJoin }) => {
+export const JoinElements = ({ joins, editJoin, removeJoin, models, forceReload, saveEditedJoin, toggleJoinModal, showJoinModal }) => {
     if (joins.length === 0) return null;
     console.log("models");
     console.log(models);
     console.log("joins");
     console.log(joins);
+    console.log(showJoinModal);
 
     const JoinElement = (join, index) => {
         const joinIndex = index;
@@ -52,6 +53,9 @@ export const JoinElements = ({ joins, editJoin, removeJoin, models, forceReload,
                                                 join = { join }
                                                 saveEditedJoin = { saveEditedJoin }
                                                 models = { models }
+                                                forceReload = { forceReload }
+                                                showJoinModal = { showJoinModal }
+                                                toggleJoinModal = { toggleJoinModal }
                                             />
                                         </td>
                                     </tr>
