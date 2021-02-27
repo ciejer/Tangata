@@ -23,7 +23,7 @@ class App extends Component {
     joins: [],
     reloadDummyComponent: false,
     toggleDrag: true,
-    showJoinModal: false
+    showJoinModal: -1
   }
 
 
@@ -35,15 +35,8 @@ class App extends Component {
   //       console.log(this.state);
   // }
 
-  toggleJoinModal = () => {
-    console.log("toggling");
-    console.log(this.state.showJoinModal);
-    if(this.state.showJoinModal === false) {
-      this.setState({showJoinModal: true})
-    } else {
-      this.setState({showJoinModal: false})
-    }
-    console.log(this.state.showJoinModal);
+  toggleJoinModal = (joinNum) => {
+    this.setState({showJoinModal: joinNum})
   }
 
   

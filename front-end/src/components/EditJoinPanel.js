@@ -3,19 +3,16 @@ import {Modal, Button, Form} from 'react-bootstrap';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { useForm } from "react-hook-form";
 
-export function EditJoinPanel( {join, saveEditedJoin, models, forceReload, toggleJoinModal, showJoinModal}) {
+export function EditJoinPanel( {join, joinIndex, saveEditedJoin, models, forceReload, toggleJoinModal, showJoinModal}) {
   const [newJoin, setJoinState] = useState(JSON.parse(JSON.stringify(join)));
-  console.log("join panel - join")
-  console.log(join);
 
-    const handleClose = () => toggleJoinModal();
+    const handleClose = () => toggleJoinModal(-1);
     const handleShow = () => {
       setJoinState(JSON.parse(JSON.stringify(join)));
-      toggleJoinModal();
+      toggleJoinModal(joinIndex);
     }
 
     const handleSaveAndClose = () => {
-      console.log("is this running?");
       saveEditedJoin(join, newJoin);
       handleClose();
     }
@@ -29,7 +26,6 @@ export function EditJoinPanel( {join, saveEditedJoin, models, forceReload, toggl
     }
 
     const removeCondition = (condition) => {
-      console.log("is this running?");
       setJoinState({...newJoin, "conditions": newJoin.conditions.filter(conditions => conditions !== condition)});
     }
 
@@ -72,7 +68,7 @@ export function EditJoinPanel( {join, saveEditedJoin, models, forceReload, toggl
           Edit
         </Button>
   
-        <Modal show={showJoinModal} onHide={handleClose}>
+        <Modal show={(showJoinModal === joinIndex)} onHide={handleClose}>
           <Modal.Header closeButton>
             <Modal.Title>Edit join </Modal.Title>
           </Modal.Header>
