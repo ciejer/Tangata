@@ -42,11 +42,11 @@ export function EditJoinPanel( {join, joinIndex, saveEditedJoin, models, forceRe
         if (!result.destination) {
           return;
         }
-        newJoin.models = reorder(
+        setJoinState({...newJoin, "models": reorder(
           newJoin.models,
             result.source.index,
             result.destination.index
-          );
+        )});
         }
 
     const joinConditionRow = (condition, index) => { // row per join condition
@@ -129,7 +129,7 @@ export function EditJoinPanel( {join, joinIndex, saveEditedJoin, models, forceRe
                 <div className="col">
                   
                 <Form.Group>
-                    <Form.Label>{newJoin.models[0].model}</Form.Label>
+                    <Form.Label>{newJoin.models[1].model}</Form.Label>
                     <Form.Control as="select" name="condition2Field" ref={register}>
                       <option>1</option>
                       <option>2</option>

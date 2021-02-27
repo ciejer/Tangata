@@ -26,15 +26,6 @@ class App extends Component {
     showJoinModal: -1
   }
 
-
-  // getModelJson = () => {
-  //   getModelJson("all_models.json")
-  //     .then(response => {
-  //       this.setState({models: {response}})
-  //       });
-  //       console.log(this.state);
-  // }
-
   toggleJoinModal = (joinNum) => {
     this.setState({showJoinModal: joinNum})
   }
