@@ -10,6 +10,7 @@ import { NavBar } from './components/NavBar'
 import { NewModel } from './components/NewModel'
 import { getModelJson } from './services/getModelJson'
 import { JoinElements } from './components/JoinElements'
+import { SQLPanel } from './components/SQLPanel';
 
 class App extends Component {
   
@@ -17,13 +18,14 @@ class App extends Component {
     model: {},
     models: [],
     numberOfModels: 0,
-    openCreatePanel: false,
+    openSQLPanel: false,
     selectedModels: [],
     modelIsDragging: 0,
     joins: [],
     reloadDummyComponent: false,
     toggleDrag: true,
-    showJoinModal: -1
+    showJoinModal: -1,
+    outputModel: ""
   }
 
   toggleJoinModal = (joinNum) => {
@@ -31,8 +33,8 @@ class App extends Component {
   }
 
   
-  openCreatePanel = () => {
-    this.setState({openCreatePanel: true})
+  openSQLPanel = () => {
+    this.setState({openSQLPanel: true})
   }
 
   forceReload = () => {
@@ -70,6 +72,8 @@ class App extends Component {
     this.setState(prevState => ({
       joins: [...prevState.joins, joinModels]
     }));
+    this.setState({selectedModels: []})
+    this.setState({outputModel: "join_"+(this.state.joins.length)}); // length doesn't update until function finishes, so no need to subtract 1
   }
 
 
@@ -86,6 +90,21 @@ class App extends Component {
 
   removeJoin = (join) => {
     this.setState(prevState => ({ joins: prevState.joins.filter(joins => joins !== join) }));
+    if(this.state.joins.length>1) {
+      this.setState({outputModel: "join_"+(this.state.joins.length-2)}); // length doesn't update until function finishes: subtract 2 as zero indexed
+    } else {
+      this.setState({outputModel: this.state.models.response.models[this.state.models.response.models.length-1].name});
+    }
+    //TODO: remove join from selected models
+    //TODO: check and remove downstream joins
+  }
+
+  logState = () => {
+    console.log(this.state);
+  }
+
+  addModel = () => {
+    console.log("Not yet implemented"); //TODO: add input model from catalog
   }
 
   
@@ -93,43 +112,48 @@ class App extends Component {
   render() {
     return (
         <div id="main">
-        <NavBar openCreatePanel={this.openCreatePanel} createJoin={this.createJoin}></NavBar>
-        <div className="row">
-          {/* <JsonFilenameInput 
-            onChangeForm={this.onChangeForm}
-            getModelJson={this.getModelJson}
-            JsonFilenameInput={this.JsonFilenameInput}
-            >
-          </JsonFilenameInput> */}
-          <div className="col">
-          <DisplayModel 
-            models={this.state.models} 
-            selectModel={this.selectModel} 
-            selectedModels={this.state.selectedModels} 
-            forceReload={this.forceReload}
-          />
-          </div>
-        </div>
-        <Collapse in={ this.state.openCreatePanel } timeout={2000} dimension={'width'}>
-            <div>
-          <div id="createModelSideBar" className="sidePanelContent">
-            <div className="sideBarExitButton">
-              <XCircle onClick={() => this.setState({openCreatePanel: false})}></XCircle>
+          <NavBar addModel={this.addModel} createJoin={this.createJoin} logState={this.logState} openSQLPanel={this.openSQLPanel}></NavBar>
+          <div className="row">
+            {/* <JsonFilenameInput 
+              onChangeForm={this.onChangeForm}
+              getModelJson={this.getModelJson}
+              JsonFilenameInput={this.JsonFilenameInput}
+              >
+            </JsonFilenameInput> */}
+            <div className="col">
+            <DisplayModel 
+              models={this.state.models} 
+              selectModel={this.selectModel} 
+              selectedModels={this.state.selectedModels} 
+              forceReload={this.forceReload}
+            />
             </div>
-            <NewModel selectedModels={ this.state.selectedModels } models={this.state.models}></NewModel>
           </div>
-          </div>
-          </Collapse>
-          <JoinElements 
-            joins={this.state.joins}
-            removeJoin={this.removeJoin}
-            models={this.state.models}
-            forceReload={this.forceReload}
-            editJoin={this.editJoin}
-            saveEditedJoin={this.saveEditedJoin}
-            toggleJoinModal = { this.toggleJoinModal }
-            showJoinModal = {this.state.showJoinModal}
-          ></JoinElements>
+            <JoinElements 
+              joins={this.state.joins}
+              removeJoin={this.removeJoin}
+              models={this.state.models}
+              forceReload={this.forceReload}
+              editJoin={this.editJoin}
+              saveEditedJoin={this.saveEditedJoin}
+              toggleJoinModal = { this.toggleJoinModal }
+              showJoinModal = {this.state.showJoinModal}
+              selectedModels = {this.state.selectedModels}
+              selectModel = {this.selectModel}
+            ></JoinElements>
+            <Collapse in={ this.state.openSQLPanel } timeout={2000} dimension={'width'}>
+                <div>
+              <div id="sqlPanelSideBar" className="sidePanelContent">
+                <div className="sideBarExitButton">
+                  <XCircle onClick={() => this.setState({openSQLPanel: false})}></XCircle>
+                </div>
+                <SQLPanel
+                  state={this.state}
+                >
+                </SQLPanel>
+              </div>
+              </div>
+              </Collapse>
           </div>
           
     );

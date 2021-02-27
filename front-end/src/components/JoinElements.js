@@ -4,26 +4,47 @@ import Xarrow from "react-xarrows"
 import { EditJoinPanel } from './EditJoinPanel'
 
 
-export const JoinElements = ({ joins, editJoin, removeJoin, models, forceReload, saveEditedJoin, toggleJoinModal, showJoinModal }) => {
+export const JoinElements = ({ joins, editJoin, removeJoin, models, selectedModels, selectModel, forceReload, saveEditedJoin, toggleJoinModal, showJoinModal }) => {
     if (joins.length === 0) return null;
+
+    var highlightIfSelected = (modelName) => {
+        if(selectedModels.indexOf(modelName) !== -1) {
+            return("border-primary");
+        }
+      }
 
     const JoinElement = (join, index) => {
         const joinIndex = index;
         const joinLine = (model, index) => {
-            for (var modelIndex = 0; modelIndex < models.response.models.length; modelIndex ++) {
-                if(models.response.models[modelIndex].name === model.model) {
-                    return(
-                        <div key={index+"-"+modelIndex}>
-                            <Xarrow 
-                                start={"model"+modelIndex}
-                                end={"joinElement"+joinIndex}
-                                color="red"
-                                strokeWidth={15}
-                                startAnchor="right"
-                                endAnchor="left"
-                            />
-                        </div>
-                    );
+            if (model.model.startsWith("join")) {
+                return(
+                    <div key={index+"-"+modelIndex}>
+                        <Xarrow 
+                            start={model.model}
+                            end={"join_"+joinIndex}
+                            color="red"
+                            strokeWidth={15}
+                            startAnchor="right"
+                            endAnchor="left"
+                        />
+                    </div>
+                );
+            } else {
+                for (var modelIndex = 0; modelIndex < models.response.models.length; modelIndex ++) {
+                    if(models.response.models[modelIndex].name === model.model) {
+                        return(
+                            <div key={index+"-"+modelIndex}>
+                                <Xarrow 
+                                    start={"model"+modelIndex}
+                                    end={"join_"+joinIndex}
+                                    color="red"
+                                    strokeWidth={15}
+                                    startAnchor="right"
+                                    endAnchor="left"
+                                />
+                            </div>
+                        );
+                    }
                 }
             }
         }
@@ -32,15 +53,16 @@ export const JoinElements = ({ joins, editJoin, removeJoin, models, forceReload,
         return (
             <div key = {index}>
                 <Draggable onStop={forceReload} onDrag={forceReload} cancel=".modal, button">
-                    <div className="joinElement" >
-                        <div className="mb-4 border ">
+                    <div className="joinElement"
+                        onClick={() => selectModel("join_"+index)}>
+                        <div className={"mb-4 border " + highlightIfSelected("join_"+index)}>
                             <div className="w-100 bg-secondary text-white text-center">
                                 Join {index}
                                 <button type="button" onClick={() => removeJoin(join)}>
                                     X
                                 </button>
                             </div>
-                            <table className="table table-bordered table-striped table-hover w-100" id={"joinElement"+index} >
+                            <table className="table table-bordered table-striped table-hover w-100" id={"join_"+index} >
                                 <tbody>
                                     <tr>
                                         <td className="col-md-2">

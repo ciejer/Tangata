@@ -9,9 +9,20 @@
   padding-top: 20px;
   width: 500px;
   height: 100%;
-  background-color:darkgrey;
+  background-color:whitesmoke;
 }
 
+.sqlContent {
+  border: 2px;
+  border-style:solid;
+  border-color:darkgrey;
+  background-color: white;
+  left: 10px;
+  width: 458px;
+  padding:10px;
+  margin-top:10px;
+  white-space: pre-wrap;
+}
 .sideBarExitButton {
   position: fixed;
   right: 10px;

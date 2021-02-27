@@ -73,7 +73,9 @@ export function EditJoinPanel( {join, joinIndex, saveEditedJoin, models, forceRe
             <Modal.Title>Edit join </Modal.Title>
           </Modal.Header>
           <Modal.Body>Please choose the correct order for your models:
-            <DragDropContext onDragEnd={onDragEnd}>
+            <DragDropContext onDragEnd={onDragEnd}> 
+            {/* TODO: only allow reordering models if they are all models
+            TODO: only allow two models in a join */}
                 <Droppable droppableId="droppable">
                 {(provided, snapshot) => (
                     <div
