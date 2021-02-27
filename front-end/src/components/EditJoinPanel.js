@@ -51,16 +51,52 @@ export function EditJoinPanel( {join, joinIndex, saveEditedJoin, models, forceRe
 
     const joinConditionRow = (condition, index) => { // row per join condition
       return(
-        <div className="row" key={"joinCondition_" + index}>
+        <tr className="row" key={"joinCondition_" + index}>
+          <td>
           {condition.fullName}
+          </td>
+          <td>
           <Button variant="secondary" onClick={() => removeCondition(condition)}>
             Remove
           </Button>
-        </div>
+          </td>
+        </tr>
       )
     }
     const listJoinConditions = newJoin.conditions.map((condition, index) => joinConditionRow(condition, index)); // map join conditions to 
     
+    const listModelColumns = (models,model,register,controlName) => {
+      const columnOption = (column,index) => {
+        return(
+          <option key={index}>{column}</option>
+        )
+      }
+      console.log(model);
+      console.log(models);
+      var listModel = {};
+      for(var modelIndex=0;modelIndex<models.response.models.length;modelIndex++) {
+        console.log(models.response.models[modelIndex].name);
+        if(models.response.models[modelIndex].name===model) {
+          console.log("matched");
+          listModel = models.response.models[modelIndex];
+        }
+      }
+      console.log(listModel);
+      if(listModel===null) return null;
+      if(listModel.columns.length===0) return null;
+      const tempListModelColumns = listModel.columns.map((column, index) => columnOption(column,index))
+      // for(var columnIndex = 0;columnIndex<listModel.columns.length;columnIndex++) {
+      //   console.log("found column");
+      //   tempListModelColumns += columnOption(listModel.columns[columnIndex]);
+      // }
+      console.log(tempListModelColumns);
+      return (
+        
+        <Form.Control as="select" name={controlName} ref={register}>
+          {tempListModelColumns}
+        </Form.Control>
+      );
+    }
   
     return (
       <div>
@@ -101,21 +137,15 @@ export function EditJoinPanel( {join, joinIndex, saveEditedJoin, models, forceRe
                 </Droppable>
             </DragDropContext>
             Join Conditions:
-            <div className="table">
+            <table className="table">
               {listJoinConditions}
-            </div>
+            </table>
             <Form onSubmit={handleSubmit(onSubmit)}>
               <div className="row">
                 <div className="col">
                   <Form.Group>
                     <Form.Label>{newJoin.models[0].model}</Form.Label>
-                    <Form.Control as="select" name="condition1Field" ref={register}>
-                      <option>1</option>
-                      <option>2</option>
-                      <option>3</option>
-                      <option>4</option>
-                      <option>5</option>
-                    </Form.Control>
+                      {listModelColumns(models,newJoin.models[0].model,register,"condition1Field")}
                   </Form.Group>
                 </div>
                 <div className="col">
@@ -132,13 +162,7 @@ export function EditJoinPanel( {join, joinIndex, saveEditedJoin, models, forceRe
                   
                 <Form.Group>
                     <Form.Label>{newJoin.models[1].model}</Form.Label>
-                    <Form.Control as="select" name="condition2Field" ref={register}>
-                      <option>1</option>
-                      <option>2</option>
-                      <option>3</option>
-                      <option>4</option>
-                      <option>5</option>
-                    </Form.Control>
+                      {listModelColumns(models,newJoin.models[1].model,register,"condition2Field")}
                   </Form.Group>
                 </div>
               </div>
