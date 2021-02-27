@@ -5,8 +5,6 @@ import { useForm } from "react-hook-form";
 
 export function EditJoinPanel( {join, saveEditedJoin, models, forceReload, toggleJoinModal, showJoinModal}) {
   const [newJoin, setJoinState] = useState(JSON.parse(JSON.stringify(join)));
-  console.log("join panel - join")
-  console.log(join);
 
     const handleClose = () => toggleJoinModal();
     const handleShow = () => {
@@ -15,7 +13,6 @@ export function EditJoinPanel( {join, saveEditedJoin, models, forceReload, toggl
     }
 
     const handleSaveAndClose = () => {
-      console.log("is this running?");
       saveEditedJoin(join, newJoin);
       handleClose();
     }
@@ -29,7 +26,6 @@ export function EditJoinPanel( {join, saveEditedJoin, models, forceReload, toggl
     }
 
     const removeCondition = (condition) => {
-      console.log("is this running?");
       setJoinState({...newJoin, "conditions": newJoin.conditions.filter(conditions => conditions !== condition)});
     }
 
@@ -55,12 +51,16 @@ export function EditJoinPanel( {join, saveEditedJoin, models, forceReload, toggl
 
     const joinConditionRow = (condition, index) => { // row per join condition
       return(
-        <div className="row" key={"joinCondition_" + index}>
-          {condition.fullName}
-          <Button variant="secondary" onClick={() => removeCondition(condition)}>
-            Remove
-          </Button>
-        </div>
+        <tr className={index%2 === 0?'odd':'even'} key={"joinCondition_" + index}>
+          <td className="col">
+            {condition.fullName}
+          </td>
+          <td className="col">
+            <Button variant="secondary" onClick={() => removeCondition(condition)}>
+              Remove
+            </Button>
+          </td>
+        </tr>
       )
     }
     const listJoinConditions = newJoin.conditions.map((condition, index) => joinConditionRow(condition, index)); // map join conditions to 
@@ -80,32 +80,40 @@ export function EditJoinPanel( {join, saveEditedJoin, models, forceReload, toggl
             <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable droppableId="droppable">
                 {(provided, snapshot) => (
-                    <div
+                    <table
                     {...provided.droppableProps}
                     ref={provided.innerRef}
+                    className="table table-bordered table-striped"
                     >
+                      <tbody>
                     {newJoin.models.map((item, index) => (
                         <Draggable key={"edit_join_"+item.model} draggableId={item.model} index={index}>
                         {(provided, snapshot) => (
-                            <div
+                            <tr
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
+                            className={index%2 === 0?'odd':'even'}
                             >
-                            {item.model}
-                            </div>
+                              <td className="col w100">
+                                {item.model}
+                              </td>
+                            </tr>
                         )}
                         </Draggable>
                     ))}
                     {provided.placeholder}
-                    </div>
+                    </tbody>
+                    </table>
                 )}
                 </Droppable>
             </DragDropContext>
             Join Conditions:
-            <div className="table">
+            <table className="table table-bordered table-striped">
+              <tbody>
               {listJoinConditions}
-            </div>
+              </tbody>
+            </table>
             <Form onSubmit={handleSubmit(onSubmit)}>
               <div className="row">
                 <div className="col">

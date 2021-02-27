@@ -90,12 +90,17 @@ class App extends Component {
 
 
   saveEditedJoin = (join, editedJoin) => {
+    console.log("Saving Join...")
+    console.log(join);
+    console.log(editedJoin);
+    console.log(this.state.joins);
     this.setState(prevState => ({
       joins: prevState.joins.filter(joins => joins !== join) 
     }));
     this.setState(prevState => ({
       joins: [...prevState.joins, editedJoin]
     }));
+    console.log(this.state.joins);
   }
 
   

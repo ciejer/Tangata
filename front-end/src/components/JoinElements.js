@@ -6,11 +6,13 @@ import { EditJoinPanel } from './EditJoinPanel'
 
 export const JoinElements = ({ joins, editJoin, removeJoin, models, forceReload, saveEditedJoin, toggleJoinModal, showJoinModal }) => {
     if (joins.length === 0) return null;
-    console.log("models");
-    console.log(models);
-    console.log("joins");
-    console.log(joins);
-    console.log(showJoinModal);
+
+    // var highlightIfSelected = (joinName) => {
+    //     if(selectedModels.indexOf(joinName) !== -1) {
+    //         return("border-primary");
+    //     }
+        
+    //   }
 
     const JoinElement = (join, index) => {
         const joinIndex = index;
