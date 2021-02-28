@@ -8,7 +8,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { DisplayModel } from './components/DisplayModel'
 import { NavBar } from './components/NavBar'
 import { getModelJson } from './services/getModelJson'
-import { JoinElements } from './components/JoinElements'
 import { SQLPanel } from './components/SQLPanel';
 
 class App extends Component {
@@ -16,11 +15,7 @@ class App extends Component {
   state = {
     model: {},
     models: [],
-    numberOfModels: 0,
     openSQLPanel: false,
-    joins: [],
-    reloadDummyComponent: false,
-    toggleDrag: true,
     showJoinModal: -1,
     outputModel: "",
     showColumns: true
@@ -35,40 +30,11 @@ class App extends Component {
     this.setState({openSQLPanel: true})
   }
 
-  forceReload = () => {
-    this.setState({reloadDummyComponent: false})
-  }
-
   componentDidMount() { // on load
     getModelJson('all_models.json')
       .then(response => {
         this.setState({models: {response}})
     });
-  }
-
-
-  createJoin = () => {
-    var selectedModels = [];
-    if(this.state.selectedModels.length === 0) return null;
-    this.state.selectedModels.forEach(thisModel => {
-      selectedModels.push({"model": thisModel})
-    });
-    var joinModels = {"models": selectedModels, "conditions": []};
-    this.setState(prevState => ({
-      joins: [...prevState.joins, joinModels]
-    }));
-    this.setState({selectedModels: []})
-    this.setState({outputModel: "join_"+(this.state.joins.length)}); // length doesn't update until function finishes, so no need to subtract 1
-  }
-
-
-  saveEditedJoin = (join, editedJoin) => {
-    this.setState(prevState => ({
-      joins: prevState.joins.filter(joins => joins !== join) 
-    }));
-    this.setState(prevState => ({
-      joins: [...prevState.joins, editedJoin]
-    }));
   }
 
   saveEditedModel = (previousModel, newModel) => {
@@ -78,16 +44,6 @@ class App extends Component {
     this.setState({models: {...this.state.models, "response": {...this.state.models.response, "models": [...this.state.models.response.models.filter(models => models !== previousModel), newModel]}}});
   }
 
-  removeJoin = (join) => {
-    this.setState(prevState => ({ joins: prevState.joins.filter(joins => joins !== join) }));
-    if(this.state.joins.length>1) {
-      this.setState({outputModel: "join_"+(this.state.joins.length-2)}); // length doesn't update until function finishes: subtract 2 as zero indexed
-    } else {
-      this.setState({outputModel: this.state.models.response.models[this.state.models.response.models.length-1].name});
-    }
-    //TODO: remove join from selected models
-    //TODO: check and remove downstream joins
-  }
 
   logState = () => {
     console.log(this.state);
@@ -120,7 +76,7 @@ class App extends Component {
   render() {
     return (
         <div id="main">
-          <NavBar addModel={this.addModel} createJoin={this.createJoin} logState={this.logState} openSQLPanel={this.openSQLPanel}></NavBar>
+          <NavBar addModel={this.addModel} logState={this.logState} openSQLPanel={this.openSQLPanel}></NavBar>
           <div className="row">
             {/* <JsonFilenameInput 
               onChangeForm={this.onChangeForm}

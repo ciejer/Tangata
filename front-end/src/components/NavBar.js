@@ -1,6 +1,6 @@
 import React from 'react'
 const reactState = process.env.NODE_ENV;
-export const NavBar = ({addModel, createJoin, logState, openSQLPanel}) => {
+export const NavBar = ({addModel, logState, openSQLPanel}) => {
     const debugLogState = (reactState) => {
         if ( reactState === 'development') {
             return(
@@ -17,7 +17,6 @@ export const NavBar = ({addModel, createJoin, logState, openSQLPanel}) => {
         <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div className="navbar-nav">
             <div className="nav-item nav-link active" role="button" onClick={() => addModel()}>Add Model </div>
-            <div className="nav-item nav-link active" role="button" onClick={() => createJoin()}>Create Join </div>
             <div className="nav-item nav-link active" role="button" onClick={() => openSQLPanel()}>Open SQL Panel </div>
             {debugLogState(reactState)}
             {/* <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>
