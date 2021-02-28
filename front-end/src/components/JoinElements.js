@@ -70,7 +70,6 @@ export const JoinElements = ({ joins, editJoin, removeJoin, models, selectedMode
                                                 join = { join }
                                                 saveEditedJoin = { saveEditedJoin }
                                                 models = { models }
-                                                forceReload = { forceReload }
                                                 showJoinModal = { showJoinModal }
                                                 toggleJoinModal = { toggleJoinModal }
                                                 joinIndex = { index }

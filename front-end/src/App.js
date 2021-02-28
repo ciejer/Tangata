@@ -19,13 +19,12 @@ class App extends Component {
     models: [],
     numberOfModels: 0,
     openSQLPanel: false,
-    selectedModels: [],
-    modelIsDragging: 0,
     joins: [],
     reloadDummyComponent: false,
     toggleDrag: true,
     showJoinModal: -1,
-    outputModel: ""
+    outputModel: "",
+    showColumns: true
   }
 
   toggleJoinModal = (joinNum) => {
@@ -48,19 +47,6 @@ class App extends Component {
     });
   }
 
-  selectModel = (e) => {
-
-    var currentSelectionIndex = this.state.selectedModels.indexOf(e)
-    if (currentSelectionIndex !== -1) {
-      this.setState(prevState => ({ selectedModels: prevState.selectedModels.filter(selectedModels => selectedModels !== e) }));
-    } else {
-      this.setState(prevState => ({
-        selectedModels: [...prevState.selectedModels, e]
-      }))
-    }
-
-      /* TODO: stop select events on drag */
-  }
 
   createJoin = () => {
     var selectedModels = [];
@@ -86,7 +72,12 @@ class App extends Component {
     }));
   }
 
-  
+  saveEditedModel = (previousModel, newModel) => {
+    this.setState(prevState => ({
+      models: prevState.models.response.models.filter(models => models !== previousModel) 
+    }));
+    this.setState({models: {...this.state.models, "response": {...this.state.models.response, "models": [...this.state.models.response.models.filter(models => models !== previousModel), newModel]}}});
+  }
 
   removeJoin = (join) => {
     this.setState(prevState => ({ joins: prevState.joins.filter(joins => joins !== join) }));
@@ -141,10 +132,11 @@ class App extends Component {
             <div className="col modelList">
             <DisplayModel 
               models={this.state.models} 
-              selectModel={this.selectModel} 
-              selectedModels={this.state.selectedModels} 
-              forceReload={this.forceReload}
               modelDragEnd={this.modelDragEnd}
+              showColumns={this.state.showColumns}
+              saveEditedModel={this.saveEditedModel}
+              toggleJoinModal = { this.toggleJoinModal }
+              showJoinModal = {this.state.showJoinModal}
             />
             </div>
             <div className="col conditionList">

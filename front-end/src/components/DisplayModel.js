@@ -1,20 +1,16 @@
 import React, {useState} from 'react';
 // import Draggable from 'react-draggable';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { EditJoinPanel } from './EditJoinPanel'
 
 
-export const DisplayModel = ({models, selectModel, selectedModels, forceReload, modelDragEnd}) => {
+export const DisplayModel = ({models, modelDragEnd, showColumns, saveEditedModel, toggleJoinModal, showJoinModal}) => {
+    console.log("DisplayModels: Models");
+    console.log(models);
     if (models.length === 0) return null
-    var highlightIfSelected = (modelName) => {
-        if(selectedModels.indexOf(modelName) !== -1) {
-            return("border-primary");
-        }
-        
-      }
 
-
-    const modelDraw = (model,index) => {
-        const columnRows = (columns) => {
+    const modelDraw = (model,index,showColumns, showJoinModal, toggleJoinModal) => {
+        const columnRows = (columns,showColumns) => {
             const columnRow = (column,index) => {
                 return(
                       <tr key = {index} className={index%2 === 0?'odd':'even'}>
@@ -23,11 +19,10 @@ export const DisplayModel = ({models, selectModel, selectedModels, forceReload, 
                       </tr>
                   );
             }
+            
             const columnRowsOutput = columns.map((column,index) => columnRow(column,index));
             return(<tbody>{columnRowsOutput}</tbody>);
         }
-    
-            
         return(
         <Draggable key={"model_"+model.name} draggableId={model.name} index={index}>
         {(provided, snapshot) => (
@@ -35,26 +30,43 @@ export const DisplayModel = ({models, selectModel, selectedModels, forceReload, 
             ref={provided.innerRef}
             {...provided.draggableProps}
             {...provided.dragHandleProps}
+            className="col"
             >
-            <strong className="cursor">
-                <div className="w-100 bg-secondary text-white text-center">
-                    {model.name}
-                </div>
-            </strong>
+            <div className="w-100 bg-secondary text-white text-center">
+                {model.name}
+            </div>
+            <div className="w-100 bg-light text-dark text-center">
+                {model.description}
+            </div>
+            <div className="w-100 bg-light text-dark text-center">
+                <EditJoinPanel
+                    model = { model }
+                    saveEditedModel = { saveEditedModel }
+                    models = { models }
+                    showJoinModal = { showJoinModal }
+                    toggleJoinModal = { toggleJoinModal }
+                    modelIndex = { index }
+                />
+            </div>
             <table className="table table-bordered table-striped table-hover w-100">
-                    {columnRows(model.columns)}
+                    {showColumns===true ? columnRows(model.columns) : null}
             </table>
             </div>
         )}
         </Draggable>)
     }
-    const modelsDraw = models.response.models.map((model,index) => modelDraw(model,index));
+    const modelsDraw = (models,showColumns, showJoinModal, toggleJoinModal) => 
+        models.response.models.map((model,index) => {
+            return modelDraw(model,index,showColumns, showJoinModal, toggleJoinModal)
+        }
+        );
+    
     
 
     const ModelTable = () => {
 
         return(
-            <div key>
+            <div className="container">
                 
 
                 <DragDropContext onDragEnd={modelDragEnd}> 
@@ -66,33 +78,13 @@ export const DisplayModel = ({models, selectModel, selectedModels, forceReload, 
                         {...provided.droppableProps}
                         ref={provided.innerRef}
                         >
-                        {modelsDraw}
+                        {modelsDraw(models,showColumns, showJoinModal, toggleJoinModal)}
                         {provided.placeholder}
                         </div>
                     )}
                     </Droppable>
                 </DragDropContext>
 
-                
-                {/* <Draggable handle="strong" onStop={forceReload} onDrag={forceReload} nodeRef={draggableNodeRef}>
-                    <div 
-                        className={"noCursor w-25 mb-4 border " + highlightIfSelected(models.response.models[index].name)} 
-                        onClick={() => selectModel(models.response.models[index].name)}
-                        id={"model"+index}
-                        ref={draggableNodeRef}
-                        >
-                    <strong className="cursor">
-                        <div className="w-100 bg-secondary text-white text-center">
-                            {models.response.models[index].name}
-                        </div>
-                    </strong>
-                        <table className="table table-bordered table-striped table-hover w-100">
-                            <tbody>
-                                {columnRows}
-                            </tbody>
-                        </table>
-                    </div>
-                </Draggable> */}
             </div>
         )
     }

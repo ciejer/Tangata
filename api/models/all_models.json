@@ -21,7 +21,13 @@
                 "column_5",
                 "column_6",
                 "column_7"
-            ]
+            ],
+            "joinConditions": [{
+                "conditionField1": {"model": "model_2", "column": "column_1"},
+                "conditionOperator": "=",
+                "conditionField2": {"model": "model_1", "column": "column_1"},
+                "fullName": "model_2.column_1 = model_1.column_1"
+            }]
         }
     ]
 }
