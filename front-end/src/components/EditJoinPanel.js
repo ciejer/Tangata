@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import {Modal, Button, Form} from 'react-bootstrap';
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { useForm } from "react-hook-form";
 
 export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, toggleJoinModal, showJoinModal}) {
-  const [newModel, setModelState] = useState(JSON.parse(JSON.stringify(model)));
+  const [newModel, setModelState] = useState(model);
   const { register, handleSubmit } = useForm();
   if(modelIndex===0) return null;
   // console.log("Start of join panel debug");
@@ -12,6 +11,7 @@ export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, togg
   // console.log(models);
   // console.log(modelIndex);
   // console.log(model);
+  // console.log(newModel);
 
     const handleClose = () => toggleJoinModal(-1);
     const handleShow = () => {
@@ -30,12 +30,12 @@ export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, togg
       var newCondition = (
         {
           "conditionField1": {
-            "model": models.response.models[modelIndex-1].name,
+            "model": model.name,
             "column": data.condition1Field
           },
           "conditionOperator": data.conditionOperator,
           "conditionField2": {
-            "model": model.name,
+            "model": models.response.models[modelIndex-1].name,
             "column": data.condition2Field
           },
           "fullName": model.name+"."+data.condition1Field+" "+data.conditionOperator+" "+models.response.models[modelIndex-1].name+"."+data.condition2Field
@@ -110,7 +110,9 @@ export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, togg
           <Modal.Body>
             Join Conditions:
             <table className="table">
+              <tbody>
               {listJoinConditions}
+              </tbody>
             </table>
             <Form onSubmit={handleSubmit(onSubmit)}>
               <div className="row">

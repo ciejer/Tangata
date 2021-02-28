@@ -60,16 +60,43 @@ class App extends Component {
 
     return result;
   };
+
   modelDragEnd = (result) => {
     // dropped outside the list
     if (!result.destination) {
       return;
     }
-    this.setState({models: {...this.state.models, "response": {...this.state.models.response, "models":  this.reorder(
-        this.state.models.response.models,
-        result.source.index,
-        result.destination.index
-    )}}});
+    if (result.destination.index===result.source.index) {
+      return;
+    }
+    const reorderJoinConditions = (joinConditions) => {
+      var newJoinCondition = JSON.parse(JSON.stringify(joinConditions));
+      for(var joinConditionIndex=0;joinConditionIndex<joinConditions.length;joinConditionIndex++) {
+        newJoinCondition[joinConditionIndex].conditionField1 = joinConditions[joinConditionIndex].conditionField2;
+        newJoinCondition[joinConditionIndex].conditionField2 = joinConditions[joinConditionIndex].conditionField1;
+        newJoinCondition[joinConditionIndex].fullName = 
+          joinConditions[joinConditionIndex].conditionField2.model
+          +"."+joinConditions[joinConditionIndex].conditionField2.column
+          +" "+joinConditions[joinConditionIndex].conditionOperator
+          +" "+joinConditions[joinConditionIndex].conditionField1.model
+          +"."+joinConditions[joinConditionIndex].conditionField1.column
+      }
+      return(newJoinCondition);
+    }
+    var fixedModels = this.reorder(
+      this.state.models.response.models,
+      result.source.index,
+      result.destination.index
+    );
+    var tempJoinConditions = fixedModels[result.source.index].joinConditions;
+    fixedModels[result.source.index].joinConditions = fixedModels[result.destination.index].joinConditions;
+    fixedModels[result.destination.index].joinConditions = tempJoinConditions;
+    if(fixedModels[result.destination.index].joinConditions.length>0) {
+      fixedModels[result.destination.index].joinConditions = reorderJoinConditions(fixedModels[result.destination.index].joinConditions);
+    } else {
+      fixedModels[result.source.index].joinConditions = reorderJoinConditions(fixedModels[result.source.index].joinConditions);
+    }
+    this.setState({models: {...this.state.models, "response": {...this.state.models.response, "models":  fixedModels}}});
     }
   
 
