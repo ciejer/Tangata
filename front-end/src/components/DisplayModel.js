@@ -5,8 +5,8 @@ import { EditJoinPanel } from './EditJoinPanel'
 
 
 export const DisplayModel = ({models, modelDragEnd, showColumns, saveEditedModel, toggleJoinModal, showJoinModal}) => {
-    console.log("DisplayModels: Models");
-    console.log(models);
+    // console.log("DisplayModels: Models");
+    // console.log(models);
     if (models.length === 0) return null
 
     const modelDraw = (model,index,showColumns, showJoinModal, toggleJoinModal) => {

@@ -7,10 +7,11 @@ export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, togg
   const [newModel, setModelState] = useState(JSON.parse(JSON.stringify(model)));
   const { register, handleSubmit } = useForm();
   if(modelIndex===0) return null;
-  console.log(showJoinModal);
-  console.log(models);
-  console.log(modelIndex);
-  console.log(model);
+  // console.log("Start of join panel debug");
+  // console.log(showJoinModal);
+  // console.log(models);
+  // console.log(modelIndex);
+  // console.log(model);
 
     const handleClose = () => toggleJoinModal(-1);
     const handleShow = () => {
@@ -29,7 +30,7 @@ export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, togg
       var newCondition = (
         {
           "conditionField1": {
-            "model": "model_1",
+            "model": models.response.models[modelIndex-1].name,
             "column": data.condition1Field
           },
           "conditionOperator": data.conditionOperator,
@@ -37,7 +38,7 @@ export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, togg
             "model": model.name,
             "column": data.condition2Field
           },
-          "fullName": "model_1"+"."+data.condition1Field+" "+data.conditionOperator+" "+model.name+"."+data.condition2Field
+          "fullName": model.name+"."+data.condition1Field+" "+data.conditionOperator+" "+models.response.models[modelIndex-1].name+"."+data.condition2Field
         }
         );
 
@@ -93,7 +94,9 @@ export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, togg
         </Form.Control>
       );
     }
-  
+    console.log("before render editjoinpanel debug:");
+    console.log(models);
+    console.log(modelIndex);
     return (
       <div>
         <Button variant="primary" onClick={handleShow}>
@@ -109,12 +112,12 @@ export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, togg
             <table className="table">
               {listJoinConditions}
             </table>
-            {/* <Form onSubmit={handleSubmit(onSubmit)}>
+            <Form onSubmit={handleSubmit(onSubmit)}>
               <div className="row">
                 <div className="col">
                   <Form.Group>
-                    <Form.Label>{newJoin.models[0].model}</Form.Label>
-                      {listModelColumns(models,newJoin.models[0].model,register,"condition1Field")}
+                    <Form.Label>{model.name}</Form.Label>
+                      {listModelColumns(models,model.name,register,"condition1Field")}
                   </Form.Group>
                 </div>
                 <div className="col">
@@ -130,8 +133,8 @@ export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, togg
                 <div className="col">
                   
                 <Form.Group>
-                    <Form.Label>{newJoin.models[1].model}</Form.Label>
-                      {listModelColumns(models,newJoin.models[1].model,register,"condition2Field")}
+                    <Form.Label>{models.response.models[modelIndex-1].name}</Form.Label>
+                      {listModelColumns(models,models.response.models[modelIndex-1].name,register,"condition2Field")}
                   </Form.Group>
                 </div>
               </div>
@@ -140,7 +143,7 @@ export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, togg
                   Add
                 </Button>
               </div>
-            </Form> */}
+            </Form>
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={handleClose}>

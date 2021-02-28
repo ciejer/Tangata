@@ -1,21 +1,23 @@
 import React from 'react'
 const conditionConcat = (conditions) => {
+    console.log("SQLPanel Conditions");
+    console.log(conditions);
     if (conditions.length === 0) return null;
     var tempConditionConcat = conditions[0].fullName;
-    for(var conditionIndex=1;conditionIndex<conditionIndex.length;conditionIndex++) {
-        tempConditionConcat += " AND " + conditions[conditionIndex].fullName;
+    for(var conditionIndex=1;conditionIndex<conditions.length;conditionIndex++) {
+        tempConditionConcat += "\n  AND " + conditions[conditionIndex].fullName;
     }
     return tempConditionConcat;
 }
 
 const fromStatement = (state) => {
     var tempFromStatement = "";
-    if (state.joins.length !== 0) {
-        tempFromStatement += "FROM " + state.joins[0].models[0].model + "\n"
-        for(var joinIndex=0;joinIndex<state.joins.length;joinIndex++) {
+    if (state.models.length !== 0) {
+        tempFromStatement += "FROM " + state.models.response.models[0].name + "\n"
+        for(var joinIndex=1;joinIndex<state.models.response.models.length;joinIndex++) {
             tempFromStatement += "LEFT JOIN " 
-                + state.joins[joinIndex].models[1].model 
-                + " ON " + conditionConcat(state.joins[joinIndex].conditions) + "\n";
+                + state.models.response.models[joinIndex].name 
+                + "\n  ON " + conditionConcat(state.models.response.models[joinIndex].joinConditions) + "\n";
         }
     } else {
         tempFromStatement += "FROM " + state.outputModel

@@ -7,7 +7,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 // import JsonFilenameInput from './components/JsonFilenameInput'
 import { DisplayModel } from './components/DisplayModel'
 import { NavBar } from './components/NavBar'
-import { NewModel } from './components/NewModel'
 import { getModelJson } from './services/getModelJson'
 import { JoinElements } from './components/JoinElements'
 import { SQLPanel } from './components/SQLPanel';
@@ -140,24 +139,12 @@ class App extends Component {
             />
             </div>
             <div className="col conditionList">
-              Joins go here
+              Conditions go here
             </div>
             <div className="col outputList">
               Outputs go here
             </div>
           </div>
-            <JoinElements 
-              joins={this.state.joins}
-              removeJoin={this.removeJoin}
-              models={this.state.models}
-              forceReload={this.forceReload}
-              editJoin={this.editJoin}
-              saveEditedJoin={this.saveEditedJoin}
-              toggleJoinModal = { this.toggleJoinModal }
-              showJoinModal = {this.state.showJoinModal}
-              selectedModels = {this.state.selectedModels}
-              selectModel = {this.selectModel}
-            ></JoinElements>
             <Collapse in={ this.state.openSQLPanel } timeout={2000} dimension={'width'}>
                 <div>
               <div id="sqlPanelSideBar" className="sidePanelContent">
