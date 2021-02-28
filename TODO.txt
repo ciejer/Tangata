@@ -1,1 +1,7 @@
 Allow joins to cascade
+
+
+Refactor models to be an ordered list.
+    Box per model
+    Description primary feature
+    Join condition primary action

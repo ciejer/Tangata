@@ -106,7 +106,25 @@ class App extends Component {
   addModel = () => {
     console.log("Not yet implemented"); //TODO: add input model from catalog
   }
+  // this function reorders items on dragdrop
+  reorder = (list, startIndex, endIndex) => {
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
 
+    return result;
+  };
+  modelDragEnd = (result) => {
+    // dropped outside the list
+    if (!result.destination) {
+      return;
+    }
+    this.setState({models: {...this.state.models, "response": {...this.state.models.response, "models":  this.reorder(
+        this.state.models.response.models,
+        result.source.index,
+        result.destination.index
+    )}}});
+    }
   
 
   render() {
@@ -120,13 +138,20 @@ class App extends Component {
               JsonFilenameInput={this.JsonFilenameInput}
               >
             </JsonFilenameInput> */}
-            <div className="col">
+            <div className="col modelList">
             <DisplayModel 
               models={this.state.models} 
               selectModel={this.selectModel} 
               selectedModels={this.state.selectedModels} 
               forceReload={this.forceReload}
+              modelDragEnd={this.modelDragEnd}
             />
+            </div>
+            <div className="col conditionList">
+              Joins go here
+            </div>
+            <div className="col outputList">
+              Outputs go here
             </div>
           </div>
             <JoinElements 

@@ -3,6 +3,7 @@
     "models": [
         {
             "name": "model_1",
+            "description": "This is model 1",
             "file_name": "model_1.sql",
             "columns": [
                 "column_1",
@@ -13,6 +14,7 @@
         },
         {
             "name": "model_2",
+            "description": "This is model 2",
             "file_name": "model_2.sql",
             "columns": [
                 "column_1",
