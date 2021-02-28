@@ -13,6 +13,7 @@ export function EditJoinPanel( {join, joinIndex, saveEditedJoin, models, forceRe
     }
 
     const handleSaveAndClose = () => {
+      // TODO: Create join output columns
       saveEditedJoin(join, newJoin);
       handleClose();
     }
@@ -52,10 +53,10 @@ export function EditJoinPanel( {join, joinIndex, saveEditedJoin, models, forceRe
     const joinConditionRow = (condition, index) => { // row per join condition
       return(
         <tr className="row" key={"joinCondition_" + index}>
-          <td>
+          <td className="col w-75">
           {condition.fullName}
           </td>
-          <td>
+          <td className="col w-25">
           <Button variant="secondary" onClick={() => removeCondition(condition)}>
             Remove
           </Button>
