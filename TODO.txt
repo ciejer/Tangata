@@ -1,7 +1,6 @@
-Allow joins to cascade
+Create Conditions column
+    Try some sort of Functions formatting (Concatenate)
+    Trigger on typed bracket?
+    Search functions?
 
-
-Refactor models to be an ordered list.
-    Box per model
-    Description primary feature
-    Join condition primary action
+Create Outputs columns

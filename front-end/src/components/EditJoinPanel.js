@@ -6,12 +6,12 @@ export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, togg
   const [newModel, setModelState] = useState(model);
   const { register, handleSubmit } = useForm();
   if(modelIndex===0) return null;
-  // console.log("Start of join panel debug");
-  // console.log(showJoinModal);
-  // console.log(models);
-  // console.log(modelIndex);
-  // console.log(model);
-  // console.log(newModel);
+  console.log("Start of join panel debug");
+  console.log(showJoinModal);
+  console.log(models);
+  console.log(modelIndex);
+  console.log(model);
+  console.log(newModel);
 
     const handleClose = () => toggleJoinModal(-1);
     const handleShow = () => {
@@ -51,22 +51,36 @@ export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, togg
     }
 
 
-    const joinConditionRow = (condition, index) => { // row per join condition
+    const joinConditionRow = (condition, index, showRemove) => { // row per join condition
+      if(showRemove===false) {
+        return (
+          <tr className="row" key={"joinCondition_" + index}>
+            <td className="col w-100">
+              {condition.fullName}
+            </td>
+          </tr>
+        );
+      }
       return(
         <tr className="row" key={"joinCondition_" + index}>
           <td className="col w-75">
-          {condition.fullName}
+            {condition.fullName}
           </td>
           <td className="col w-25">
-          <Button variant="secondary" onClick={() => removeCondition(condition)}>
-            Remove
-          </Button>
+            <Button variant="secondary" onClick={() => removeCondition(condition)}>
+              Remove
+            </Button>
           </td>
         </tr>
-      )
+      );
     }
-    const listJoinConditions = newModel.joinConditions.map((condition, index) => joinConditionRow(condition, index)); // map join conditions to 
-    
+    const listJoinConditions = (showRemove) => newModel.joinConditions.map((condition, index) => {
+      return joinConditionRow(condition, index, showRemove);
+    }
+    );
+
+
+
     const listModelColumns = (models,model,register,controlName) => {
       const columnOption = (column,index) => {
         return(
@@ -100,18 +114,22 @@ export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, togg
     return (
       <div>
         <Button variant="primary" onClick={handleShow}>
-          Edit
+          Edit Join
         </Button>
-  
+        <table className="table">
+          <tbody>
+            {listJoinConditions(false)}
+          </tbody>
+        </table>
         <Modal show={(showJoinModal === modelIndex)} onHide={handleClose}>
           <Modal.Header closeButton>
-            <Modal.Title>Edit join </Modal.Title>
+            <Modal.Title>Edit Join </Modal.Title>
           </Modal.Header>
           <Modal.Body>
             Join Conditions:
             <table className="table">
               <tbody>
-              {listJoinConditions}
+              {listJoinConditions(true)}
               </tbody>
             </table>
             <Form onSubmit={handleSubmit(onSubmit)}>

@@ -63,12 +63,15 @@ class App extends Component {
 
   modelDragEnd = (result) => {
     // dropped outside the list
+    console.log("Start of modelDragEnd");
+      console.log(result);
     if (!result.destination) {
       return;
     }
     if (result.destination.index===result.source.index) {
       return;
     }
+    console.log("got past checks");
     const reorderJoinConditions = (joinConditions) => {
       var newJoinCondition = JSON.parse(JSON.stringify(joinConditions));
       for(var joinConditionIndex=0;joinConditionIndex<joinConditions.length;joinConditionIndex++) {
@@ -88,14 +91,18 @@ class App extends Component {
       result.source.index,
       result.destination.index
     );
+    console.log("Fixed Models");
+    console.log(fixedModels);
     var tempJoinConditions = fixedModels[result.source.index].joinConditions;
     fixedModels[result.source.index].joinConditions = fixedModels[result.destination.index].joinConditions;
     fixedModels[result.destination.index].joinConditions = tempJoinConditions;
-    if(fixedModels[result.destination.index].joinConditions.length>0) {
-      fixedModels[result.destination.index].joinConditions = reorderJoinConditions(fixedModels[result.destination.index].joinConditions);
-    } else {
+    console.log(fixedModels[result.source.index]);
+    if(fixedModels[result.source.index].joinConditions) {
       fixedModels[result.source.index].joinConditions = reorderJoinConditions(fixedModels[result.source.index].joinConditions);
+    } else {
+      fixedModels[result.destination.index].joinConditions = reorderJoinConditions(fixedModels[result.destination.index].joinConditions);
     }
+    console.log(fixedModels);
     this.setState({models: {...this.state.models, "response": {...this.state.models.response, "models":  fixedModels}}});
     }
   
