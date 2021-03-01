@@ -29,5 +29,8 @@
                 "fullName": "model_2.column_1 = model_1.column_1"
             }]
         }
+    ],
+    "conditions": [
+        "model_1.column_4 = 'Green'"
     ]
 }

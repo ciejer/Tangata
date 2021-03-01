@@ -24,6 +24,20 @@ const fromStatement = (state) => {
     }
     return tempFromStatement;
 }
+const whereStatement = (state) => {
+    var tempWhereStatement = "";
+    if (state.models.length !== 0) {
+        tempWhereStatement += "WHERE " + state.conditions[0] + "\n"
+        console.log("Loading conditions");
+        console.log(state.conditions.length);
+        for(var conditionIndex=1;conditionIndex<state.conditions.length;conditionIndex++) {
+            tempWhereStatement += "  AND " + state.conditions[conditionIndex] + "\n";
+        }
+    } else {
+        tempWhereStatement += "FROM " + state.outputModel
+    }
+    return tempWhereStatement;
+}
 export const SQLPanel = ({state}) => {
     // const fromItem = (joinModel) => {
     //     return(
@@ -35,6 +49,7 @@ export const SQLPanel = ({state}) => {
         Generated SQL:
         <div className="sqlContent">
             {fromStatement(state)}
+            {whereStatement(state)}
         </div>
     </div>
     )

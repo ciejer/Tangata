@@ -4,7 +4,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { EditJoinPanel } from './EditJoinPanel'
 
 
-export const DisplayModel = ({models, modelDragEnd, showColumns, saveEditedModel, toggleJoinModal, showJoinModal}) => {
+export const Models = ({models, modelDragEnd, showColumns, saveEditedModel, toggleJoinModal, showJoinModal}) => {
     // console.log("DisplayModels: Models");
     // console.log(models);
     if (models.length === 0) return null
@@ -90,7 +90,7 @@ export const DisplayModel = ({models, modelDragEnd, showColumns, saveEditedModel
     }
 
     return(
-        <div className="container">
+        <div className="text-center">
             <h2>Models</h2>
                 {ModelTable()}
         </div>

@@ -1,11 +1,12 @@
-import React, { Component} from 'react';
-import {Collapse} from 'react-bootstrap';
+import React, { Component } from 'react';
+import {Collapse, Container, Row, Col } from 'react-bootstrap';
 import { XCircle } from 'react-bootstrap-icons';
 // import logo from './logo.svg';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 // import JsonFilenameInput from './components/JsonFilenameInput'
-import { DisplayModel } from './components/DisplayModel'
+import { Models } from './components/Models'
+import { Conditions } from './components/Conditions'
 import { NavBar } from './components/NavBar'
 import { getModelJson } from './services/getModelJson'
 import { SQLPanel } from './components/SQLPanel';
@@ -18,7 +19,8 @@ class App extends Component {
     openSQLPanel: false,
     showJoinModal: -1,
     outputModel: "",
-    showColumns: true
+    showColumns: true,
+    conditions: []
   }
 
   toggleJoinModal = (joinNum) => {
@@ -33,7 +35,8 @@ class App extends Component {
   componentDidMount() { // on load
     getModelJson('all_models.json')
       .then(response => {
-        this.setState({models: {response}})
+        this.setState({models: {response}});
+        this.setState({conditions: response.conditions});
     });
   }
 
@@ -52,6 +55,30 @@ class App extends Component {
   addModel = () => {
     console.log("Not yet implemented"); //TODO: add input model from catalog
   }
+
+  
+  addCondition = (condition) => {
+    console.log("addCondition")
+    console.log(condition);
+  }
+
+  editCondition = (oldCondition, newCondition) => {
+    console.log("editCondition")
+    console.log(oldCondition);
+    console.log(newCondition);
+    
+    this.setState({conditions: [...this.state.conditions.filter(conditions => conditions !== oldCondition), newCondition]});
+  
+  }
+
+  removeCondition = (condition) => {
+    console.log("removeCondition")
+    console.log(condition);
+    this.setState(prevState => ({
+      conditions: prevState.conditions.filter(conditions => conditions !== condition) 
+    }));
+  }
+
   // this function reorders items on dragdrop
   reorder = (list, startIndex, endIndex) => {
     const result = Array.from(list);
@@ -111,32 +138,40 @@ class App extends Component {
     return (
         <div id="main">
           <NavBar addModel={this.addModel} logState={this.logState} openSQLPanel={this.openSQLPanel}></NavBar>
-          <div className="row">
-            {/* <JsonFilenameInput 
-              onChangeForm={this.onChangeForm}
-              getModelJson={this.getModelJson}
-              JsonFilenameInput={this.JsonFilenameInput}
-              >
-            </JsonFilenameInput> */}
-            <div className="col modelList">
-            <DisplayModel 
-              models={this.state.models} 
-              modelDragEnd={this.modelDragEnd}
-              showColumns={this.state.showColumns}
-              saveEditedModel={this.saveEditedModel}
-              toggleJoinModal = { this.toggleJoinModal }
-              showJoinModal = {this.state.showJoinModal}
-            />
-            </div>
-            <div className="col conditionList">
-              Conditions go here
-            </div>
-            <div className="col outputList">
-              Outputs go here
-            </div>
-          </div>
-            <Collapse in={ this.state.openSQLPanel } timeout={2000} dimension={'width'}>
-                <div>
+          <Container fluid>
+            <Row>
+              <Col>
+                <div className="modelList">
+                  <Models 
+                    models={this.state.models} 
+                    modelDragEnd={this.modelDragEnd}
+                    showColumns={this.state.showColumns}
+                    saveEditedModel={this.saveEditedModel}
+                    toggleJoinModal = { this.toggleJoinModal }
+                    showJoinModal = {this.state.showJoinModal}
+                  />
+                </div>
+              </Col>
+              <Col>
+                <div className="conditionList">
+                  <Conditions 
+                      models={this.state.models} 
+                      conditions={this.state.conditions}
+                      addCondition={this.addCondition}
+                      editCondition={this.editCondition}
+                      removeCondition={this.removeCondition}
+                    />
+                </div>
+                </Col>
+                <Col>
+                <div className="outputList">
+                  Outputs go here
+                </div>
+              </Col>
+            </Row>
+          </Container>
+          <Collapse in={ this.state.openSQLPanel } timeout={2000} dimension={'width'}>
+            <div>
               <div id="sqlPanelSideBar" className="sidePanelContent">
                 <div className="sideBarExitButton">
                   <XCircle onClick={() => this.setState({openSQLPanel: false})}></XCircle>
@@ -146,9 +181,9 @@ class App extends Component {
                 >
                 </SQLPanel>
               </div>
-              </div>
-              </Collapse>
-          </div>
+            </div>
+          </Collapse>
+        </div>
           
     );
   }
