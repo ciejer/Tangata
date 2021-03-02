@@ -84,6 +84,20 @@ export const Conditions = ({models, conditions, addCondition, editCondition, rem
         for(var modelIndex=0;modelIndex<models.response.models.length;modelIndex++) {
           for(var columnIndex=0;columnIndex<models.response.models[modelIndex].columns.length;columnIndex++) {
             tempModelColumns.push(models.response.models[modelIndex].columns[columnIndex]);
+            tempModelColumns.push(models.response.models[modelIndex].name+"."+models.response.models[modelIndex].columns[columnIndex]);
+          }
+        }
+        console.log("tempModelColumns");
+        console.log(tempModelColumns);
+        return tempModelColumns;
+      }
+
+      const modelFullColumns = () => {
+        var tempModelColumns = [];
+        for(var modelIndex=0;modelIndex<models.response.models.length;modelIndex++) {
+          for(var columnIndex=0;columnIndex<models.response.models[modelIndex].columns.length;columnIndex++) {
+            tempModelColumns.push(models.response.models[modelIndex].name+"."+models.response.models[modelIndex].columns[columnIndex]);
+            tempModelColumns.push(models.response.models[modelIndex].name+"."+models.response.models[modelIndex].columns[columnIndex]);
           }
         }
         console.log("tempModelColumns");
@@ -104,7 +118,7 @@ export const Conditions = ({models, conditions, addCondition, editCondition, rem
                 <div className="col">
                   <Form.Group>
                     <Form.Label>Condition Criteria</Form.Label>
-                      <AutocompleteTextField className="form-control" rows={3} ref={conditionCriteria} options={modelColumns()} trigger="" defaultValue={editConditionMenu.conditionToEdit}/>
+                      <AutocompleteTextField className="form-control" rows={3} ref={conditionCriteria} options={modelColumns()} fullOptions={modelFullColumns()} trigger="" defaultValue={editConditionMenu.conditionToEdit}/>
                   </Form.Group>
                 </div>
               </div>

@@ -49,7 +49,7 @@ const propTypes = {
   onKeyDown: PropTypes.func,
   onRequestOptions: PropTypes.func,
   onSelect: PropTypes.func,
-  options: PropTypes.arrayOf(PropTypes.string),
+  options: PropTypes.arrayOf(PropTypes.object),
   regex: PropTypes.string,
   matchAny: PropTypes.bool,
   minChars: PropTypes.number,
@@ -74,6 +74,7 @@ const defaultProps = {
   onRequestOptions: () => {},
   onSelect: () => {},
   options: [],
+  fullOptions: [],
   regex: '^[A-Za-z0-9\\-_]+$',
   matchAny: false,
   minChars: 0,
@@ -108,6 +109,7 @@ class AutocompleteTextField extends React.Component {
       matchLength: 0,
       matchStart: 0,
       options: [],
+      fullOptions: [],
       selection: 0,
       top: 0,
       value: null,
@@ -121,14 +123,16 @@ class AutocompleteTextField extends React.Component {
     window.addEventListener('resize', this.handleResize);
     console.log("Autocomplete");
     console.log(this.recentValue);
+    console.log(this.state.fullOptions);
   }
 
   componentDidUpdate(prevProps) {
     const { options } = this.props;
+    const { fullOptions } = this.props;
     const { caret } = this.state;
 
     if (options.length !== prevProps.options.length) {
-      this.updateHelper(this.recentValue, caret, options);
+      this.updateHelper(this.recentValue, caret, options, fullOptions);
     }
   }
 
@@ -136,7 +140,7 @@ class AutocompleteTextField extends React.Component {
     window.removeEventListener('resize', this.handleResize);
   }
 
-  getMatch(str, caret, providedOptions) {
+  getMatch(str, caret, providedOptions, fullOptions) {
     const { trigger, matchAny, regex } = this.props;
     const re = new RegExp(regex);
     const triggerLength = trigger.length;
@@ -178,8 +182,16 @@ class AutocompleteTextField extends React.Component {
           const idx = slug.toLowerCase().indexOf(matchedSlug.toLowerCase());
           return idx !== -1 && (matchAny || idx === 0);
         });
-
+        var newFullOptions = [];
+        for(var j=1;j<options.length;j++) {
+            const matchIdx = options[j].toLowerCase().indexOf(matchedSlug.toLowerCase());
+            if(matchIdx !== -1 && (matchAny || matchIdx === 0))
+            newFullOptions.push(fullOptions[j]);
+        }
+        this.setState({"fullOptions": newFullOptions});
         const matchLength = matchedSlug.length;
+        console.log("returning slug:")
+        console.log(options);
 
         return { matchStart, matchLength, options };
       }
@@ -206,6 +218,7 @@ class AutocompleteTextField extends React.Component {
     const {
       onChange,
       options,
+      fullOptions,
       spaceRemovers,
       spacer,
       value,
@@ -236,7 +249,7 @@ class AutocompleteTextField extends React.Component {
             && str[i - 1] === spacer
             && spaceRemovers.indexOf(str[i - 2]) === -1
             && spaceRemovers.indexOf(str[i]) !== -1
-            && this.getMatch(str.substring(0, i - 2), caret - 3, options)
+            && this.getMatch(str.substring(0, i - 2), caret - 3, options, fullOptions)
           ) {
             const newValue = (`${str.slice(0, i - 1)}${str.slice(i, i + 1)}${str.slice(i - 1, i)}${str.slice(i + 1)}`);
 
@@ -257,7 +270,7 @@ class AutocompleteTextField extends React.Component {
       this.enableSpaceRemovers = false;
     }
 
-    this.updateHelper(str, caret, options);
+    this.updateHelper(str, caret, options, fullOptions);
 
     if (!value) {
       this.setState({ value: e.target.value });
@@ -306,10 +319,12 @@ class AutocompleteTextField extends React.Component {
   }
 
   handleSelection(idx) {
-    const { matchStart, matchLength, options } = this.state;
+    const { matchStart, matchLength, fullOptions } = this.state;
     const { spacer, onSelect } = this.props;
-
-    const slug = options[idx];
+    console.log("handleSelection");
+    console.log(idx);
+    console.log(fullOptions);
+    const slug = fullOptions[idx];
     const value = this.recentValue;
     const part1 = value.substring(0, matchStart);
     const part2 = value.substring(matchStart + matchLength);
@@ -331,10 +346,10 @@ class AutocompleteTextField extends React.Component {
     this.setState({ caret }, () => setCaretPosition(this.refInput.current, caret));
   }
 
-  updateHelper(str, caret, options) {
+  updateHelper(str, caret, options, fullOptions) {
     const input = this.refInput.current;
 
-    const slug = this.getMatch(str, caret, options);
+    const slug = this.getMatch(str, caret, options, fullOptions);
 
     if (slug) {
       const caretPos = getCaretCoordinates(input, caret);
@@ -387,6 +402,7 @@ class AutocompleteTextField extends React.Component {
       matchStart,
       matchLength,
       options,
+      fullOptions,
       selection,
       top,
       value,

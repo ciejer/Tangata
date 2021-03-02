@@ -7,9 +7,9 @@
             "file_name": "model_1.sql",
             "columns": [
                 "column_1",
-                "column_2",
-                "column_3",
-                "column_4"
+                "column_25",
+                "column_26",
+                "column_27"
             ]
         },
         {
@@ -18,9 +18,9 @@
             "file_name": "model_2.sql",
             "columns": [
                 "column_1",
-                "column_5",
-                "column_6",
-                "column_7"
+                "column_11",
+                "column_12",
+                "column_13"
             ],
             "joinConditions": [{
                 "conditionField1": {"model": "model_2", "column": "column_1"},
@@ -31,6 +31,6 @@
         }
     ],
     "conditions": [
-        "model_1.column_4 = 'Green'"
+        "model_1.column_25 = 'Green'"
     ]
 }
