@@ -75,7 +75,7 @@ export const Conditions = ({models, conditions, addCondition, editCondition, rem
       if(editConditionMenu.menuOpen === false) return null;
       const conditionCriteria = React.createRef();
       const handleModalSaveAndClose = () => {
-        editCondition(editConditionMenu.conditionToEdit,conditionCriteria.current.value);
+        editCondition(editConditionMenu.conditionToEdit,conditionCriteria.current.recentValue);
         handleModalClose();
       }
       
