@@ -69,6 +69,10 @@
   text-align: center;
 }
 
+.joinConditionAddButton {
+  margin-top: 31px;
+}
+
 .react-autocomplete-input {
   background-clip: padding-box;
   background-color: #fff;
@@ -93,4 +97,9 @@
 .react-autocomplete-input > li.active {
  background-color: #337ab7;
  color: #fff;
+}
+
+.highlightColumn {
+  font-weight: bolder;
+  color: black;
 }

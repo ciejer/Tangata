@@ -1,6 +1,9 @@
-Create Conditions column
+Add Column Descriptions
+
+Conditions column enhancements
     Try some sort of Functions formatting (Concatenate)
-    Trigger on typed bracket?
-    Search functions?
+    Autocomplete differently on typed trigger character
+    Hide joined model join columns from condition autocomplete
+    Highlight keywords & object references differently
 
 Create Outputs columns

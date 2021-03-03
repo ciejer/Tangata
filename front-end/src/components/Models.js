@@ -4,18 +4,27 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { EditJoinPanel } from './EditJoinPanel'
 
 
-export const Models = ({models, modelDragEnd, showColumns, saveEditedModel, toggleJoinModal, showJoinModal}) => {
+export const Models = ({models, modelDragEnd, showColumns, saveEditedModel, toggleJoinModal, showJoinModal, highlightedColumns}) => {
     // console.log("DisplayModels: Models");
     // console.log(models);
     if (models.length === 0) return null
 
-    const modelDraw = (model,index,showColumns, showJoinModal, toggleJoinModal) => {
+    const modelDraw = (model,index,showColumns, showJoinModal, toggleJoinModal, highlightedColumns) => {
         const columnRows = (columns,showColumns) => {
             const columnRow = (column,index) => {
+                console.log("modelDraw");
+                console.log(model);
+                console.log(column);
+                var highlightThisColumn = false;
+                for(var highlightedColumnIndex=0;highlightedColumnIndex<highlightedColumns.length;highlightedColumnIndex++) {
+                    if(model.name===highlightedColumns[highlightedColumnIndex].model && column===highlightedColumns[highlightedColumnIndex].column) {
+                        highlightThisColumn = true;
+                    }
+                }
                 return(
                       <tr key = {index} className={index%2 === 0?'odd':'even'}>
-                          <td className="col-md-auto">{index + 1}</td>
-                          <td className="col">{column}</td>
+                          <td className={"col-md-auto "+(highlightThisColumn?"highlightColumn":null)}>{index + 1}</td>
+                          <td className={"col "+(highlightThisColumn?"highlightColumn":null)}>{column}</td>
                       </tr>
                   );
             }
@@ -32,10 +41,10 @@ export const Models = ({models, modelDragEnd, showColumns, saveEditedModel, togg
             {...provided.dragHandleProps}
             className="col"
             >
-            <div className="w-100 bg-secondary text-white text-center">
+            <div className="w-100 bg-secondary text-white text-center font-weight-bold">
                 {model.name}
             </div>
-            <div className="w-100 bg-light text-dark text-center">
+            <div className="w-100 bg-light text-dark text-center font-italic mb-3">
                 {model.description}
             </div>
             <div className="w-100 bg-light text-dark text-center">
@@ -57,7 +66,7 @@ export const Models = ({models, modelDragEnd, showColumns, saveEditedModel, togg
     }
     const modelsDraw = (models,showColumns, showJoinModal, toggleJoinModal) => 
         models.response.models.map((model,index) => {
-            return modelDraw(model,index,showColumns, showJoinModal, toggleJoinModal)
+            return modelDraw(model,index,showColumns, showJoinModal, toggleJoinModal, highlightedColumns)
         }
         );
     
@@ -78,7 +87,7 @@ export const Models = ({models, modelDragEnd, showColumns, saveEditedModel, togg
                         {...provided.droppableProps}
                         ref={provided.innerRef}
                         >
-                        {modelsDraw(models,showColumns, showJoinModal, toggleJoinModal)}
+                        {modelsDraw(models,showColumns, showJoinModal, toggleJoinModal, highlightedColumns)}
                         {provided.placeholder}
                         </div>
                     )}

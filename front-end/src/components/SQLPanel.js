@@ -1,7 +1,7 @@
 import React from 'react'
 const conditionConcat = (conditions) => {
-    console.log("SQLPanel Conditions");
-    console.log(conditions);
+    // console.log("SQLPanel Conditions");
+    // console.log(conditions);
     if (conditions.length === 0) return null;
     var tempConditionConcat = conditions[0].fullName;
     for(var conditionIndex=1;conditionIndex<conditions.length;conditionIndex++) {
@@ -28,8 +28,8 @@ const whereStatement = (state) => {
     var tempWhereStatement = "";
     if (state.models.length !== 0) {
         tempWhereStatement += "WHERE " + state.conditions[0] + "\n"
-        console.log("Loading conditions");
-        console.log(state.conditions.length);
+        // console.log("Loading conditions");
+        // console.log(state.conditions.length);
         for(var conditionIndex=1;conditionIndex<state.conditions.length;conditionIndex++) {
             tempWhereStatement += "  AND " + state.conditions[conditionIndex] + "\n";
         }

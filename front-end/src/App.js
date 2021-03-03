@@ -7,6 +7,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 // import JsonFilenameInput from './components/JsonFilenameInput'
 import { Models } from './components/Models'
 import { Conditions } from './components/Conditions'
+import { Selects } from './components/Selects'
 import { NavBar } from './components/NavBar'
 import { getModelJson } from './services/getModelJson'
 import { SQLPanel } from './components/SQLPanel';
@@ -20,7 +21,10 @@ class App extends Component {
     showJoinModal: -1,
     outputModel: "",
     showColumns: true,
-    conditions: []
+    conditions: [],
+    clicked: false,
+    contextMenuOpen: false,
+    highlightedColumns: []
   }
 
   toggleJoinModal = (joinNum) => {
@@ -32,6 +36,15 @@ class App extends Component {
     this.setState({openSQLPanel: true})
   }
 
+  // componentDidUpdate() {
+  //   console.log("componentDidUpdate");
+  //   if(this.state.clicked===true && this.state.contextMenuOpen===true) {
+  //     console.log("clicked");
+  //     this.setState({clicked: false});
+  //     this.setState({contextMenuOpen: false})
+  //   }
+  // }
+
   componentDidMount() { // on load
     getModelJson('all_models.json')
       .then(response => {
@@ -41,6 +54,9 @@ class App extends Component {
   }
 
   saveEditedModel = (previousModel, newModel) => {
+    // console.log("saveEditedModel");
+    // console.log(previousModel);
+    // console.log(newModel);
     this.setState(prevState => ({
       models: prevState.models.response.models.filter(models => models !== previousModel) 
     }));
@@ -58,22 +74,22 @@ class App extends Component {
 
   
   addCondition = (condition) => {
-    console.log("addCondition")
-    console.log(condition);
+    // console.log("addCondition")
+    // console.log(condition);
   }
 
   editCondition = (oldCondition, newCondition) => {
-    console.log("editCondition")
-    console.log(oldCondition);
-    console.log(newCondition);
+    // console.log("editCondition")
+    // console.log(oldCondition);
+    // console.log(newCondition);
     
     this.setState({conditions: [...this.state.conditions.filter(conditions => conditions !== oldCondition), newCondition]});
   
   }
 
   removeCondition = (condition) => {
-    console.log("removeCondition")
-    console.log(condition);
+    // console.log("removeCondition")
+    // console.log(condition);
     this.setState(prevState => ({
       conditions: prevState.conditions.filter(conditions => conditions !== condition) 
     }));
@@ -88,17 +104,37 @@ class App extends Component {
     return result;
   };
 
+  handleAllClicks = (e) => {
+    if(this.state.contextMenuOpen===true) {
+      this.setState({clicked: true,contextMenuOpen: true});
+    }
+  }
+
+  contextMenuOpen = (openState) => {
+    if(openState===true) {
+      this.setState({contextMenuOpen: true});
+    } else {
+      this.setState({contextMenuOpen: false, clicked: false});
+    }
+  }
+
+  highlightColumn = (columnsToHighlight) => {
+    // console.log("highlightColumn");
+    // console.log(columnsToHighlight);
+    this.setState({highlightedColumns: columnsToHighlight});
+  }
+
   modelDragEnd = (result) => {
     // dropped outside the list
-    console.log("Start of modelDragEnd");
-      console.log(result);
+    // console.log("Start of modelDragEnd");
+    //   console.log(result);
     if (!result.destination) {
       return;
     }
     if (result.destination.index===result.source.index) {
       return;
     }
-    console.log("got past checks");
+    // console.log("got past checks");
     const reorderJoinConditions = (joinConditions) => {
       var newJoinCondition = JSON.parse(JSON.stringify(joinConditions));
       for(var joinConditionIndex=0;joinConditionIndex<joinConditions.length;joinConditionIndex++) {
@@ -118,25 +154,25 @@ class App extends Component {
       result.source.index,
       result.destination.index
     );
-    console.log("Fixed Models");
-    console.log(fixedModels);
+    // console.log("Fixed Models");
+    // console.log(fixedModels);
     var tempJoinConditions = fixedModels[result.source.index].joinConditions;
     fixedModels[result.source.index].joinConditions = fixedModels[result.destination.index].joinConditions;
     fixedModels[result.destination.index].joinConditions = tempJoinConditions;
-    console.log(fixedModels[result.source.index]);
+    // console.log(fixedModels[result.source.index]);
     if(fixedModels[result.source.index].joinConditions) {
       fixedModels[result.source.index].joinConditions = reorderJoinConditions(fixedModels[result.source.index].joinConditions);
     } else {
       fixedModels[result.destination.index].joinConditions = reorderJoinConditions(fixedModels[result.destination.index].joinConditions);
     }
-    console.log(fixedModels);
+    // console.log(fixedModels);
     this.setState({models: {...this.state.models, "response": {...this.state.models.response, "models":  fixedModels}}});
     }
   
 
   render() {
     return (
-        <div id="main">
+        <div id="main" onClick={this.handleAllClicks} onContextMenu={this.handleAllClicks}>
           <NavBar addModel={this.addModel} logState={this.logState} openSQLPanel={this.openSQLPanel}></NavBar>
           <Container fluid>
             <Row>
@@ -149,6 +185,7 @@ class App extends Component {
                     saveEditedModel={this.saveEditedModel}
                     toggleJoinModal = { this.toggleJoinModal }
                     showJoinModal = {this.state.showJoinModal}
+                    highlightedColumns = {this.state.highlightedColumns}
                   />
                 </div>
               </Col>
@@ -160,12 +197,17 @@ class App extends Component {
                       addCondition={this.addCondition}
                       editCondition={this.editCondition}
                       removeCondition={this.removeCondition}
+                      clicked={this.state.clicked}
+                      contextMenuOpen={this.contextMenuOpen}
                     />
                 </div>
                 </Col>
                 <Col>
                 <div className="outputList">
-                  Outputs go here
+                  <Selects
+                    models={this.state.models}
+                    highlightColumn={this.highlightColumn}
+                  />
                 </div>
               </Col>
             </Row>

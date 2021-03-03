@@ -7,38 +7,45 @@ import { EditJoinPanel } from './EditJoinPanel'
 import AutocompleteTextField from './AutoComplete';
 
 
-export const Conditions = ({models, conditions, addCondition, editCondition, removeCondition}) => {
+export const Conditions = ({models, conditions, addCondition, editCondition, removeCondition, clicked, contextMenuOpen}) => {
     const [contextMenu, setContextMenu] = useState({"x":null,"y":null,"display":false});
     const [editConditionMenu, setEditConditionMenu] = useState({"show": false, "conditionToEdit":""});
     const { register, handleSubmit } = useForm();
-    console.log("Conditions debug:");
-    console.log(models);
-    console.log(conditions);
-    console.log(contextMenu);
-    console.log(editConditionMenu);
+    if(clicked===true && contextMenu.display===true) { //add this to every other component that has context menus
+      setContextMenu({"x":null,"y":null,"display":false});
+      contextMenuOpen(false);
+    }
+    // console.log("Conditions debug:");
+    // console.log(models);
+    // console.log(conditions);
+    // console.log(contextMenu);
+    // console.log(editConditionMenu);
     if (models.length === 0) return null
 
-    const showConditions = (conditions,editCondition,removeCondition) => {
+    const showConditions = (conditions,editCondition,removeCondition,contextMenuOpen) => {
         // console.log(conditions);
         if (conditions.length === 0) return null;
         const handleClick = (e) => {
-          console.log(e);
+          // console.log(e);
             if (e.type === 'click') {
               setContextMenu({"x":null,"y":null,"display":false});
+              contextMenuOpen(false);
             } else if (e.type === 'contextmenu') {
               e.preventDefault();
               if(contextMenu.display===false) { //if contextMenu is not displayed
                 setContextMenu({"x":e.pageX,"y":e.pageY,"display":true,"clickTargetType":"Condition","target": e.target});
+                contextMenuOpen(true);
               } else {
                 setContextMenu({"x":null,"y":null,"display":false});
+                contextMenuOpen(false);
               }
             }
         }
         const conditionRow = (condition, index, handleClick) => {
-            console.log("conditionRow");
+            // console.log("conditionRow");
             // console.log(condition);
-            console.log(index);
-            console.log(index%2 === 0?'odd':'even');
+            // console.log(index);
+            // console.log(index%2 === 0?'odd':'even');
             return ( 
                 <tr key={index} className={"componentRow "} onClick={handleClick} onContextMenu={handleClick}>
                   <td md="auto" className="fullSize">
@@ -70,8 +77,8 @@ export const Conditions = ({models, conditions, addCondition, editCondition, rem
 
       
     const editConditionMenuDisplay = (editConditionMenu, handleModalClose, editCondition) => {
-      console.log("Displaying Edit Condition Modal");
-      console.log(editConditionMenu);
+      // console.log("Displaying Edit Condition Modal");
+      // console.log(editConditionMenu);
       if(editConditionMenu.menuOpen === false) return null;
       const conditionCriteria = React.createRef();
       const handleModalSaveAndClose = () => {
@@ -87,8 +94,8 @@ export const Conditions = ({models, conditions, addCondition, editCondition, rem
             tempModelColumns.push(models.response.models[modelIndex].name+"."+models.response.models[modelIndex].columns[columnIndex]);
           }
         }
-        console.log("tempModelColumns");
-        console.log(tempModelColumns);
+        // console.log("tempModelColumns");
+        // console.log(tempModelColumns);
         return tempModelColumns;
       }
 
@@ -100,8 +107,8 @@ export const Conditions = ({models, conditions, addCondition, editCondition, rem
             tempModelColumns.push(models.response.models[modelIndex].name+"."+models.response.models[modelIndex].columns[columnIndex]);
           }
         }
-        console.log("tempModelColumns");
-        console.log(tempModelColumns);
+        // console.log("tempModelColumns");
+        // console.log(tempModelColumns);
         return tempModelColumns;
       }
 
@@ -180,7 +187,7 @@ export const Conditions = ({models, conditions, addCondition, editCondition, rem
         <div>
           <h2 className="text-center">Conditions</h2>
           <div>
-            {showConditions(conditions,editCondition,removeCondition,contextMenu,setContextMenu)}
+            {showConditions(conditions,editCondition,removeCondition,contextMenuOpen)}
             {contextMenuDisplay(contextMenu)}
             {editConditionMenuDisplay(editConditionMenu, handleModalClose, editCondition)}
           </div>

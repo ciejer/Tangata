@@ -2,35 +2,36 @@
     "version": 0.1,
     "models": [
         {
-            "name": "model_1",
-            "description": "This is model 1",
-            "file_name": "model_1.sql",
+            "name": "humans",
+            "description": "Human Beings, from planet Earth",
+            "file_name": "humans.sql",
             "columns": [
-                "column_1",
-                "column_25",
-                "column_26",
-                "column_27"
+                "human_id",
+                "name",
+                "favourite_colour",
+                "tasting_notes"
             ]
         },
         {
-            "name": "model_2",
-            "description": "This is model 2",
-            "file_name": "model_2.sql",
+            "name": "abductions",
+            "description": "Attempts to abduct a human for 'testing'",
+            "file_name": "abductions.sql",
             "columns": [
-                "column_1",
-                "column_11",
-                "column_12",
-                "column_13"
+                "human_id",
+                "abduction_datetime",
+                "location_universe_grid",
+                "successful_flag",
+                "survived_flag"
             ],
             "joinConditions": [{
-                "conditionField1": {"model": "model_2", "column": "column_1"},
+                "conditionField1": {"model": "abductions", "column": "human_id"},
                 "conditionOperator": "=",
-                "conditionField2": {"model": "model_1", "column": "column_1"},
-                "fullName": "model_2.column_1 = model_1.column_1"
+                "conditionField2": {"model": "humans", "column": "human_id"},
+                "fullName": "abductions.human_id = humans.human_id"
             }]
         }
     ],
     "conditions": [
-        "model_1.column_25 = 'Green'"
+        "humans.favourite_colour = 'Green'"
     ]
 }
