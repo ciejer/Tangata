@@ -5,8 +5,9 @@ import { Container, Overlay, Table } from 'react-bootstrap';
 
 export function Selects( {models, clicked, contextMenuOpen, selects, editSelect, highlightColumn}) {
     const [contextMenu, setContextMenu] = useState({"x":null,"y":null,"display":false});
-    // console.log("Selects:")
-    // console.log(models);
+    console.log("Selects:")
+    console.log(models);
+    console.log(contextMenu);
     if (models.length === 0) return null
 
     if(clicked===true && contextMenu.display===true) { //add this to every other component that has context menus
@@ -46,9 +47,9 @@ export function Selects( {models, clicked, contextMenuOpen, selects, editSelect,
 
     const contextMenuDisplay = (contextMenu) => {
         if(contextMenu.display === false) return null;
-        // console.log("Displaying Context Menu");
-        // console.log(contextMenu);
-        // console.log(contextMenu.target.firstChild.data);
+        console.log("Displaying Context Menu");
+        console.log(contextMenu);
+        console.log(contextMenu.target.firstChild.data);
         const clickEditSelect = (selectToEdit) => {
           setContextMenu({"x":null,"y":null,"display":false});
         //   setEditConditionMenu({"show": true, "conditionToEdit":contextMenu.target.firstChild.data});
@@ -59,19 +60,19 @@ export function Selects( {models, clicked, contextMenuOpen, selects, editSelect,
         };
         return(
           <div>
-            <Overlay target={contextMenu.target} show={contextMenu.display} placement="right-start">
+            <Overlay target={contextMenu.target} show={contextMenu.display} placement="left-start">
               <div>
                 <Table bordered variant="dark">
                   <tbody>
                     <tr>
                       <td onClick={() => clickEditSelect(contextMenu.target.firstChild.data)}>
-                        <div>Edit Column</div>
+                        <div>Edit Field</div>
                         
                       </td>
                     </tr>
                     <tr>
                       <td onClick={() => clickRemoveSelect(contextMenu.target.firstChild.data)}>
-                        Delete Column
+                        Delete Field
                       </td>
                     </tr>
                   </tbody>
@@ -104,8 +105,8 @@ export function Selects( {models, clicked, contextMenuOpen, selects, editSelect,
         const allModelColumns = modelColumns(models);
         return allModelColumns.map((col,index) => {
             return(
-                <tr key={index} className="row" onMouseEnter={() => highlightColumn([col])} onMouseLeave={() => highlightColumn([])}>
-                    <td className="col" onClick={() => handleClick} onContextMenu={() => handleClick}>
+                <tr key={index} className="row" onMouseEnter={() => highlightColumn([col])} onMouseLeave={() => highlightColumn([])} onClick={(e) => handleClick(e)} onContextMenu={(e) => handleClick(e)}>
+                    <td className="col">
                         {col.column}
                     </td>
                 </tr>
@@ -121,7 +122,7 @@ export function Selects( {models, clicked, contextMenuOpen, selects, editSelect,
             <div className="w-100 bg-secondary text-white text-center">Choose and transform fields</div>
             <table className="table table-striped table-hover w-100">
                 <tbody>
-                {listModelColumns(models,modelColumns, highlightColumn,contextMenuOpen)}
+                    {listModelColumns(models,modelColumns, highlightColumn,contextMenuOpen)}
                 </tbody>
             </table>
             {contextMenuDisplay(contextMenu)}

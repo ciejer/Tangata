@@ -215,6 +215,7 @@ class App extends Component {
                     highlightColumn={this.highlightColumn}
                     selects={this.state.selects}
                     editSelect={this.editSelect}
+                    clicked={this.state.clicked}
                     contextMenuOpen={this.contextMenuOpen}
                   />
                 </div>
