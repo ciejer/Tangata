@@ -22,6 +22,7 @@ class App extends Component {
     outputModel: "",
     showColumns: true,
     conditions: [],
+    selects: [],
     clicked: false,
     contextMenuOpen: false,
     highlightedColumns: []
@@ -72,11 +73,6 @@ class App extends Component {
     console.log("Not yet implemented"); //TODO: add input model from catalog
   }
 
-  
-  addCondition = (condition) => {
-    // console.log("addCondition")
-    // console.log(condition);
-  }
 
   editCondition = (oldCondition, newCondition) => {
     // console.log("editCondition")
@@ -95,6 +91,16 @@ class App extends Component {
     }));
   }
 
+
+  editSelect = (oldSelect, newSelect) => {
+    // console.log("editSelect")
+    // console.log(oldSelect);
+    // console.log(newSelect);
+    
+    this.setState({selects: [...this.state.selects.filter(selects => selects !== oldSelect), newSelect]});
+  
+  }
+
   // this function reorders items on dragdrop
   reorder = (list, startIndex, endIndex) => {
     const result = Array.from(list);
@@ -111,6 +117,7 @@ class App extends Component {
   }
 
   contextMenuOpen = (openState) => {
+    console.log("contextMenuOpen");
     if(openState===true) {
       this.setState({contextMenuOpen: true});
     } else {
@@ -194,7 +201,6 @@ class App extends Component {
                   <Conditions 
                       models={this.state.models} 
                       conditions={this.state.conditions}
-                      addCondition={this.addCondition}
                       editCondition={this.editCondition}
                       removeCondition={this.removeCondition}
                       clicked={this.state.clicked}
@@ -207,6 +213,9 @@ class App extends Component {
                   <Selects
                     models={this.state.models}
                     highlightColumn={this.highlightColumn}
+                    selects={this.state.selects}
+                    editSelect={this.editSelect}
+                    contextMenuOpen={this.contextMenuOpen}
                   />
                 </div>
               </Col>

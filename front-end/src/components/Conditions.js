@@ -7,7 +7,7 @@ import { EditJoinPanel } from './EditJoinPanel'
 import AutocompleteTextField from './AutoComplete';
 
 
-export const Conditions = ({models, conditions, addCondition, editCondition, removeCondition, clicked, contextMenuOpen}) => {
+export const Conditions = ({models, conditions, editCondition, removeCondition, clicked, contextMenuOpen}) => {
     const [contextMenu, setContextMenu] = useState({"x":null,"y":null,"display":false});
     const [editConditionMenu, setEditConditionMenu] = useState({"show": false, "conditionToEdit":""});
     const { register, handleSubmit } = useForm();

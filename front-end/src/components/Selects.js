@@ -1,12 +1,19 @@
 import React, {useState} from 'react';
-import { Container } from 'react-bootstrap';
+import { Container, Overlay, Table } from 'react-bootstrap';
 
 
 
-export function Selects( {models, clicked, contextMenuOpen, selects, saveEditedSelect, highlightColumn}) {
+export function Selects( {models, clicked, contextMenuOpen, selects, editSelect, highlightColumn}) {
+    const [contextMenu, setContextMenu] = useState({"x":null,"y":null,"display":false});
     // console.log("Selects:")
     // console.log(models);
     if (models.length === 0) return null
+
+    if(clicked===true && contextMenu.display===true) { //add this to every other component that has context menus
+        setContextMenu({"x":null,"y":null,"display":false});
+        contextMenuOpen(false);
+      }
+
 
     const modelColumns = (models) => {
         var tempModelColumns = [];
@@ -36,14 +43,69 @@ export function Selects( {models, clicked, contextMenuOpen, selects, saveEditedS
         // console.log(tempModelColumns);
         return tempModelColumns;
     }
+
+    const contextMenuDisplay = (contextMenu) => {
+        if(contextMenu.display === false) return null;
+        // console.log("Displaying Context Menu");
+        // console.log(contextMenu);
+        // console.log(contextMenu.target.firstChild.data);
+        const clickEditSelect = (selectToEdit) => {
+          setContextMenu({"x":null,"y":null,"display":false});
+        //   setEditConditionMenu({"show": true, "conditionToEdit":contextMenu.target.firstChild.data});
+        };
+        const clickRemoveSelect = (selectToRemove) => {
+          setContextMenu({"x":null,"y":null,"display":false});
+          editSelect(selectToRemove,null);
+        };
+        return(
+          <div>
+            <Overlay target={contextMenu.target} show={contextMenu.display} placement="right-start">
+              <div>
+                <Table bordered variant="dark">
+                  <tbody>
+                    <tr>
+                      <td onClick={() => clickEditSelect(contextMenu.target.firstChild.data)}>
+                        <div>Edit Column</div>
+                        
+                      </td>
+                    </tr>
+                    <tr>
+                      <td onClick={() => clickRemoveSelect(contextMenu.target.firstChild.data)}>
+                        Delete Column
+                      </td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </div>
+            </Overlay>
+          </div>
+        )
+      }
     
     
-    const listModelColumns = (models,modelColumns, highlightColumn) => {
+    const listModelColumns = (models,modelColumns, highlightColumn,contextMenuOpen) => {
+        
+        const handleClick = (e) => {
+            console.log(e);
+              if (e.type === 'click') {
+                setContextMenu({"x":null,"y":null,"display":false});
+                contextMenuOpen(false);
+              } else if (e.type === 'contextmenu') {
+                e.preventDefault();
+                if(contextMenu.display===false) { //if contextMenu is not displayed
+                  setContextMenu({"x":e.pageX,"y":e.pageY,"display":true,"clickTargetType":"Condition","target": e.target});
+                  contextMenuOpen(true);
+                } else {
+                  setContextMenu({"x":null,"y":null,"display":false});
+                  contextMenuOpen(false);
+                }
+              }
+          }
         const allModelColumns = modelColumns(models);
         return allModelColumns.map((col,index) => {
             return(
                 <tr key={index} className="row" onMouseEnter={() => highlightColumn([col])} onMouseLeave={() => highlightColumn([])}>
-                    <td className="col">
+                    <td className="col" onClick={() => handleClick} onContextMenu={() => handleClick}>
                         {col.column}
                     </td>
                 </tr>
@@ -58,8 +120,11 @@ export function Selects( {models, clicked, contextMenuOpen, selects, saveEditedS
             </h2>
             <div className="w-100 bg-secondary text-white text-center">Choose and transform fields</div>
             <table className="table table-striped table-hover w-100">
-                {listModelColumns(models,modelColumns, highlightColumn)}
+                <tbody>
+                {listModelColumns(models,modelColumns, highlightColumn,contextMenuOpen)}
+                </tbody>
             </table>
+            {contextMenuDisplay(contextMenu)}
         </div>
     )
 }

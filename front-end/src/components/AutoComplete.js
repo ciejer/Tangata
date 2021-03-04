@@ -121,9 +121,9 @@ class AutocompleteTextField extends React.Component {
   }
   componentDidMount() {
     window.addEventListener('resize', this.handleResize);
-    console.log("Autocomplete");
-    console.log(this.recentValue);
-    console.log(this.state.fullOptions);
+    // console.log("Autocomplete");
+    // console.log(this.recentValue);
+    // console.log(this.state.fullOptions);
   }
 
   componentDidUpdate(prevProps) {
@@ -178,20 +178,24 @@ class AutocompleteTextField extends React.Component {
 
       if (matchStart >= 0) {
         const matchedSlug = str.substring(matchStart, caret);
+        
         const options = providedOptions.filter((slug) => {
           const idx = slug.toLowerCase().indexOf(matchedSlug.toLowerCase());
           return idx !== -1 && (matchAny || idx === 0);
         });
         var newFullOptions = [];
-        for(var j=1;j<options.length;j++) {
-            const matchIdx = options[j].toLowerCase().indexOf(matchedSlug.toLowerCase());
+        for(var j=0;j<providedOptions.length;j++) {
+            const matchIdx = providedOptions[j].toLowerCase().indexOf(matchedSlug.toLowerCase());
             if(matchIdx !== -1 && (matchAny || matchIdx === 0))
-            newFullOptions.push(fullOptions[j]);
+            // console.log(j);
+            newFullOptions.push(this.props.fullOptions[j]);
         }
         this.setState({"fullOptions": newFullOptions});
         const matchLength = matchedSlug.length;
-        console.log("returning slug:")
-        console.log(options);
+        // console.log("returning slug:")
+        // console.log(options);
+        // console.log(newFullOptions);
+        // console.log(this.props.fullOptions);
 
         return { matchStart, matchLength, options };
       }
@@ -350,7 +354,8 @@ class AutocompleteTextField extends React.Component {
     const input = this.refInput.current;
 
     const slug = this.getMatch(str, caret, options, fullOptions);
-
+    console.log("updateHelper");
+    console.log(slug);
     if (slug) {
       const caretPos = getCaretCoordinates(input, caret);
       const rect = input.getBoundingClientRect();

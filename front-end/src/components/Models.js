@@ -12,9 +12,9 @@ export const Models = ({models, modelDragEnd, showColumns, saveEditedModel, togg
     const modelDraw = (model,index,showColumns, showJoinModal, toggleJoinModal, highlightedColumns) => {
         const columnRows = (columns,showColumns) => {
             const columnRow = (column,index) => {
-                console.log("modelDraw");
-                console.log(model);
-                console.log(column);
+                // console.log("modelDraw");
+                // console.log(model);
+                // console.log(column);
                 var highlightThisColumn = false;
                 for(var highlightedColumnIndex=0;highlightedColumnIndex<highlightedColumns.length;highlightedColumnIndex++) {
                     if(model.name===highlightedColumns[highlightedColumnIndex].model && column===highlightedColumns[highlightedColumnIndex].column) {
