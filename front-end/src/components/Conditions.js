@@ -151,12 +151,12 @@ export const Conditions = ({models, conditions, editCondition, removeCondition, 
       // console.log(contextMenu);
       // console.log(contextMenu.target.firstChild.data);
       const clickEditCondition = (conditionToEdit) => {
-        setContextMenu({"x":null,"y":null,"display":false});
         setEditConditionMenu({"show": true, "conditionToEdit":contextMenu.target.firstChild.data});
+        contextMenuOpen(false);
       };
       const clickRemoveCondition = (conditionToRemove) => {
-        setContextMenu({"x":null,"y":null,"display":false});
         removeCondition(conditionToRemove);
+        contextMenuOpen(false);
       };
       return(
         <div>

@@ -103,3 +103,7 @@
   font-weight: bolder;
   color: black;
 }
+
+.removeFocusOutline {
+    outline-style: none;
+}

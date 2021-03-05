@@ -51,7 +51,31 @@ class App extends Component {
       .then(response => {
         this.setState({models: {response}});
         this.setState({conditions: response.conditions});
-    });
+        var selects = [];
+        for(var modelIndex=0;modelIndex < response.models.length;modelIndex++) {
+          for(var columnIndex=0;columnIndex<response.models[modelIndex].columns.length;columnIndex++) {
+            var columnUsedToJoin = false;
+            for(var joinModelIndex=0;joinModelIndex<response.models.length;joinModelIndex++) {
+              if('joinConditions' in response.models[modelIndex] && typeof response.models[modelIndex].joinConditions !== 'undefined') {
+                // console.log(models.response.models[modelIndex]);
+                for(var joinConditionIndex=0;joinConditionIndex<response.models[modelIndex].joinConditions.length;joinConditionIndex++) {
+                  if(
+                    response.models[modelIndex].name===response.models[modelIndex].joinConditions[joinConditionIndex].conditionField1.model
+                    && response.models[modelIndex].columns[columnIndex]===response.models[modelIndex].joinConditions[joinConditionIndex].conditionField1.column
+                  ) {
+                    columnUsedToJoin = true;
+                  }
+                }
+              }
+                  
+            }
+            if(!columnUsedToJoin) {
+              selects.push({"inputColumns": [{"column": response.models[modelIndex].columns[columnIndex],"model": response.models[modelIndex].name}],"alias": response.models[modelIndex].columns[columnIndex]});
+            }
+          }
+        }
+        this.setState({selects: selects});
+      });
   }
 
   saveEditedModel = (previousModel, newModel) => {
@@ -93,11 +117,15 @@ class App extends Component {
 
 
   editSelect = (oldSelect, newSelect) => {
-    // console.log("editSelect")
-    // console.log(oldSelect);
-    // console.log(newSelect);
+    console.log("editSelect")
+    console.log(oldSelect);
+    console.log(newSelect);
     
-    this.setState({selects: [...this.state.selects.filter(selects => selects !== oldSelect), newSelect]});
+    if(newSelect !== null) {
+      this.setState({selects: [...this.state.selects.filter(selects => selects !== oldSelect), newSelect]});
+    } else {
+      this.setState({selects: [...this.state.selects.filter(selects => selects !== oldSelect)]});
+    }
   
   }
 
@@ -193,6 +221,9 @@ class App extends Component {
                     toggleJoinModal = { this.toggleJoinModal }
                     showJoinModal = {this.state.showJoinModal}
                     highlightedColumns = {this.state.highlightedColumns}
+                    clicked={this.state.clicked}
+                    contextMenuOpen={this.contextMenuOpen}
+                    editSelect={this.editSelect}
                   />
                 </div>
               </Col>

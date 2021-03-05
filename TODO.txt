@@ -1,3 +1,4 @@
+Allow renaming columns
 Add Column Descriptions
 
 Conditions column enhancements
@@ -7,3 +8,6 @@ Conditions column enhancements
     Highlight keywords & object references differently
 
 Create Outputs columns
+
+Later:
+Move context menu to sub component
