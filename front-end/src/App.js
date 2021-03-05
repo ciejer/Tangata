@@ -1,157 +1,272 @@
-import React, { Component} from 'react';
-import {Collapse} from 'react-bootstrap';
+import React, { Component } from 'react';
+import {Collapse, Container, Row, Col } from 'react-bootstrap';
 import { XCircle } from 'react-bootstrap-icons';
 // import logo from './logo.svg';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 // import JsonFilenameInput from './components/JsonFilenameInput'
-import { DisplayModel } from './components/DisplayModel'
+import { Models } from './components/Models'
+import { Conditions } from './components/Conditions'
+import { Selects } from './components/Selects'
 import { NavBar } from './components/NavBar'
-import { NewModel } from './components/NewModel'
 import { getModelJson } from './services/getModelJson'
-import { JoinElements } from './components/JoinElements'
+import { SQLPanel } from './components/SQLPanel';
 
 class App extends Component {
   
   state = {
     model: {},
     models: [],
-    numberOfModels: 0,
-    openCreatePanel: false,
-    selectedModels: [],
-    modelIsDragging: 0,
-    joins: [],
-    reloadDummyComponent: false,
-    toggleDrag: true,
-    showJoinModal: false
+    openSQLPanel: false,
+    showJoinModal: -1,
+    outputModel: "",
+    showColumns: true,
+    conditions: [],
+    selects: [],
+    clicked: false,
+    contextMenuOpen: false,
+    highlightedColumns: []
   }
 
-
-  // getModelJson = () => {
-  //   getModelJson("all_models.json")
-  //     .then(response => {
-  //       this.setState({models: {response}})
-  //       });
-  //       console.log(this.state);
-  // }
-
-  toggleJoinModal = () => {
-    console.log("toggling");
-    console.log(this.state.showJoinModal);
-    if(this.state.showJoinModal === false) {
-      this.setState({showJoinModal: true})
-    } else {
-      this.setState({showJoinModal: false})
-    }
-    console.log(this.state.showJoinModal);
+  toggleJoinModal = (joinNum) => {
+    this.setState({showJoinModal: joinNum})
   }
 
   
-  openCreatePanel = () => {
-    this.setState({openCreatePanel: true})
+  openSQLPanel = () => {
+    this.setState({openSQLPanel: true})
   }
 
-  forceReload = () => {
-    this.setState({reloadDummyComponent: false})
-  }
+  // componentDidUpdate() {
+  //   console.log("componentDidUpdate");
+  //   if(this.state.clicked===true && this.state.contextMenuOpen===true) {
+  //     console.log("clicked");
+  //     this.setState({clicked: false});
+  //     this.setState({contextMenuOpen: false})
+  //   }
+  // }
 
   componentDidMount() { // on load
     getModelJson('all_models.json')
       .then(response => {
-        this.setState({models: {response}})
-    });
+        this.setState({models: {response}});
+        this.setState({conditions: response.conditions});
+        var selects = [];
+        for(var modelIndex=0;modelIndex < response.models.length;modelIndex++) {
+          for(var columnIndex=0;columnIndex<response.models[modelIndex].columns.length;columnIndex++) {
+            var columnUsedToJoin = false;
+            for(var joinModelIndex=0;joinModelIndex<response.models.length;joinModelIndex++) {
+              if('joinConditions' in response.models[modelIndex] && typeof response.models[modelIndex].joinConditions !== 'undefined') {
+                // console.log(models.response.models[modelIndex]);
+                for(var joinConditionIndex=0;joinConditionIndex<response.models[modelIndex].joinConditions.length;joinConditionIndex++) {
+                  if(
+                    response.models[modelIndex].name===response.models[modelIndex].joinConditions[joinConditionIndex].conditionField1.model
+                    && response.models[modelIndex].columns[columnIndex]===response.models[modelIndex].joinConditions[joinConditionIndex].conditionField1.column
+                  ) {
+                    columnUsedToJoin = true;
+                  }
+                }
+              }
+                  
+            }
+            if(!columnUsedToJoin) {
+              selects.push({"inputColumns": [{"column": response.models[modelIndex].columns[columnIndex],"model": response.models[modelIndex].name}],"alias": response.models[modelIndex].columns[columnIndex]});
+            }
+          }
+        }
+        this.setState({selects: selects});
+      });
   }
 
-  selectModel = (e) => {
-
-    var currentSelectionIndex = this.state.selectedModels.indexOf(e)
-    if (currentSelectionIndex !== -1) {
-      this.setState(prevState => ({ selectedModels: prevState.selectedModels.filter(selectedModels => selectedModels !== e) }));
-    } else {
-      this.setState(prevState => ({
-        selectedModels: [...prevState.selectedModels, e]
-      }))
-    }
-
-      /* TODO: stop select events on drag */
-  }
-
-  createJoin = () => {
-    var selectedModels = [];
-    if(this.state.selectedModels.length === 0) return null;
-    this.state.selectedModels.forEach(thisModel => {
-      selectedModels.push({"model": thisModel})
-    });
-    var joinModels = {"models": selectedModels, "conditions": []};
+  saveEditedModel = (previousModel, newModel) => {
+    // console.log("saveEditedModel");
+    // console.log(previousModel);
+    // console.log(newModel);
     this.setState(prevState => ({
-      joins: [...prevState.joins, joinModels]
+      models: prevState.models.response.models.filter(models => models !== previousModel) 
     }));
+    this.setState({models: {...this.state.models, "response": {...this.state.models.response, "models": [...this.state.models.response.models.filter(models => models !== previousModel), newModel]}}});
   }
 
 
-  saveEditedJoin = (join, editedJoin) => {
-    console.log("Saving Join...")
-    console.log(join);
-    console.log(editedJoin);
-    console.log(this.state.joins);
-    this.setState(prevState => ({
-      joins: prevState.joins.filter(joins => joins !== join) 
-    }));
-    this.setState(prevState => ({
-      joins: [...prevState.joins, editedJoin]
-    }));
-    console.log(this.state.joins);
+  logState = () => {
+    console.log(this.state);
   }
 
+  addModel = () => {
+    console.log("Not yet implemented"); //TODO: add input model from catalog
+  }
+
+
+  editCondition = (oldCondition, newCondition) => {
+    // console.log("editCondition")
+    // console.log(oldCondition);
+    // console.log(newCondition);
+    
+    this.setState({conditions: [...this.state.conditions.filter(conditions => conditions !== oldCondition), newCondition]});
   
-
-  removeJoin = (join) => {
-    this.setState(prevState => ({ joins: prevState.joins.filter(joins => joins !== join) }));
   }
 
+  removeCondition = (condition) => {
+    // console.log("removeCondition")
+    // console.log(condition);
+    this.setState(prevState => ({
+      conditions: prevState.conditions.filter(conditions => conditions !== condition) 
+    }));
+  }
+
+
+  editSelect = (oldSelect, newSelect) => {
+    console.log("editSelect")
+    console.log(oldSelect);
+    console.log(newSelect);
+    
+    if(newSelect !== null) {
+      this.setState({selects: [...this.state.selects.filter(selects => selects !== oldSelect), newSelect]});
+    } else {
+      this.setState({selects: [...this.state.selects.filter(selects => selects !== oldSelect)]});
+    }
+  
+  }
+
+  // this function reorders items on dragdrop
+  reorder = (list, startIndex, endIndex) => {
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+
+    return result;
+  };
+
+  handleAllClicks = (e) => {
+    if(this.state.contextMenuOpen===true) {
+      this.setState({clicked: true,contextMenuOpen: true});
+    }
+  }
+
+  contextMenuOpen = (openState) => {
+    console.log("contextMenuOpen");
+    if(openState===true) {
+      this.setState({contextMenuOpen: true});
+    } else {
+      this.setState({contextMenuOpen: false, clicked: false});
+    }
+  }
+
+  highlightColumn = (columnsToHighlight) => {
+    // console.log("highlightColumn");
+    // console.log(columnsToHighlight);
+    this.setState({highlightedColumns: columnsToHighlight});
+  }
+
+  modelDragEnd = (result) => {
+    // dropped outside the list
+    // console.log("Start of modelDragEnd");
+    //   console.log(result);
+    if (!result.destination) {
+      return;
+    }
+    if (result.destination.index===result.source.index) {
+      return;
+    }
+    // console.log("got past checks");
+    const reorderJoinConditions = (joinConditions) => {
+      var newJoinCondition = JSON.parse(JSON.stringify(joinConditions));
+      for(var joinConditionIndex=0;joinConditionIndex<joinConditions.length;joinConditionIndex++) {
+        newJoinCondition[joinConditionIndex].conditionField1 = joinConditions[joinConditionIndex].conditionField2;
+        newJoinCondition[joinConditionIndex].conditionField2 = joinConditions[joinConditionIndex].conditionField1;
+        newJoinCondition[joinConditionIndex].fullName = 
+          joinConditions[joinConditionIndex].conditionField2.model
+          +"."+joinConditions[joinConditionIndex].conditionField2.column
+          +" "+joinConditions[joinConditionIndex].conditionOperator
+          +" "+joinConditions[joinConditionIndex].conditionField1.model
+          +"."+joinConditions[joinConditionIndex].conditionField1.column
+      }
+      return(newJoinCondition);
+    }
+    var fixedModels = this.reorder(
+      this.state.models.response.models,
+      result.source.index,
+      result.destination.index
+    );
+    // console.log("Fixed Models");
+    // console.log(fixedModels);
+    var tempJoinConditions = fixedModels[result.source.index].joinConditions;
+    fixedModels[result.source.index].joinConditions = fixedModels[result.destination.index].joinConditions;
+    fixedModels[result.destination.index].joinConditions = tempJoinConditions;
+    // console.log(fixedModels[result.source.index]);
+    if(fixedModels[result.source.index].joinConditions) {
+      fixedModels[result.source.index].joinConditions = reorderJoinConditions(fixedModels[result.source.index].joinConditions);
+    } else {
+      fixedModels[result.destination.index].joinConditions = reorderJoinConditions(fixedModels[result.destination.index].joinConditions);
+    }
+    // console.log(fixedModels);
+    this.setState({models: {...this.state.models, "response": {...this.state.models.response, "models":  fixedModels}}});
+    }
   
 
   render() {
     return (
-        <div id="main">
-        <NavBar openCreatePanel={this.openCreatePanel} createJoin={this.createJoin}></NavBar>
-        <div className="row">
-          {/* <JsonFilenameInput 
-            onChangeForm={this.onChangeForm}
-            getModelJson={this.getModelJson}
-            JsonFilenameInput={this.JsonFilenameInput}
-            >
-          </JsonFilenameInput> */}
-          <div className="col">
-          <DisplayModel 
-            models={this.state.models} 
-            selectModel={this.selectModel} 
-            selectedModels={this.state.selectedModels} 
-            forceReload={this.forceReload}
-          />
-          </div>
-        </div>
-        <Collapse in={ this.state.openCreatePanel } timeout={2000} dimension={'width'}>
+        <div id="main" onClick={this.handleAllClicks} onContextMenu={this.handleAllClicks}>
+          <NavBar addModel={this.addModel} logState={this.logState} openSQLPanel={this.openSQLPanel}></NavBar>
+          <Container fluid>
+            <Row>
+              <Col>
+                <div className="modelList">
+                  <Models 
+                    models={this.state.models} 
+                    modelDragEnd={this.modelDragEnd}
+                    showColumns={this.state.showColumns}
+                    saveEditedModel={this.saveEditedModel}
+                    toggleJoinModal = { this.toggleJoinModal }
+                    showJoinModal = {this.state.showJoinModal}
+                    highlightedColumns = {this.state.highlightedColumns}
+                    clicked={this.state.clicked}
+                    contextMenuOpen={this.contextMenuOpen}
+                    editSelect={this.editSelect}
+                  />
+                </div>
+              </Col>
+              <Col>
+                <div className="conditionList">
+                  <Conditions 
+                      models={this.state.models} 
+                      conditions={this.state.conditions}
+                      editCondition={this.editCondition}
+                      removeCondition={this.removeCondition}
+                      clicked={this.state.clicked}
+                      contextMenuOpen={this.contextMenuOpen}
+                    />
+                </div>
+                </Col>
+                <Col>
+                <div className="outputList">
+                  <Selects
+                    models={this.state.models}
+                    highlightColumn={this.highlightColumn}
+                    selects={this.state.selects}
+                    editSelect={this.editSelect}
+                    clicked={this.state.clicked}
+                    contextMenuOpen={this.contextMenuOpen}
+                  />
+                </div>
+              </Col>
+            </Row>
+          </Container>
+          <Collapse in={ this.state.openSQLPanel } timeout={2000} dimension={'width'}>
             <div>
-          <div id="createModelSideBar" className="sidePanelContent">
-            <div className="sideBarExitButton">
-              <XCircle onClick={() => this.setState({openCreatePanel: false})}></XCircle>
+              <div id="sqlPanelSideBar" className="sidePanelContent">
+                <div className="sideBarExitButton">
+                  <XCircle onClick={() => this.setState({openSQLPanel: false})}></XCircle>
+                </div>
+                <SQLPanel
+                  state={this.state}
+                >
+                </SQLPanel>
+              </div>
             </div>
-            <NewModel selectedModels={ this.state.selectedModels } models={this.state.models}></NewModel>
-          </div>
-          </div>
           </Collapse>
-          <JoinElements 
-            joins={this.state.joins}
-            removeJoin={this.removeJoin}
-            models={this.state.models}
-            forceReload={this.forceReload}
-            editJoin={this.editJoin}
-            saveEditedJoin={this.saveEditedJoin}
-            toggleJoinModal = { this.toggleJoinModal }
-            showJoinModal = {this.state.showJoinModal}
-          ></JoinElements>
-          </div>
+        </div>
           
     );
   }

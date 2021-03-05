@@ -2,24 +2,36 @@
     "version": 0.1,
     "models": [
         {
-            "name": "model_1",
-            "file_name": "model_1.sql",
+            "name": "humans",
+            "description": "Human Beings, from planet Earth",
+            "file_name": "humans.sql",
             "columns": [
-                "column_1",
-                "column_2",
-                "column_3",
-                "column_4"
+                "human_id",
+                "name",
+                "favourite_colour",
+                "tasting_notes"
             ]
         },
         {
-            "name": "model_2",
-            "file_name": "model_2.sql",
+            "name": "abductions",
+            "description": "Attempts to abduct a human for 'testing'",
+            "file_name": "abductions.sql",
             "columns": [
-                "column_1",
-                "column_5",
-                "column_6",
-                "column_7"
-            ]
+                "human_id",
+                "abduction_datetime",
+                "location_universe_grid",
+                "successful_flag",
+                "survived_flag"
+            ],
+            "joinConditions": [{
+                "conditionField1": {"model": "abductions", "column": "human_id"},
+                "conditionOperator": "=",
+                "conditionField2": {"model": "humans", "column": "human_id"},
+                "fullName": "abductions.human_id = humans.human_id"
+            }]
         }
+    ],
+    "conditions": [
+        "humans.favourite_colour = 'Green'"
     ]
 }

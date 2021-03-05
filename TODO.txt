@@ -1,1 +1,13 @@
-Allow joins to cascade
+Allow renaming columns
+Add Column Descriptions
+
+Conditions column enhancements
+    Try some sort of Functions formatting (Concatenate)
+    Autocomplete differently on typed trigger character
+    Hide joined model join columns from condition autocomplete
+    Highlight keywords & object references differently
+
+Create Outputs columns
+
+Later:
+Move context menu to sub component

@@ -1,134 +1,151 @@
 import React, { useState } from 'react';
-import {Modal, Button, Form} from 'react-bootstrap';
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import {Modal, Button, Form, Container} from 'react-bootstrap';
 import { useForm } from "react-hook-form";
 
-export function EditJoinPanel( {join, saveEditedJoin, models, forceReload, toggleJoinModal, showJoinModal}) {
-  const [newJoin, setJoinState] = useState(JSON.parse(JSON.stringify(join)));
+export function EditJoinPanel( {model, modelIndex, saveEditedModel, models, toggleJoinModal, showJoinModal}) {
+  const [newModel, setModelState] = useState(model);
+  const { register, handleSubmit } = useForm();
+  if(modelIndex===0) return null;
+  // console.log("Start of join panel debug");
+  // console.log(showJoinModal);
+  // console.log(models);
+  // console.log(modelIndex);
+  // console.log(model);
+  // console.log(newModel);
 
-    const handleClose = () => toggleJoinModal();
+    const handleClose = () => toggleJoinModal(-1);
     const handleShow = () => {
-      setJoinState(JSON.parse(JSON.stringify(join)));
-      toggleJoinModal();
+      setModelState(JSON.parse(JSON.stringify(model)));
+      toggleJoinModal(modelIndex);
     }
 
     const handleSaveAndClose = () => {
-      saveEditedJoin(join, newJoin);
+      // TODO: Create join output columns
+      saveEditedModel(model, newModel);
       handleClose();
     }
 
     // new join condition submit
-    const { register, handleSubmit } = useForm();
     const onSubmit = (data) => {
-      var newCondition = ({"condition1": data.condition1Field, "conditionOperator": data.conditionOperator, "condition2": data.condition2Field, "fullName": newJoin.models[0].model+"."+data.condition1Field+" "+data.conditionOperator+" "+newJoin.models[1].model+"."+data.condition2Field});
+      var newCondition = (
+        {
+          "conditionField1": {
+            "model": model.name,
+            "column": data.condition1Field
+          },
+          "conditionOperator": data.conditionOperator,
+          "conditionField2": {
+            "model": models.response.models[modelIndex-1].name,
+            "column": data.condition2Field
+          },
+          "fullName": model.name+"."+data.condition1Field+" "+data.conditionOperator+" "+models.response.models[modelIndex-1].name+"."+data.condition2Field
+        }
+        );
+
       // saveEditedJoin(join, newJoin);
-      setJoinState({...newJoin, "conditions": newJoin.conditions.concat(newCondition)})
+      setModelState({...newModel, "joinConditions": newModel.joinConditions.concat(newCondition)})
     }
 
     const removeCondition = (condition) => {
-      setJoinState({...newJoin, "conditions": newJoin.conditions.filter(conditions => conditions !== condition)});
+      setModelState({...newModel, "joinConditions": newModel.joinConditions.filter(conditions => conditions !== condition)});
     }
 
-    // this function reorders the models on dragdrop
-    const reorder = (list, startIndex, endIndex) => {
-        const result = Array.from(list);
-        const [removed] = result.splice(startIndex, 1);
-        result.splice(endIndex, 0, removed);
-    
-        return result;
-    };
-    const onDragEnd = (result) => {
-        // dropped outside the list
-        if (!result.destination) {
-          return;
-        }
-        newJoin.models = reorder(
-          newJoin.models,
-            result.source.index,
-            result.destination.index
-          );
-        }
 
-    const joinConditionRow = (condition, index) => { // row per join condition
+    const joinConditionRow = (condition, index, showRemove) => { // row per join condition
+      if(showRemove===false) {
+        return (
+          <tr className="row" key={"joinCondition_" + index}>
+            <td className="col w-100">
+              {condition.fullName}
+            </td>
+          </tr>
+        );
+      }
       return(
-        <tr className={index%2 === 0?'odd':'even'} key={"joinCondition_" + index}>
-          <td className="col">
+        <tr key={"joinCondition_" + index}>
+          <td className="p-2">
             {condition.fullName}
           </td>
-          <td className="col">
+          <td className="w-md-auto p-2">
             <Button variant="secondary" onClick={() => removeCondition(condition)}>
               Remove
             </Button>
           </td>
         </tr>
-      )
+      );
     }
-    const listJoinConditions = newJoin.conditions.map((condition, index) => joinConditionRow(condition, index)); // map join conditions to 
-    
-  
+    const listJoinConditions = (showRemove) => newModel.joinConditions.map((condition, index) => {
+      return joinConditionRow(condition, index, showRemove);
+    }
+    );
+
+
+
+    const listModelColumns = (models,model,register,controlName) => {
+      const columnOption = (column,index) => {
+        return(
+          <option key={index}>{column}</option>
+        )
+      }
+
+      var listModel = {};
+      for(var modelIndex=0;modelIndex<models.response.models.length;modelIndex++) {
+        // console.log(models.response.models[modelIndex].name);
+        if(models.response.models[modelIndex].name===model) {
+          // console.log("matched");
+          listModel = models.response.models[modelIndex];
+        }
+      }
+      // console.log(listModel);
+      if(listModel===null) return null;
+      if(listModel.columns.length===0) return null;
+      const tempListModelColumns = listModel.columns.map((column, index) => columnOption(column,index))
+      // console.log(tempListModelColumns);
+      return (
+        
+        <Form.Control as="select" name={controlName} ref={register}>
+          {tempListModelColumns}
+        </Form.Control>
+      );
+    }
+    // console.log("before render editjoinpanel debug:");
+    // console.log(models);
+    // console.log(modelIndex);
     return (
       <div>
         <Button variant="primary" onClick={handleShow}>
-          Edit
+          Edit Join
         </Button>
-  
-        <Modal show={showJoinModal} onHide={handleClose}>
+        <table className="table">
+          <tbody>
+            {listJoinConditions(false)}
+          </tbody>
+        </table>
+        <Modal show={(showJoinModal === modelIndex)} onHide={handleClose} size="lg">
           <Modal.Header closeButton>
-            <Modal.Title>Edit join </Modal.Title>
+            <Modal.Title>Edit Join </Modal.Title>
           </Modal.Header>
-          <Modal.Body>Please choose the correct order for your models:
-            <DragDropContext onDragEnd={onDragEnd}>
-                <Droppable droppableId="droppable">
-                {(provided, snapshot) => (
-                    <table
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className="table table-bordered table-striped"
-                    >
-                      <tbody>
-                    {newJoin.models.map((item, index) => (
-                        <Draggable key={"edit_join_"+item.model} draggableId={item.model} index={index}>
-                        {(provided, snapshot) => (
-                            <tr
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className={index%2 === 0?'odd':'even'}
-                            >
-                              <td className="col w100">
-                                {item.model}
-                              </td>
-                            </tr>
-                        )}
-                        </Draggable>
-                    ))}
-                    {provided.placeholder}
-                    </tbody>
-                    </table>
-                )}
-                </Droppable>
-            </DragDropContext>
-            Join Conditions:
-            <table className="table table-bordered table-striped">
+          <Modal.Body>
+          <Container>
+            <h5>Join Conditions</h5>
+            <table className="table-striped table-bordered w-100">
               <tbody>
-              {listJoinConditions}
+              {listJoinConditions(true)}
               </tbody>
             </table>
+          </Container>
+          <Container className="mt-3">
+            <h5>Add new Join Condition</h5>
             <Form onSubmit={handleSubmit(onSubmit)}>
-              <div className="row">
+              
+              <div className="row text-center ">
                 <div className="col">
                   <Form.Group>
-                    <Form.Label>{newJoin.models[0].model}</Form.Label>
-                    <Form.Control as="select" name="condition1Field" ref={register}>
-                      <option>1</option>
-                      <option>2</option>
-                      <option>3</option>
-                      <option>4</option>
-                      <option>5</option>
-                    </Form.Control>
+                    <Form.Label>{model.name}</Form.Label>
+                      {listModelColumns(models,model.name,register,"condition1Field")}
                   </Form.Group>
                 </div>
-                <div className="col">
+                <div className="col-md-auto">
                   <Form.Group>
                     <Form.Label>Operator type</Form.Label>
                     <Form.Control name="conditionOperator" as="select"  ref={register} >
@@ -141,23 +158,18 @@ export function EditJoinPanel( {join, saveEditedJoin, models, forceReload, toggl
                 <div className="col">
                   
                 <Form.Group>
-                    <Form.Label>{newJoin.models[0].model}</Form.Label>
-                    <Form.Control as="select" name="condition2Field" ref={register}>
-                      <option>1</option>
-                      <option>2</option>
-                      <option>3</option>
-                      <option>4</option>
-                      <option>5</option>
-                    </Form.Control>
+                    <Form.Label>{models.response.models[modelIndex-1].name}</Form.Label>
+                      {listModelColumns(models,models.response.models[modelIndex-1].name,register,"condition2Field")}
                   </Form.Group>
                 </div>
-              </div>
-              <div className="row">
-                <Button variant="primary" type="submit">
-                  Add
-                </Button>
+                <div className="col-md-auto">
+                  <Button variant="primary" type="submit" className="joinConditionAddButton">
+                    Add
+                  </Button>
+                </div>
               </div>
             </Form>
+            </Container>
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={handleClose}>

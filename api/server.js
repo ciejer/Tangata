@@ -8,7 +8,18 @@ var cors = require('cors');
 // place holder for the data
 // const users = [];
 
-app.use(bodyParser.json(), cors());
+var whitelist = ['http://sqlgui.chrisjenkins.nz', 'http://localhost', 'http://localhost:3000']
+var corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
+
+app.use(bodyParser.json(), cors(corsOptions));
 
 app.get('/api/model/:modelJsonFilename', (req, res) => {
   // TODO: Check security on all calls

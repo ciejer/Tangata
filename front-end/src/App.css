@@ -9,9 +9,20 @@
   padding-top: 20px;
   width: 500px;
   height: 100%;
-  background-color:darkgrey;
+  background-color:whitesmoke;
 }
 
+.sqlContent {
+  border: 2px;
+  border-style:solid;
+  border-color:darkgrey;
+  background-color: white;
+  left: 10px;
+  width: 458px;
+  padding:10px;
+  margin-top:10px;
+  white-space: pre-wrap;
+}
 .sideBarExitButton {
   position: fixed;
   right: 10px;
@@ -37,4 +48,62 @@
 
 .sortableHelper {
   z-index: 1051;
+}
+
+.componentRow {
+  border: 1px;
+  border-style:solid;
+  border-color:darkgrey;
+  background-color: white;
+  padding:10px;
+
+}
+
+.fullSize {
+  margin: 0px;
+  padding: 0px !important;
+}
+
+.componentContent {
+  padding: 10px;
+  text-align: center;
+}
+
+.joinConditionAddButton {
+  margin-top: 31px;
+}
+
+.react-autocomplete-input {
+  background-clip: padding-box;
+  background-color: #fff;
+  border: 1px solid rgba(0,0,0,0.15);
+  bottom: auto;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.175);
+  display: block;
+  font-size: 14px;
+  list-style: none;
+  padding: 1px;
+  position: absolute;
+  text-align: left;
+  z-index: 20000;
+}
+
+.react-autocomplete-input > li {
+ cursor: pointer;
+ padding: 10px;
+ min-width: 100px;
+}
+
+.react-autocomplete-input > li.active {
+ background-color: #337ab7;
+ color: #fff;
+}
+
+.highlightColumn {
+  font-weight: bolder;
+  color: black;
+}
+
+.removeFocusOutline {
+    outline-style: none;
 }
