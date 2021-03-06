@@ -84,10 +84,8 @@ export function Selects( {models, clicked, contextMenuOpen, selects, editSelect,
           const updateColumnAlias = (e) => {
             //   console.log("updateColumnAlias");
             //   console.log(e);
-              var newSelect = selects[editingField];
-              newSelect.alias = e.target.value;
               setEditingField(-1);
-              editSelect(selects[editingField],newSelect);
+              editSelect(selects[editingField],{...selects[editingField], "alias": e.target.value});
           }
 
           const showField = (selects, selectsIndex) => {
@@ -118,8 +116,8 @@ export function Selects( {models, clicked, contextMenuOpen, selects, editSelect,
           }
 
         const highlightColumns = (col) => {
-            console.log("highlightColumns");
-            console.log(col);
+            // console.log("highlightColumns");
+            // console.log(col);
             var tempColumnsToHighlight = [];
             if(col !== undefined & col !== null) {
                 for(var columnIndex=0;columnIndex<col.inputColumns.length;columnIndex++) {

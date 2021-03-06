@@ -99,20 +99,29 @@ class App extends Component {
 
 
   editCondition = (oldCondition, newCondition) => {
-    // console.log("editCondition")
-    // console.log(oldCondition);
-    // console.log(newCondition);
+      // console.log("editCondition")
+      // console.log(oldCondition);
+      // console.log(newCondition);
+      // console.log(this.state.conditions);
     
-    this.setState({conditions: [...this.state.conditions.filter(conditions => conditions !== oldCondition), newCondition]});
+    if(newCondition === null) { //Removing a select:
+      this.setState({conditions: [...this.state.conditions.filter(conditions => conditions !== oldCondition)]});
+    } else if (oldCondition === null) { //Adding a select
+      this.setState({conditions: [...this.state.conditions, newCondition]});
+    } else {
+      var conditionToEditIndex = -1;
+      for(var conditionIndex=0;conditionIndex<this.state.conditions.length;conditionIndex++) {
+        if(this.state.conditions[conditionIndex] === oldCondition) {
+          conditionToEditIndex = conditionIndex;
+        }
+      }
+      let conditions = [...this.state.conditions];
+      let condition = {...conditions[conditionToEditIndex]};
+      condition = newCondition;
+      conditions[conditionToEditIndex] = condition;
+      this.setState({conditions: conditions});
+    }
   
-  }
-
-  removeCondition = (condition) => {
-    // console.log("removeCondition")
-    // console.log(condition);
-    this.setState(prevState => ({
-      conditions: prevState.conditions.filter(conditions => conditions !== condition) 
-    }));
   }
 
 
@@ -120,11 +129,24 @@ class App extends Component {
     console.log("editSelect")
     console.log(oldSelect);
     console.log(newSelect);
+    console.log(this.state.selects);
     
-    if(newSelect !== null) {
-      this.setState({selects: [...this.state.selects.filter(selects => selects !== oldSelect), newSelect]});
-    } else {
+    if(newSelect === null) { //Removing a select:
       this.setState({selects: [...this.state.selects.filter(selects => selects !== oldSelect)]});
+    } else if (oldSelect === null) { //Adding a select
+      this.setState({selects: [...this.state.selects, newSelect]});
+    } else {
+      var selectToEditIndex = -1;
+      for(var selectIndex=0;selectIndex<this.state.selects.length;selectIndex++) {
+        if(this.state.selects[selectIndex] == oldSelect) {
+          selectToEditIndex = selectIndex;
+        }
+      }
+      let selects = [...this.state.selects];
+      let select = {...selects[selectToEditIndex]};
+      select = newSelect;
+      selects[selectToEditIndex] = select;
+      this.setState({selects: selects});
     }
   
   }
@@ -233,7 +255,6 @@ class App extends Component {
                       models={this.state.models} 
                       conditions={this.state.conditions}
                       editCondition={this.editCondition}
-                      removeCondition={this.removeCondition}
                       clicked={this.state.clicked}
                       contextMenuOpen={this.contextMenuOpen}
                     />

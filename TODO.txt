@@ -1,5 +1,7 @@
-Allow renaming columns
 Add Column Descriptions
+Refine GUI - make room for logic in output field, shrink models
+Change model from models.response to just models
+Change model name to "alias", freeing up name for database object name
 
 Conditions column enhancements
     Try some sort of Functions formatting (Concatenate)

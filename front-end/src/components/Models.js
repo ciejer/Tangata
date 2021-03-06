@@ -7,9 +7,9 @@ import { Container, Overlay, Table } from 'react-bootstrap';
 
 export const Models = ({models, modelDragEnd, showColumns, saveEditedModel, toggleJoinModal, showJoinModal, highlightedColumns, clicked, contextMenuOpen, editSelect}) => {
     const [contextMenu, setContextMenu] = useState({"x":null,"y":null,"display":false});
-    console.log("Models");
+    // console.log("Models");
     // console.log(models);
-    console.log(highlightedColumns);
+    // console.log(highlightedColumns);
     if (models.length === 0) return null
     if(clicked===true && contextMenu.display===true) { //add this to every other component that has context menus
         setContextMenu({"x":null,"y":null,"display":false});

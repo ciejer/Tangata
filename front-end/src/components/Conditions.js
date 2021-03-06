@@ -7,9 +7,9 @@ import { EditJoinPanel } from './EditJoinPanel'
 import AutocompleteTextField from './AutoComplete';
 
 
-export const Conditions = ({models, conditions, editCondition, removeCondition, clicked, contextMenuOpen}) => {
+export const Conditions = ({models, conditions, editCondition, clicked, contextMenuOpen}) => {
     const [contextMenu, setContextMenu] = useState({"x":null,"y":null,"display":false});
-    const [editConditionMenu, setEditConditionMenu] = useState({"show": false, "conditionToEdit":""});
+    const [editConditionMenu, setEditConditionMenu] = useState({"show": false, "conditionToEdit":null});
     const { register, handleSubmit } = useForm();
     if(clicked===true && contextMenu.display===true) { //add this to every other component that has context menus
       setContextMenu({"x":null,"y":null,"display":false});
@@ -22,7 +22,7 @@ export const Conditions = ({models, conditions, editCondition, removeCondition, 
     // console.log(editConditionMenu);
     if (models.length === 0) return null
 
-    const showConditions = (conditions,editCondition,removeCondition,contextMenuOpen) => {
+    const showConditions = (conditions,editCondition,contextMenuOpen) => {
         // console.log(conditions);
         if (conditions.length === 0) return null;
         const handleClick = (e) => {
@@ -71,7 +71,7 @@ export const Conditions = ({models, conditions, editCondition, removeCondition, 
     }
 
 
-    const handleModalClose = () => setEditConditionMenu({"show": false, "conditionToEdit":""});
+    const handleModalClose = () => setEditConditionMenu({"show": false, "conditionToEdit":null});
 
     
 
@@ -155,7 +155,7 @@ export const Conditions = ({models, conditions, editCondition, removeCondition, 
         contextMenuOpen(false);
       };
       const clickRemoveCondition = (conditionToRemove) => {
-        removeCondition(conditionToRemove);
+        editCondition(conditionToRemove, null);
         contextMenuOpen(false);
       };
       return(
@@ -187,12 +187,12 @@ export const Conditions = ({models, conditions, editCondition, removeCondition, 
         <div>
           <h2 className="text-center">Conditions</h2>
           <div>
-            {showConditions(conditions,editCondition,removeCondition,contextMenuOpen)}
+            {showConditions(conditions,editCondition,contextMenuOpen)}
             {contextMenuDisplay(contextMenu)}
             {editConditionMenuDisplay(editConditionMenu, handleModalClose, editCondition)}
           </div>
           <div className="pt-2 text-center">
-            <Button variant="primary" onClick={() => setEditConditionMenu({"show": true, "conditionToEdit":""})}>
+            <Button variant="primary" onClick={() => setEditConditionMenu({"show": true, "conditionToEdit":null})}>
                 Add Condition
             </Button>
           </div>
