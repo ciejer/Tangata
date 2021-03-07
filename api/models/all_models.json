@@ -32,6 +32,6 @@
         }
     ],
     "conditions": [
-        "humans.favourite_colour = 'Green'"
+        "humans.tasting_notes ILIKE '%earthy%'"
     ]
 }

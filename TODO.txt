@@ -1,7 +1,12 @@
-Add Column Descriptions
+Make model name & description editable
+Add Column Logic: 'definition' property. Still needs sourcefields to be populated
 Refine GUI - make room for logic in output field, shrink models
 Change model from models.response to just models
 Change model name to "alias", freeing up name for database object name
+Add outputs to sql pane
+
+
+Add aggregations & groups to output
 
 Conditions column enhancements
     Try some sort of Functions formatting (Concatenate)

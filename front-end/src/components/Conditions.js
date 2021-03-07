@@ -7,14 +7,16 @@ import { EditJoinPanel } from './EditJoinPanel'
 import AutocompleteTextField from './AutoComplete';
 
 
-export const Conditions = ({models, conditions, editCondition, clicked, contextMenuOpen}) => {
+export const Conditions = ({models, conditions, editCondition, openContextMenu, contextMenuOpen}) => {
     const [contextMenu, setContextMenu] = useState({"x":null,"y":null,"display":false});
     const [editConditionMenu, setEditConditionMenu] = useState({"show": false, "conditionToEdit":null});
     const { register, handleSubmit } = useForm();
-    if(clicked===true && contextMenu.display===true) { //add this to every other component that has context menus
+
+    
+    if(contextMenuOpen === false && contextMenu.display===true) { //add this to every other component that has context menus
       setContextMenu({"x":null,"y":null,"display":false});
-      contextMenuOpen(false);
     }
+
     // console.log("Conditions debug:");
     // console.log(models);
     // console.log(conditions);
@@ -22,22 +24,22 @@ export const Conditions = ({models, conditions, editCondition, clicked, contextM
     // console.log(editConditionMenu);
     if (models.length === 0) return null
 
-    const showConditions = (conditions,editCondition,contextMenuOpen) => {
+    const showConditions = (conditions,editCondition,openContextMenu) => {
         // console.log(conditions);
         if (conditions.length === 0) return null;
         const handleClick = (e) => {
           // console.log(e);
             if (e.type === 'click') {
               setContextMenu({"x":null,"y":null,"display":false});
-              contextMenuOpen(false);
+              openContextMenu(false);
             } else if (e.type === 'contextmenu') {
               e.preventDefault();
               if(contextMenu.display===false) { //if contextMenu is not displayed
                 setContextMenu({"x":e.pageX,"y":e.pageY,"display":true,"clickTargetType":"Condition","target": e.target});
-                contextMenuOpen(true);
+                openContextMenu(true);
               } else {
                 setContextMenu({"x":null,"y":null,"display":false});
-                contextMenuOpen(false);
+                openContextMenu(false);
               }
             }
         }
@@ -152,11 +154,11 @@ export const Conditions = ({models, conditions, editCondition, clicked, contextM
       // console.log(contextMenu.target.firstChild.data);
       const clickEditCondition = (conditionToEdit) => {
         setEditConditionMenu({"show": true, "conditionToEdit":contextMenu.target.firstChild.data});
-        contextMenuOpen(false);
+        openContextMenu(false);
       };
       const clickRemoveCondition = (conditionToRemove) => {
         editCondition(conditionToRemove, null);
-        contextMenuOpen(false);
+        openContextMenu(false);
       };
       return(
         <div>
@@ -187,7 +189,7 @@ export const Conditions = ({models, conditions, editCondition, clicked, contextM
         <div>
           <h2 className="text-center">Conditions</h2>
           <div>
-            {showConditions(conditions,editCondition,contextMenuOpen)}
+            {showConditions(conditions,editCondition,openContextMenu)}
             {contextMenuDisplay(contextMenu)}
             {editConditionMenuDisplay(editConditionMenu, handleModalClose, editCondition)}
           </div>

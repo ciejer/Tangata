@@ -3,9 +3,10 @@ import { Container, Overlay, Table, Form } from 'react-bootstrap';
 
 
 
-export function Selects( {models, clicked, contextMenuOpen, selects, editSelect, highlightColumn}) {
+export function Selects( {models, openContextMenu, contextMenuOpen, selects, editSelect, highlightColumn, outputModel, editOutputModel}) {
     const [contextMenu, setContextMenu] = useState({"x":null,"y":null,"display":false});
     const [editingField, setEditingField] = useState(-1);
+    const [editingDescription, setEditingDescription] = useState(-1);
     // console.log("Selects:")
     // console.log(models);
     // console.log(selects);
@@ -14,9 +15,8 @@ export function Selects( {models, clicked, contextMenuOpen, selects, editSelect,
     // console.log(editingField);
     if (models.length === 0) return null
 
-    if(clicked===true && contextMenu.display===true) { //add this to every other component that has context menus
+    if(contextMenuOpen === false && contextMenu.display===true) { //add this to every other component that has context menus
         setContextMenu({"x":null,"y":null,"display":false});
-        contextMenuOpen(false);
       }
 
     const contextMenuDisplay = (contextMenu, selects) => {
@@ -25,16 +25,22 @@ export function Selects( {models, clicked, contextMenuOpen, selects, editSelect,
         // console.log(contextMenu);
         // console.log(contextMenu.target.firstChild.data);
         // console.log(contextMenu.target);
-        // console.log(JSON.parse(contextMenu.target.dataset.selectvalue));
-        // console.log(contextMenu.target.dataset.selectvalue.model);
+        // console.log(contextMenu.target.dataset.selectindex);
         const clickEditSelectName = (selectToEdit) => {
         //   setEditConditionMenu({"show": true, "conditionToEdit":contextMenu.target.firstChild.data});
-            setEditingField(parseInt(selectToEdit));
-            contextMenuOpen(false);
+          setEditingField(parseInt(selectToEdit));
+          openContextMenu(false);
+        };
+        const clickEditSelectDescription = (selectToEdit) => {
+        //   setEditConditionMenu({"show": true, "conditionToEdit":contextMenu.target.firstChild.data});
+          // console.log("clickEditSelectDescription");
+          // console.log(selectToEdit);
+          setEditingDescription(parseInt(selectToEdit));
+          openContextMenu(false);
         };
         const clickRemoveSelect = (selectToRemove) => {
           editSelect(selectToRemove,null);
-          contextMenuOpen(false);
+          openContextMenu(false);
         };
         return(
           <div>
@@ -45,7 +51,11 @@ export function Selects( {models, clicked, contextMenuOpen, selects, editSelect,
                     <tr>
                       <td onClick={() => clickEditSelectName(contextMenu.target.dataset.selectindex)}>
                         <div>Edit Name</div>
-                        
+                      </td>
+                    </tr>
+                    <tr>
+                      <td onClick={() => clickEditSelectDescription(contextMenu.target.dataset.selectindex)}>
+                        <div>Edit Description</div>
                       </td>
                     </tr>
                     <tr>
@@ -62,31 +72,40 @@ export function Selects( {models, clicked, contextMenuOpen, selects, editSelect,
       }
     
     
-    const listModelColumns = (models,selects, highlightColumn,contextMenuOpen) => {
+    const listModelColumns = (models,selects, highlightColumn,openContextMenu) => {
         
         const handleClick = (e) => {
+            // console.log("handleClick");
             // console.log(e);
               if (e.type === 'click') {
                 setContextMenu({"x":null,"y":null,"display":false});
-                contextMenuOpen(false);
+                openContextMenu(false);
               } else if (e.type === 'contextmenu') {
                 e.preventDefault();
                 if(contextMenu.display===false) { //if contextMenu is not displayed
                   setContextMenu({"x":e.pageX,"y":e.pageY,"display":true,"clickTargetType":"Condition","target": e.target});
-                  contextMenuOpen(true);
+                  openContextMenu(true);
                 } else {
                   setContextMenu({"x":null,"y":null,"display":false});
-                  contextMenuOpen(false);
+                  openContextMenu(false);
                 }
               }
-          }
+          };
 
           const updateColumnAlias = (e) => {
             //   console.log("updateColumnAlias");
             //   console.log(e);
+              e.preventDefault();
               setEditingField(-1);
               editSelect(selects[editingField],{...selects[editingField], "alias": e.target.value});
-          }
+          };
+          const updateColumnDescription = (e) => {
+              // console.log("updateColumnDescription");
+              // console.log(e);
+              e.preventDefault();
+              setEditingDescription(-1);
+              editSelect(selects[editingDescription],{...selects[editingDescription], "description": e.target.value});
+          };
 
           const showField = (selects, selectsIndex) => {
             //   console.log("showField");
@@ -95,12 +114,14 @@ export function Selects( {models, clicked, contextMenuOpen, selects, editSelect,
             if(editingField === selectsIndex) {
                 return(
                     <>
-                        <Form>
-                            <Form.Group controlId="exampleForm.ControlInput1">
+                        <Form onSubmit={(e) => e.preventDefault()}>
+                            <Form.Group>
                                 <Form.Control
                                     type="text"
                                     defaultValue={(selects[selectsIndex].alias !== null && selects[selectsIndex].alias !== undefined)?selects[selectsIndex].alias:selects[selectsIndex].column}
                                     onBlur={(e) => updateColumnAlias(e)}
+                                    placeholder="Add name for output field"
+                                    autoFocus
                                 />
                             </Form.Group>
                         </Form>
@@ -109,11 +130,44 @@ export function Selects( {models, clicked, contextMenuOpen, selects, editSelect,
             } else {
                 return(
                     <>
-                        {(selects[selectsIndex].alias !== null && selects[selectsIndex].alias !== undefined)?selects[selectsIndex].alias:selects[selectsIndex].column}
+                        <div className="w-100 text-dark text-right" data-selectindex = {selectsIndex}>
+                          {(selects[selectsIndex].alias !== null && selects[selectsIndex].alias !== undefined)?selects[selectsIndex].alias:selects[selectsIndex].column}
+                        </div>
                     </>
                 );
             }
-          }
+          };
+        const showDescription = (selects, selectsIndex) => {
+          // console.log(selects);
+          // console.log(selectsIndex);
+          // console.log(editingDescription);
+          if(editingDescription === selectsIndex) { //if decription is being edited
+            return(
+                <>
+                    <Form onSubmit={(e) => e.preventDefault()}>
+                        <Form.Group>
+                            <Form.Control
+                                type="text"
+                                defaultValue={(selects[selectsIndex].description !== null && selects[selectsIndex].description !== undefined)?selects[selectsIndex].description:null}
+                                onBlur={(e) => updateColumnDescription(e)}
+                                placeholder="Add description for output field"
+                                autoFocus
+                            />
+                        </Form.Group>
+                    </Form>
+                </>
+            );
+        } else if(selects[selectsIndex].description !== null && selects[selectsIndex].description !== undefined) { // if description is defined
+            return(
+                <>
+                    <div className="w-100 text-dark text-right font-italic" data-selectindex = {selectsIndex}>
+                      {selects[selectsIndex].description}
+                    </div>
+                </>
+            );
+        } else return null;
+      };
+        
 
         const highlightColumns = (col) => {
             // console.log("highlightColumns");
@@ -125,7 +179,7 @@ export function Selects( {models, clicked, contextMenuOpen, selects, editSelect,
                 } 
             }
             highlightColumn(tempColumnsToHighlight);
-        }
+        };
         var tempListModelColumns = [];
         for(let selectsIndex=0;selectsIndex<selects.length;selectsIndex++) {
             // console.log("selectsMap");
@@ -142,22 +196,26 @@ export function Selects( {models, clicked, contextMenuOpen, selects, editSelect,
                     data-selectindex = {selectsIndex}
                     >
                         {showField(selects, selectsIndex)}
+                        {showDescription(selects, selectsIndex)}
                     </td>
                 </tr>
             );
-        }
+        };
         return tempListModelColumns;
-    }
+    };
 
     return(
         <div>
             <h2 className="text-center">
                 Output
             </h2>
-            <div className="w-100 bg-secondary text-white text-center">Choose and transform fields</div>
+            <div className="w-100 bg-secondary text-white text-center">{outputModel.name}</div>
+            <div className="w-100 bg-light text-dark text-center font-italic mb-3">
+                {outputModel.description?outputModel.description:"New Model"}
+            </div>
             <table className="table table-striped table-hover w-100">
                 <tbody>
-                    {listModelColumns(models,selects, highlightColumn,contextMenuOpen)}
+                    {listModelColumns(models,selects, highlightColumn,openContextMenu)}
                 </tbody>
             </table>
             {contextMenuDisplay(contextMenu, selects)}

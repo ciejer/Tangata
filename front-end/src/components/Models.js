@@ -5,15 +5,16 @@ import { EditJoinPanel } from './EditJoinPanel'
 import { Container, Overlay, Table } from 'react-bootstrap';
 
 
-export const Models = ({models, modelDragEnd, showColumns, saveEditedModel, toggleJoinModal, showJoinModal, highlightedColumns, clicked, contextMenuOpen, editSelect}) => {
+export function Models ({models, modelDragEnd, showColumns, saveEditedModel, toggleJoinModal, showJoinModal, highlightedColumns, openContextMenu, contextMenuOpen, editSelect}) {
     const [contextMenu, setContextMenu] = useState({"x":null,"y":null,"display":false});
     // console.log("Models");
+    // console.log(contextMenuOpen);
     // console.log(models);
     // console.log(highlightedColumns);
     if (models.length === 0) return null
-    if(clicked===true && contextMenu.display===true) { //add this to every other component that has context menus
+      
+    if(contextMenuOpen === false && contextMenu.display===true) { //add this to every other component that has context menus
         setContextMenu({"x":null,"y":null,"display":false});
-        contextMenuOpen(false);
       }
 
       const contextMenuDisplay = (contextMenu, models) => {
@@ -27,7 +28,7 @@ export const Models = ({models, modelDragEnd, showColumns, saveEditedModel, togg
         // console.log(contextMenu.target.dataset.selectvalue.model);
         const addToSelect = (selectToAdd) => {
           editSelect(null,selectToAdd);
-          contextMenuOpen(false);
+          openContextMenu(false);
         };
         return(
           <div>
@@ -56,15 +57,15 @@ export const Models = ({models, modelDragEnd, showColumns, saveEditedModel, togg
                     // console.log(e);
                     if (e.type === 'click') {
                     setContextMenu({"x":null,"y":null,"display":false});
-                    contextMenuOpen(false);
+                    openContextMenu(false);
                     } else if (e.type === 'contextmenu') {
                     e.preventDefault();
                     if(contextMenu.display===false) { //if contextMenu is not displayed
                         setContextMenu({"x":e.pageX,"y":e.pageY,"display":true,"clickTargetType":"Condition","target": e.target});
-                        contextMenuOpen(true);
+                        openContextMenu(true);
                     } else {
                         setContextMenu({"x":null,"y":null,"display":false});
-                        contextMenuOpen(false);
+                        openContextMenu(false);
                     }
                     }
                 }

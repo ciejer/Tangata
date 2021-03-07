@@ -9,14 +9,44 @@ const conditionConcat = (conditions) => {
     }
     return tempConditionConcat;
 }
+const selectStatement = (state) => {
+    var tempSelectStatement = "SELECT\n";
+    const columnDefinition = (select) => {
+        if('definition' in select) { // if SQL definition for column exists, use that
+            return select.definition;
+        } else { // otherwise use the column in inputColumns
+            return select.inputColumns[0].model + "." + select.inputColumns[0].column;
+        }
+    }
+
+    const selectLine = (select) => {
+        return columnDefinition(select) + " AS " + select.alias;
+    }
+
+    if (state.selects.length !== 0) {
+        tempSelectStatement += "  " + selectLine(state.selects[0]) + "\n"
+        for(var selectIndex=1;selectIndex<state.selects.length;selectIndex++) {
+            tempSelectStatement += "  , " 
+                + selectLine(state.selects[selectIndex]) + "\n";
+        }
+    } else {
+        tempSelectStatement += "  *\n"
+    }
+    return tempSelectStatement;
+}
 
 const fromStatement = (state) => {
     var tempFromStatement = "";
+
+    const fromSyntax = (model) => {
+        return "{{ ref(\"" + model.name + "\") }} AS " + model.name;
+    }
+
     if (state.models.length !== 0) {
-        tempFromStatement += "FROM " + state.models.response.models[0].name + "\n"
+        tempFromStatement += "FROM " + fromSyntax(state.models.response.models[0]) + "\n"
         for(var joinIndex=1;joinIndex<state.models.response.models.length;joinIndex++) {
             tempFromStatement += "LEFT JOIN " 
-                + state.models.response.models[joinIndex].name 
+                + fromSyntax(state.models.response.models[joinIndex])
                 + "\n  ON " + conditionConcat(state.models.response.models[joinIndex].joinConditions) + "\n";
         }
     } else {
@@ -48,6 +78,7 @@ export const SQLPanel = ({state}) => {
     <div>
         Generated SQL:
         <div className="sqlContent">
+            {selectStatement(state)}
             {fromStatement(state)}
             {whereStatement(state)}
         </div>

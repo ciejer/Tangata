@@ -52,6 +52,7 @@ class App extends Component {
         this.setState({models: {response}});
         this.setState({conditions: response.conditions});
         var selects = [];
+        var outputName = "";
         for(var modelIndex=0;modelIndex < response.models.length;modelIndex++) {
           for(var columnIndex=0;columnIndex<response.models[modelIndex].columns.length;columnIndex++) {
             var columnUsedToJoin = false;
@@ -73,8 +74,10 @@ class App extends Component {
               selects.push({"inputColumns": [{"column": response.models[modelIndex].columns[columnIndex],"model": response.models[modelIndex].name}],"alias": response.models[modelIndex].columns[columnIndex]});
             }
           }
+          outputName += (modelIndex!==0?"_":"") + response.models[modelIndex].name
         }
         this.setState({selects: selects});
+        this.setState({outputModel: {"name": outputName}})
       });
   }
 
@@ -126,10 +129,10 @@ class App extends Component {
 
 
   editSelect = (oldSelect, newSelect) => {
-    console.log("editSelect")
-    console.log(oldSelect);
-    console.log(newSelect);
-    console.log(this.state.selects);
+    // console.log("editSelect")
+    // console.log(oldSelect);
+    // console.log(newSelect);
+    // console.log(this.state.selects);
     
     if(newSelect === null) { //Removing a select:
       this.setState({selects: [...this.state.selects.filter(selects => selects !== oldSelect)]});
@@ -151,6 +154,12 @@ class App extends Component {
   
   }
 
+  editOutputModel = (newOutputModel) => {
+    // console.log("editOutputModel")
+    // console.log(newOutputModel);
+      this.setState({outputModel: newOutputModel});  
+  }
+
   // this function reorders items on dragdrop
   reorder = (list, startIndex, endIndex) => {
     const result = Array.from(list);
@@ -162,16 +171,17 @@ class App extends Component {
 
   handleAllClicks = (e) => {
     if(this.state.contextMenuOpen===true) {
-      this.setState({clicked: true,contextMenuOpen: true});
+      // console.log("handleAllClicks");
+      this.setState({contextMenuOpen: false});
     }
   }
 
-  contextMenuOpen = (openState) => {
-    console.log("contextMenuOpen");
+  openContextMenu = (openState) => {
+    // console.log("openContextMenu");
     if(openState===true) {
       this.setState({contextMenuOpen: true});
     } else {
-      this.setState({contextMenuOpen: false, clicked: false});
+      this.setState({contextMenuOpen: false});
     }
   }
 
@@ -243,8 +253,8 @@ class App extends Component {
                     toggleJoinModal = { this.toggleJoinModal }
                     showJoinModal = {this.state.showJoinModal}
                     highlightedColumns = {this.state.highlightedColumns}
-                    clicked={this.state.clicked}
-                    contextMenuOpen={this.contextMenuOpen}
+                    contextMenuOpen={this.state.contextMenuOpen}
+                    openContextMenu={this.openContextMenu}
                     editSelect={this.editSelect}
                   />
                 </div>
@@ -255,8 +265,8 @@ class App extends Component {
                       models={this.state.models} 
                       conditions={this.state.conditions}
                       editCondition={this.editCondition}
-                      clicked={this.state.clicked}
-                      contextMenuOpen={this.contextMenuOpen}
+                      contextMenuOpen={this.state.contextMenuOpen}
+                      openContextMenu={this.openContextMenu}
                     />
                 </div>
                 </Col>
@@ -267,8 +277,10 @@ class App extends Component {
                     highlightColumn={this.highlightColumn}
                     selects={this.state.selects}
                     editSelect={this.editSelect}
-                    clicked={this.state.clicked}
-                    contextMenuOpen={this.contextMenuOpen}
+                    contextMenuOpen={this.state.contextMenuOpen}
+                    openContextMenu={this.openContextMenu}
+                    outputModel={this.state.outputModel}
+                    editOutputModel={this.editOutputModel}
                   />
                 </div>
               </Col>
