@@ -80,6 +80,13 @@ class ModelBuilder extends Component {
       });
   }
 
+  componentDidUpdate(prevProps) {
+    if(prevProps.models !== this.props.models) { // update Models
+        // check all existing joins
+        // add new joins
+    }
+  }
+
   saveEditedModel = (previousModel, newModel) => {
     // console.log("saveEditedModel");
     // console.log(previousModel);
@@ -233,6 +240,7 @@ class ModelBuilder extends Component {
   
 
   render() {
+    if(this.props.modelBuilder.active === false) return null;
     if(this.props.logState === true) {
         console.log("ModelBuilder State:");
         console.log(this.state);
