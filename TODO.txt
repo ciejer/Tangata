@@ -3,7 +3,7 @@ Add Column Logic: 'definition' property. Still needs sourcefields to be populate
 Refine GUI - make room for logic in output field, shrink models
 Change model from models.response to just models
 Change model name to "alias", freeing up name for database object name
-Add outputs to sql pane
+Add option to use dbt refs or qualified names
 
 
 Add aggregations & groups to output
