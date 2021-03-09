@@ -9,6 +9,7 @@ export function Models ({models, modelDragEnd, showColumns, saveEditedModel, tog
     const [contextMenu, setContextMenu] = useState({"x":null,"y":null,"display":false});
     // console.log("Models");
     // console.log(contextMenuOpen);
+    // console.log(contextMenuOpen);
     // console.log(models);
     // console.log(highlightedColumns);
     if (models.length === 0) return null

@@ -13,13 +13,32 @@ class App extends Component {
     this.modelBuilder = React.createRef();
   }
   state = {
+    appState: "Catalog",
     modelBuilder: {
-      "active": true,
       "models": [{"name": "humans"},{"name":"abductions"}],
       "logState": false,
       "openSQLPanel": false
+    },
+    contextMenuOpen: false
+  }
+  
+
+  handleAllClicks = (e) => {
+    console.log("handleAllClicks");
+    if(this.state.contextMenuOpen===true) {
+      this.setState({contextMenuOpen: false});
+    }
+  };
+
+  openContextMenu = (openState) => {
+    // console.log("openContextMenu");
+    if(openState===true) {
+      this.setState({contextMenuOpen: true});
+    } else {
+      this.setState({contextMenuOpen: false});
     }
   }
+
   logState = () => {
     this.setState({"logState": true})
   }
@@ -29,6 +48,14 @@ class App extends Component {
 
   addModel = () => {
     console.log("Not yet implemented"); //TODO: add input model from catalog
+  }
+
+  openModelBuilder = () => {
+    this.setState({"appState": "ModelBuilder"})
+  }
+
+  openCatalog = () => {
+    this.setState({"appState": "Catalog"})
   }
 
   componentDidUpdate() {
@@ -42,19 +69,27 @@ class App extends Component {
 
   render() {
     return (
-      <>
+      <div id="main" onClick={this.handleAllClicks} onContextMenu={this.handleAllClicks}>
         <NavBar 
           addModel={this.addModel}
           logState={this.logState}
-          openSQLPanel={this.openSQLPanel}/>
+          openSQLPanel={this.openSQLPanel}
+          openModelBuilder={this.openModelBuilder}
+          openCatalog={this.openCatalog}
+          appState={this.state.appState}
+          openContextMenu={this.openContextMenu}
+          contextMenuOpen={this.state.contextMenuOpen}
+          />
         <ModelBuilder
           modelBuilder={this.state.modelBuilder}
           ref={this.modelBuilder}
           logState={this.state.logState}
           openSQLPanel={this.state.openSQLPanel}
+          appState={this.state.appState}
+          openContextMenu={this.openContextMenu}
+          contextMenuOpen={this.state.contextMenuOpen}
         />
-      </>
-          
+        </div>
     );
   }
 }

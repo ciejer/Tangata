@@ -107,3 +107,16 @@
 .removeFocusOutline {
     outline-style: none;
 }
+
+.bg-brand {
+  background-color: #0D8590 ;
+  color: whitesmoke;
+}
+
+.searchbox-width {
+  width: 600px !important;
+}
+
+html, body, #root, #root>div {
+  height: 100%
+}

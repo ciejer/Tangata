@@ -25,12 +25,12 @@ const catalog = JSON.parse(rawCatalog);
 const compileSearchIndex = (nodesOrSources) => {
   var tempCatalogIndex = [];
   for (const [key, value] of Object.entries(nodesOrSources)) {
-    tempCatalogIndex.push({"searchable": value.metadata.name, "nodeID": key, "nodeDescription": value.metadata.comment, "type": "model_name"}); //push the model itself
-    if(value.metadata.comment) tempCatalogIndex.push({"searchable": value.metadata.comment, "nodeID": key, "nodeDescription": value.metadata.comment, "type": "model_description"}) ;// model description
+    tempCatalogIndex.push({"searchable": value.metadata.name, "nodeID": key, "modelName": value.metadata.name, "modelDescription": value.metadata.comment, "type": "model_name"}); //push the model itself
+    if(value.metadata.comment) tempCatalogIndex.push({"searchable": value.metadata.comment, "modelName": value.metadata.name, "nodeID": key, "modelDescription": value.metadata.comment, "type": "model_description"}) ;// model description
     // console.log(value.columns);
     for (const [columnKey, columnValue] of Object.entries(value.columns)) {
-      tempCatalogIndex.push({"searchable": columnKey, "modelName": value.metadata.name, "nodeID": key, "nodeDescription": value.metadata.comment, "type": "column_name"}); // column name
-      if(columnValue.comment) tempCatalogIndex.push({"searchable": columnValue.comment, "modelName": value.metadata.name, "nodeID": key, "nodeDescription": value.metadata.comment, "type": "column_description"}); // column name
+      tempCatalogIndex.push({"searchable": columnKey, "columnName":columnKey, "modelName": value.metadata.name, "nodeID": key, "modelDescription": value.metadata.comment, "type": "column_name"}); // column name
+      if(columnValue.comment) tempCatalogIndex.push({"searchable": columnValue.comment, "columnName":columnKey, "modelName": value.metadata.name, "nodeID": key, "modelDescription": value.metadata.comment, "type": "column_description"}); // column name
     }
   }
   return tempCatalogIndex;

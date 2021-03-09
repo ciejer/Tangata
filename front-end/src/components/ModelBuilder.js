@@ -22,8 +22,6 @@ class ModelBuilder extends Component {
     showColumns: true,
     conditions: [],
     selects: [],
-    clicked: false,
-    contextMenuOpen: false,
     highlightedColumns: []
   }
   
@@ -35,15 +33,6 @@ class ModelBuilder extends Component {
   openSQLPanel = () => {
     this.state.openSQLPanel?this.setState({openSQLPanel: false}):this.setState({openSQLPanel: true})
   }
-
-  // componentDidUpdate() {
-  //   console.log("componentDidUpdate");
-  //   if(this.state.clicked===true && this.state.contextMenuOpen===true) {
-  //     console.log("clicked");
-  //     this.setState({clicked: false});
-  //     this.setState({contextMenuOpen: false})
-  //   }
-  // }
 
   componentDidMount() { // on load
     getModelJson('all_models.json')
@@ -171,22 +160,6 @@ class ModelBuilder extends Component {
     return result;
   };
 
-  handleAllClicks = (e) => {
-    if(this.state.contextMenuOpen===true) {
-      // console.log("handleAllClicks");
-      this.setState({contextMenuOpen: false});
-    }
-  }
-
-  openContextMenu = (openState) => {
-    // console.log("openContextMenu");
-    if(openState===true) {
-      this.setState({contextMenuOpen: true});
-    } else {
-      this.setState({contextMenuOpen: false});
-    }
-  }
-
   highlightColumn = (columnsToHighlight) => {
     // console.log("highlightColumn");
     // console.log(columnsToHighlight);
@@ -240,14 +213,14 @@ class ModelBuilder extends Component {
   
 
   render() {
-    if(this.props.modelBuilder.active === false) return null;
+    if(this.props.appState !== "ModelBuilder") return null;
     if(this.props.logState === true) {
         console.log("ModelBuilder State:");
         console.log(this.state);
       }
     if(this.props.openSQLPanel) this.state.openSQLPanel?this.setState({openSQLPanel: false}):this.setState({openSQLPanel: true})
     return (
-        <div id="main" onClick={this.handleAllClicks} onContextMenu={this.handleAllClicks}>
+        <div>
           <Container fluid>
             <Row>
               <Col>
@@ -260,8 +233,8 @@ class ModelBuilder extends Component {
                     toggleJoinModal = { this.toggleJoinModal }
                     showJoinModal = {this.state.showJoinModal}
                     highlightedColumns = {this.state.highlightedColumns}
-                    contextMenuOpen={this.state.contextMenuOpen}
-                    openContextMenu={this.openContextMenu}
+                    contextMenuOpen={this.props.contextMenuOpen}
+                    openContextMenu={this.props.openContextMenu}
                     editSelect={this.editSelect}
                   />
                 </div>
@@ -272,8 +245,8 @@ class ModelBuilder extends Component {
                       models={this.state.models} 
                       conditions={this.state.conditions}
                       editCondition={this.editCondition}
-                      contextMenuOpen={this.state.contextMenuOpen}
-                      openContextMenu={this.openContextMenu}
+                      contextMenuOpen={this.props.contextMenuOpen}
+                      openContextMenu={this.props.openContextMenu}
                     />
                 </div>
                 </Col>
@@ -284,8 +257,8 @@ class ModelBuilder extends Component {
                     highlightColumn={this.highlightColumn}
                     selects={this.state.selects}
                     editSelect={this.editSelect}
-                    contextMenuOpen={this.state.contextMenuOpen}
-                    openContextMenu={this.openContextMenu}
+                    contextMenuOpen={this.props.contextMenuOpen}
+                    openContextMenu={this.props.openContextMenu}
                     outputModel={this.state.outputModel}
                     editOutputModel={this.editOutputModel}
                   />
