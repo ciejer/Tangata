@@ -4,8 +4,10 @@ import {Collapse, Container, Row, Col } from 'react-bootstrap';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 // import JsonFilenameInput from './components/JsonFilenameInput'
-import ModelBuilder from './components/ModelBuilder'
-import { NavBar } from './components/NavBar'
+import ModelBuilder from './components/ModelBuilder';
+import { NavBar } from './components/NavBar';
+import Catalog from './components/Catalog';
+import { getModel } from './services/getModel';
 
 class App extends Component {
   constructor(props) {
@@ -17,9 +19,11 @@ class App extends Component {
     modelBuilder: {
       "models": [{"name": "humans"},{"name":"abductions"}],
       "logState": false,
-      "openSQLPanel": false
+      "openSQLPanel": false,
+      "addModel": {}
     },
-    contextMenuOpen: false
+    contextMenuOpen: false,
+    catalogModel: {}
   }
   
 
@@ -29,6 +33,23 @@ class App extends Component {
       this.setState({contextMenuOpen: false});
     }
   };
+
+  // addModelToModelBuilder = (nodeId) => {
+
+  //   this.setState({modelBuilder: {...this.state.modelBuilder, "addModel": 
+  // }
+
+  selectModel = (nodeId) => {
+    // console.log("selectModel");
+    // console.log(nodeId);
+    getModel(nodeId)
+      .then(response => {
+        console.log(response)
+        if(this.state.appState === "Catalog") {
+          this.setState({"catalogModel":response})
+        }
+      });
+  }
 
   openContextMenu = (openState) => {
     // console.log("openContextMenu");
@@ -70,7 +91,7 @@ class App extends Component {
   render() {
     return (
       <div id="main" onClick={this.handleAllClicks} onContextMenu={this.handleAllClicks}>
-        <NavBar 
+        <NavBar
           addModel={this.addModel}
           logState={this.logState}
           openSQLPanel={this.openSQLPanel}
@@ -79,16 +100,24 @@ class App extends Component {
           appState={this.state.appState}
           openContextMenu={this.openContextMenu}
           contextMenuOpen={this.state.contextMenuOpen}
+          selectModel={this.selectModel}
           />
-        <ModelBuilder
-          modelBuilder={this.state.modelBuilder}
-          ref={this.modelBuilder}
-          logState={this.state.logState}
-          openSQLPanel={this.state.openSQLPanel}
-          appState={this.state.appState}
-          openContextMenu={this.openContextMenu}
-          contextMenuOpen={this.state.contextMenuOpen}
-        />
+          <div className="body">
+          <ModelBuilder
+            modelBuilder={this.state.modelBuilder}
+            ref={this.modelBuilder}
+            logState={this.state.logState}
+            openSQLPanel={this.state.openSQLPanel}
+            appState={this.state.appState}
+            openContextMenu={this.openContextMenu}
+            contextMenuOpen={this.state.contextMenuOpen}
+          />
+          <Catalog
+            appState={this.state.appState}
+            catalogModel={this.state.catalogModel}
+          />
+
+          </div>
         </div>
     );
   }

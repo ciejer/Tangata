@@ -120,3 +120,39 @@
 html, body, #root, #root>div {
   height: 100%
 }
+
+.catalogContainer {
+  max-width: 700px !important;
+  padding-top: 1rem;
+  top: 70px;
+}
+
+.body {
+  padding-top: 70px;
+  height: 100%;
+}
+
+.overflow-scroll-y {
+  height: 80vh;
+  top: 20vh;
+  position:fixed;
+  overflow-y: scroll;
+  /* overflow: hidden; */
+}
+
+.catalogBody {
+  height: 500px;
+}
+
+.stickyCatalog {
+  position: sticky;
+  top: 86px;
+}
+
+.z-100 {
+  z-index: 100;
+}
+
+.z-200 {
+  z-index: 100;
+}

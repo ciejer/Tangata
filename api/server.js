@@ -21,6 +21,8 @@ var corsOptions = {
 
 const rawCatalog = fs.readFileSync('./models/catalog.json');
 const catalog = JSON.parse(rawCatalog);
+const rawManifest = fs.readFileSync('./models/manifest.json');
+const manifest = JSON.parse(rawManifest);
 
 const compileSearchIndex = (nodesOrSources) => {
   var tempCatalogIndex = [];
@@ -75,7 +77,7 @@ app.get('/api/model_old/:modelJsonFilename', (req, res) => { //TODO: remove once
   res.json(model);
 });
 
-app.get('/api/v1/models/meta/:modelName', (req, res) => {
+app.get('/api/v1/models/:modelName', (req, res) => {
   // TODO: Check security on all calls
   res.json(getModel(req.params.modelName));
 });

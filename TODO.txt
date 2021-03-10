@@ -1,11 +1,14 @@
-Get search in for new models
+Compile better catalog, including materialization types, tests & dependencies from manifest
+Implement Catalog page from search
+Create API call for downstream tests / models, to populate into test & references (from manifest.json)
 Import new model to modelbuilder on select from search
 Make model name & description editable
-Add Column Logic: 'definition' property. Still needs sourcefields to be populated
+Add Column Logic: 'definition' property for logic. Still needs sourcefields to be populated
 Refine GUI - make room for logic in output field, shrink models
 Change model from models.response to just models
-Change model name to "alias", freeing up name for database object name
+    Change model name to "alias", freeing up name for database object name
 Add option to use dbt refs or qualified names
+Enhance ordering of search results
 
 
 Add aggregations & groups to output

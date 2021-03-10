@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Overlay, Popover } from 'react-bootstrap'; 
 import { getModelSearch } from '../services/getModelSearch';
 const reactState = process.env.NODE_ENV;
-export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, openCatalog, appState, contextMenuOpen, openContextMenu}) => {
+export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, openCatalog, appState, contextMenuOpen, openContextMenu, selectModel}) => {
     const [searchDropdown, setSearchDropdown] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
     const debugLogState = (reactState) => {
@@ -25,6 +25,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
         openContextMenu(false);
         setSearchDropdown(false);
         e.stopPropagation();
+        selectModel(searchResults[index].nodeID);
     }
 
     const toggleSearchDropdown = (newValue) => {
@@ -108,7 +109,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
         const actionText = appState==="Catalog"?"open in Catalog":"add to Model Builder"
         return(
             <Overlay target={searchBox} show={searchDropdown} placement="bottom">
-                <div className="container bg-light searchbox-width">
+                <div className="container bg-light searchbox-width z-200">
                     <div className="row">
                         <div className="col-sm font-weight-bold font-italic">
                             Select model to {actionText}:
@@ -122,7 +123,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
     }
 
     return(
-    <nav className="navbar navbar-expand-lg navbar-dark bg-brand">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-brand position-fixed w-100 z-100">
         <a className="navbar-brand bg-brand" href="/">TANGATA</a>
         <div className="navbar-collapse d-flex justify-content-between" id="navbarNavAltMarkup">
             <div className="navbar-nav p-2 bg-brand">
