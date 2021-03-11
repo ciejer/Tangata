@@ -22,10 +22,27 @@ class Catalog extends Component {
   }
 
   catalogColumns = () => {
-    console.log("catalogColumns");
     const columnRows = () => {
       return Object.entries(this.props.catalogModel.columns).map((value) => {
-        console.log(value);
+        const testList = (tests) => {
+          // console.log(tests);
+          return tests.map((key,value) => {
+            // console.log(key);
+            // console.log(value);
+            if(key.type==="relationships") {
+              return (
+                <div key="key" className={"test-"+key.severity.toLowerCase()} title={"On fail: "+key.severity}>
+                  is found in {key.related_model}.{key.related_field}
+                </div>
+              )
+            }
+            return (
+              <div key="key" className={"test-"+key.severity.toLowerCase()} title={"On fail: "+key.severity}>
+                {key.type}
+              </div>
+            )
+          })
+        }
         return(
           <tr key={"columnRow"+value[0]}>
             <td>
@@ -37,17 +54,19 @@ class Catalog extends Component {
             <td>
               {value[1].comment}
             </td>
+            <td>
+              {testList(value[1].tests)}
+            </td>
           </tr>
         );
       });
     }
     if(Object.keys(this.props.catalogModel.columns).length > 0) { //if this has columns
-      console.log("this has columns");
       return(
         <div className="row mt-md-3">
           <div className="col">
             <h5>Columns:</h5>
-            <table className="table">
+            <table className="table table-sm">
               <thead>
                 <tr>
                   <th>
@@ -59,9 +78,14 @@ class Catalog extends Component {
                   <th>
                     Description
                   </th>
+                  <th>
+                    Tests
+                  </th>
                 </tr>
               </thead>
-            {columnRows()}
+              <tbody>
+                {columnRows()}
+              </tbody>
             </table>
           </div>
         </div>
@@ -90,7 +114,7 @@ class Catalog extends Component {
           <Container className="catalogContainer display-block">
             <div className="row justify-content-md-left">
               <div className="col col-md-auto">
-                <h3 className="mb-md-0">{this.props.catalogModel.metadata.name.toLowerCase()}</h3>
+                <h3 className="mb-md-0">{this.props.catalogModel.name.toLowerCase()}</h3>
               </div>
               {/* <div className="col font-italic align-self-end">
                 {this.props.catalogModel.config.materialized} --waiting for Manifest

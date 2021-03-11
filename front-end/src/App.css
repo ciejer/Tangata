@@ -156,3 +156,11 @@ html, body, #root, #root>div {
 .z-200 {
   z-index: 100;
 }
+
+.test-error {
+  color:red;
+}
+
+.test-warn {
+  color:blue;
+}

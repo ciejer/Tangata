@@ -93,3 +93,8 @@ This zooms into an Alteryx-like development screen, to step through:
     - Require group if aggregated
     - Highlight grouping fields
     - Generate SQL function
+
+Launch:
+Server: \api> npm run dev
+Front end dev: \front-end> npm start
+Serve: \front-end> npm run build; serve -s build -l 80

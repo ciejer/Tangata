@@ -24,6 +24,80 @@ const catalog = JSON.parse(rawCatalog);
 const rawManifest = fs.readFileSync('./models/manifest.json');
 const manifest = JSON.parse(rawManifest);
 
+const populateFullCatalogNode = (nodeID, nodeOrSource) => {
+  var catalogNode = catalog[nodeOrSource+"s"][nodeID];
+  var manifestNode = manifest[nodeOrSource+"s"][nodeID];
+  // console.log("populateFullCatalogNode");
+  console.log(nodeID);
+  // console.log(nodeOrSource);
+  // console.log(catalogNode);
+  // console.log(manifestNode);
+  var tempFullCatalogNode = {
+    "name": catalogNode.metadata.name.toLowerCase(),
+    "type": catalogNode.metadata.type,
+    "database": manifestNode.database.toLowerCase(),
+    "schema": manifestNode.schema.toLowerCase(),
+    "description": catalogNode.metadata.comment,
+    "owner": catalogNode.metadata.owner,
+    "path": manifestNode.path,
+    "enabled": manifestNode.config.enabled,
+    "materialization": manifestNode.config.materialized,
+    "post_hook": manifestNode.config["post-hook"],
+    "pre_hook": manifestNode.config["pre-hook"],
+    "tags": manifestNode.tags,
+    "depends_on": manifestNode.depends_on,
+    "raw_sql": manifestNode.raw_sql,
+    "compiled_sql": manifestNode.compiled_sql,
+    "model_type": nodeOrSource,
+    "columns": {}
+  }
+  for (const [key, value] of Object.entries(catalogNode.columns)) {
+    var catalogColumnNode = value;
+    var manifestColumnNode = manifestNode.columns[key];
+    tempFullCatalogNode.columns[catalogColumnNode.name.toLowerCase()] = {
+      "name": catalogColumnNode.name.toLowerCase(),
+      "type": catalogColumnNode.type,
+      "description": catalogColumnNode.comment,
+      "tests": []
+    };
+  };
+  return tempFullCatalogNode
+};
+
+const compileCatalogNodes = () => {
+  var tempCatalogNodes = [];
+  for (const [key, value] of Object.entries(catalog.nodes)) {
+    tempCatalogNodes[key] = populateFullCatalogNode(key, "node"); //push node to model
+  }
+  for (const [key, value] of Object.entries(catalog.sources)) {
+    tempCatalogNodes[key] = populateFullCatalogNode(key, "source"); //push node to model
+  }
+  console.log(tempCatalogNodes["model.trustpower.f_sales_pipeline"])
+  for (const [key, value] of Object.entries(manifest.nodes)) {
+    if(value.resource_type==="test") {
+      if(value.depends_on.nodes.length===1 && value.column_name !== undefined && value.column_name !== null) {
+        // console.log(value);
+        // console.log(value.column_name);
+        // console.log(value.depends_on.nodes[0]);
+        // console.log(tempCatalogNodes[value.depends_on.nodes].columns);
+        tempCatalogNodes[value.depends_on.nodes].columns[value.column_name.toLowerCase()].tests.push({"type": value.test_metadata.name,"severity": value.config.severity});
+      } else if (value.test_metadata !== undefined && value.test_metadata.name === "relationships") {
+        // console.log(value);
+        // console.log(value.test_metadata.kwargs.model.split('\'')[1]);
+        const catalogNode=Object.entries(tempCatalogNodes).filter(catalogNode => catalogNode[1].name === value.test_metadata.kwargs.model.split('\'')[1])[0]
+        if(catalogNode !== undefined) {
+          const catalogNodeName=catalogNode[0];
+          // console.log(catalogNodeName);
+          // console.log(tempCatalogNodes[catalogNodeName]);
+          tempCatalogNodes[catalogNodeName].columns[value.column_name.toLowerCase()].tests.push({"type": value.test_metadata.name,"severity": value.config.severity, "related_model": value.test_metadata.kwargs.to.split('\'')[1], "related_field": value.test_metadata.kwargs.field.toLowerCase()})
+        }
+      }
+    }
+  }
+  return tempCatalogNodes;
+};
+var fullCatalog = compileCatalogNodes();
+
 const compileSearchIndex = (nodesOrSources) => {
   var tempCatalogIndex = [];
   for (const [key, value] of Object.entries(nodesOrSources)) {
@@ -39,8 +113,10 @@ const compileSearchIndex = (nodesOrSources) => {
 }
 const catalogIndex = compileSearchIndex(catalog.nodes).concat(compileSearchIndex(catalog.sources));
 
+
+
 const getModel = (modelName) => {
-  return catalog.nodes[modelName]?catalog.nodes[modelName]:catalog.sources[modelName];
+  return fullCatalog[modelName];
 }
 
 const searchModels = (searchString) => {
