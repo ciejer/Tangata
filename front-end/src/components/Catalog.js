@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {Container } from 'react-bootstrap';
+import {Container, Tabs, Tab, Accordion, Card, Button } from 'react-bootstrap';
 import '../App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -65,7 +65,6 @@ class Catalog extends Component {
       return(
         <div className="row mt-md-3">
           <div className="col">
-            <h5>Columns:</h5>
             <table className="table table-sm">
               <thead>
                 <tr>
@@ -110,20 +109,67 @@ class Catalog extends Component {
         </div>
       );
     } else {
+      const tags = this.props.catalogModel.tags.join(", ")
       return (
           <Container className="catalogContainer display-block">
             <div className="row justify-content-md-left">
-              <div className="col col-md-auto">
+              <div className="col col-md-auto pr-md-3">
                 <h3 className="mb-md-0">{this.props.catalogModel.name.toLowerCase()}</h3>
               </div>
-              {/* <div className="col font-italic align-self-end">
-                {this.props.catalogModel.config.materialized} --waiting for Manifest
-              </div> */}
+              <div className="col font-italic align-self-end pl-md-0">
+                {this.props.catalogModel.materialization}
+              </div>
+            </div>
+            <div className="row justify-content-between pt-md-1">
+              <div className="col col-md-auto">
+                {this.props.catalogModel.database.toLowerCase()}.{this.props.catalogModel.schema.toLowerCase()}.{this.props.catalogModel.name.toLowerCase()}
+              </div>
+              <div className="col col-md-auto">
+                tags: <i>{tags}</i>
+              </div>
             </div>
             <div className="row mt-md-3">
                 {this.catalogDescription()}
             </div>
-            {this.catalogColumns()}
+            <Accordion className="mt-md-5">
+              <Card>
+                <Card.Header>
+                  <Accordion.Toggle as={Button} variant="link" eventKey="0">
+                    Columns
+                  </Accordion.Toggle>
+                </Card.Header>
+                <Accordion.Collapse eventKey="0">
+                  <div className="container">
+                    {this.catalogColumns()}
+                  </div>
+                </Accordion.Collapse>
+              </Card>
+              <Card>
+                <Card.Header>
+                  <Accordion.Toggle as={Button} variant="link" eventKey="1">
+                    SQL
+                  </Accordion.Toggle>
+                </Card.Header>
+                <Accordion.Collapse eventKey="1">
+                  <div className="container">
+                    <div className="row mt-md-3 mb-md-3">
+                      <div className="col col-md-auto">
+                        <Tabs defaultActiveKey="raw" id="uncontrolled-tab-example" className="ml-md-1">
+                          <Tab eventKey="raw" title="raw SQL" className="py-md-3 catalogSQL">
+                            {this.props.catalogModel.raw_sql}
+                          </Tab>
+                          <Tab eventKey="processed" title="processed SQL" className="py-md-3 catalogSQL">
+                            {this.props.catalogModel.compiled_sql}
+                          </Tab>
+                        </Tabs>
+                      </div>
+                    </div>
+                  </div>
+                </Accordion.Collapse>
+              </Card>
+              
+              
+            </Accordion>
           </Container>
             
       );

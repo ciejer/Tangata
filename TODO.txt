@@ -1,5 +1,4 @@
-Compile better catalog, including materialization types, tests & dependencies from manifest
-Implement Catalog page from search
+Compile better catalog, including materialization types & dependencies from manifest
 Create API call for downstream tests / models, to populate into test & references (from manifest.json)
 Import new model to modelbuilder on select from search
 Make model name & description editable
