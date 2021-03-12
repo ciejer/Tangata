@@ -49,7 +49,11 @@ const populateFullCatalogNode = (nodeID, nodeOrSource) => {
     "raw_sql": manifestNode.raw_sql,
     "compiled_sql": manifestNode.compiled_sql,
     "model_type": nodeOrSource,
-    "columns": {}
+    "bytes_stored": catalogNode.stats.bytes?catalogNode.stats.bytes.value:null,
+    "last_modified": catalogNode.stats.last_modified?catalogNode.stats.last_modified.value:null,
+    "row_count": catalogNode.stats.row_count?catalogNode.stats.row_count.value:null,
+    "columns": {},
+    "referenced_by": []
   }
   for (const [key, value] of Object.entries(catalogNode.columns)) {
     var catalogColumnNode = value;

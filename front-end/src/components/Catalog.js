@@ -119,13 +119,16 @@ class Catalog extends Component {
               <div className="col font-italic align-self-end pl-md-0">
                 {this.props.catalogModel.materialization}
               </div>
+              <div className="col align-self-end pl-md-0 text-right">
+                tags: <i>{tags}</i>
+              </div>
             </div>
             <div className="row justify-content-between pt-md-1">
               <div className="col col-md-auto">
                 {this.props.catalogModel.database.toLowerCase()}.{this.props.catalogModel.schema.toLowerCase()}.{this.props.catalogModel.name.toLowerCase()}
               </div>
               <div className="col col-md-auto">
-                tags: <i>{tags}</i>
+                {this.props.catalogModel.row_count?Number(this.props.catalogModel.row_count).toLocaleString()+" rows":null}
               </div>
             </div>
             <div className="row mt-md-3">
@@ -167,7 +170,22 @@ class Catalog extends Component {
                   </div>
                 </Accordion.Collapse>
               </Card>
-              
+              <Card>
+                <Card.Header>
+                  <Accordion.Toggle as={Button} variant="link" eventKey="2">
+                    Depends On
+                  </Accordion.Toggle>
+                </Card.Header>
+                <Accordion.Collapse eventKey="2">
+                  <div className="container">
+                    <div className="row mt-md-3 mb-md-3">
+                      <div className="col col-md-auto">
+                        
+                      </div>
+                    </div>
+                  </div>
+                </Accordion.Collapse>
+              </Card>
               
             </Accordion>
           </Container>

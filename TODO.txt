@@ -1,4 +1,5 @@
-Compile better catalog, including materialization types & dependencies from manifest
+Compile better catalog, including dependencies from manifest
+Figure out why autocomplete isn't working in prod
 Create API call for downstream tests / models, to populate into test & references (from manifest.json)
 Import new model to modelbuilder on select from search
 Make model name & description editable
