@@ -21,23 +21,70 @@ class Catalog extends Component {
     };
   }
 
+  catalogDependsOn = () => {
+    console.log("this.props.catalogModel.depends_on");
+    console.log(this.props.catalogModel.depends_on);
+
+    const ancestorModels = () => this.props.catalogModel.depends_on.nodes.map((value,index) => {
+      return(
+        <div key={"catalogDependsOnModel"+index} title={value}>
+          {index===0?(<b>Models:<br/></b>):null}
+          {value.split(".").pop()}
+        </div>
+      )
+    });
+    const ancestorMacros = () => this.props.catalogModel.depends_on.macros.map((value,index) => {
+      return(
+        <div key={"catalogDependsOnMacro"+index} title={value}>
+          {index===0?(<b>Macros:<br/></b>):null}
+          {value.split(".").pop()}
+        </div>
+      )
+    });
+    return (
+      <>
+        {ancestorModels()}
+        {ancestorMacros()}
+      </>
+    )
+  }
+
+  catalogDependencies = () => {
+    console.log("this.props.catalogModel.referenced_by");
+    console.log(this.props.catalogModel.referenced_by);
+
+    const dependentModels = () => this.props.catalogModel.referenced_by.map((value,index) => {
+      return(
+        <div key={"catalogDependentModel"+index} title={value}>
+          {index===0?(<b>Models:<br/></b>):null}
+          {value.split(".").pop()}
+        </div>
+      )
+    });
+    return (
+      <>
+        {dependentModels()}
+      </>
+    )
+  }
+
   catalogColumns = () => {
     const columnRows = () => {
-      return Object.entries(this.props.catalogModel.columns).map((value) => {
+      return Object.entries(this.props.catalogModel.columns).map((value,index) => {
         const testList = (tests) => {
           // console.log(tests);
-          return tests.map((key,value) => {
+          return tests.map((key,testIndex) => {
             // console.log(key);
             // console.log(value);
             if(key.type==="relationships") {
               return (
-                <div key="key" className={"test-"+key.severity.toLowerCase()} title={"On fail: "+key.severity}>
+                <div key={"catalogTest"+index+"."+testIndex} className={"test-"+key.severity.toLowerCase()} title={"On fail: "+key.severity}>
                   is found in {key.related_model}.{key.related_field}
                 </div>
               )
             }
             return (
-              <div key="key" className={"test-"+key.severity.toLowerCase()} title={"On fail: "+key.severity}>
+              <div key={"catalogTest"+index+"."+testIndex} className={"test-"+key.severity.toLowerCase()} title={"On fail: "+key.severity}>
                 {key.type}
               </div>
             )
@@ -134,7 +181,7 @@ class Catalog extends Component {
             <div className="row mt-md-3">
                 {this.catalogDescription()}
             </div>
-            <Accordion className="mt-md-5">
+            <Accordion className="mt-md-5" defaultActiveKey="0">
               <Card>
                 <Card.Header>
                   <Accordion.Toggle as={Button} variant="link" eventKey="0">
@@ -180,7 +227,23 @@ class Catalog extends Component {
                   <div className="container">
                     <div className="row mt-md-3 mb-md-3">
                       <div className="col col-md-auto">
-                        
+                        {this.catalogDependsOn()}
+                      </div>
+                    </div>
+                  </div>
+                </Accordion.Collapse>
+              </Card>
+              <Card>
+                <Card.Header>
+                  <Accordion.Toggle as={Button} variant="link" eventKey="3">
+                    Dependencies
+                  </Accordion.Toggle>
+                </Card.Header>
+                <Accordion.Collapse eventKey="3">
+                  <div className="container">
+                    <div className="row mt-md-3 mb-md-3">
+                      <div className="col col-md-auto">
+                        {this.catalogDependencies()}
                       </div>
                     </div>
                   </div>

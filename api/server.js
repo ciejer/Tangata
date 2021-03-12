@@ -28,12 +28,12 @@ const populateFullCatalogNode = (nodeID, nodeOrSource) => {
   var catalogNode = catalog[nodeOrSource+"s"][nodeID];
   var manifestNode = manifest[nodeOrSource+"s"][nodeID];
   // console.log("populateFullCatalogNode");
-  console.log(nodeID);
   // console.log(nodeOrSource);
   // console.log(catalogNode);
   // console.log(manifestNode);
   var tempFullCatalogNode = {
     "name": catalogNode.metadata.name.toLowerCase(),
+    "nodeID": nodeID,
     "type": catalogNode.metadata.type,
     "database": manifestNode.database.toLowerCase(),
     "schema": manifestNode.schema.toLowerCase(),
@@ -76,7 +76,6 @@ const compileCatalogNodes = () => {
   for (const [key, value] of Object.entries(catalog.sources)) {
     tempCatalogNodes[key] = populateFullCatalogNode(key, "source"); //push node to model
   }
-  console.log(tempCatalogNodes["model.trustpower.f_sales_pipeline"])
   for (const [key, value] of Object.entries(manifest.nodes)) {
     if(value.resource_type==="test") {
       if(value.depends_on.nodes.length===1 && value.column_name !== undefined && value.column_name !== null) {
@@ -98,24 +97,35 @@ const compileCatalogNodes = () => {
       }
     }
   }
+  Object.entries(tempCatalogNodes).map((catalogNode,index) => {
+    if(Object.entries(catalogNode)[1][1].depends_on) {
+      Object.entries(catalogNode)[1][1].depends_on.nodes.map((nodeAncestor,index) => {
+        if(tempCatalogNodes[nodeAncestor]) {
+          tempCatalogNodes[nodeAncestor].referenced_by.push(Object.entries(catalogNode)[1][1].nodeID);
+        }
+      })
+        
+  }
+    
+    });
   return tempCatalogNodes;
 };
 var fullCatalog = compileCatalogNodes();
 
-const compileSearchIndex = (nodesOrSources) => {
+const compileSearchIndex = (catalogToIndex) => {
   var tempCatalogIndex = [];
-  for (const [key, value] of Object.entries(nodesOrSources)) {
-    tempCatalogIndex.push({"searchable": value.metadata.name, "nodeID": key, "modelName": value.metadata.name, "modelDescription": value.metadata.comment, "type": "model_name"}); //push the model itself
-    if(value.metadata.comment) tempCatalogIndex.push({"searchable": value.metadata.comment, "modelName": value.metadata.name, "nodeID": key, "modelDescription": value.metadata.comment, "type": "model_description"}) ;// model description
+  for (const [key, value] of Object.entries(catalogToIndex)) {
+    tempCatalogIndex.push({"searchable": value.name, "nodeID": value.nodeID, "modelName": value.name, "modelDescription": value.description, "type": "model_name"}); //push the model itself
+    if(value.description) tempCatalogIndex.push({"searchable": value.description, "modelName": value.name, "nodeID": value.nodeID, "modelDescription": value.description, "type": "model_description"}) ;// model description
     // console.log(value.columns);
     for (const [columnKey, columnValue] of Object.entries(value.columns)) {
-      tempCatalogIndex.push({"searchable": columnKey, "columnName":columnKey, "modelName": value.metadata.name, "nodeID": key, "modelDescription": value.metadata.comment, "type": "column_name"}); // column name
-      if(columnValue.comment) tempCatalogIndex.push({"searchable": columnValue.comment, "columnName":columnKey, "modelName": value.metadata.name, "nodeID": key, "modelDescription": value.metadata.comment, "type": "column_description"}); // column name
+      tempCatalogIndex.push({"searchable": columnKey, "columnName":columnKey, "modelName": value.name, "nodeID": value.nodeID, "modelDescription": value.description, "type": "column_name"}); // column name
+      if(columnValue.description) tempCatalogIndex.push({"searchable": columnValue.description, "columnName":columnKey, "modelName": value.name, "nodeID": value.nodeID, "modelDescription": value.description, "type": "column_description"}); // column name
     }
   }
   return tempCatalogIndex;
 }
-const catalogIndex = compileSearchIndex(catalog.nodes).concat(compileSearchIndex(catalog.sources));
+const catalogIndex = compileSearchIndex(fullCatalog);
 
 
 
