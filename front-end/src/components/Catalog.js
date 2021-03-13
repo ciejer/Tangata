@@ -3,28 +3,21 @@ import {Container, Tabs, Tab, Accordion, Card, Button, Modal } from 'react-boots
 import '../App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import  LayoutFlow  from './Lineage';
+import ContentEditable from 'react-contenteditable'
 
 class Catalog extends Component {
 
   catalogDescription = () => {
     if(this.props.catalogModel.description) {
-      return(
-        <div className="col col-md-auto">
-          {this.props.catalogModel.description}
-        </div>
-      );
+      return this.props.catalogModel.description;
     } else {
-      return(
-        <div className="col col-md-auto">
-          This model does not yet have a description. In future releases, this will be editable here.
-        </div>
-      );
+      return "This model does not yet have a description. In future releases, this will be editable here.";
     };
   }
 
   catalogDependsOn = () => {
-    console.log("this.props.catalogModel.depends_on");
-    console.log(this.props.catalogModel.depends_on);
+    // console.log("this.props.catalogModel.depends_on");
+    // console.log(this.props.catalogModel.depends_on);
 
     const ancestorModels = () => this.props.catalogModel.depends_on.nodes.map((value,index) => {
       return(
@@ -51,8 +44,8 @@ class Catalog extends Component {
   }
 
   catalogDependencies = () => {
-    console.log("this.props.catalogModel.referenced_by");
-    console.log(this.props.catalogModel.referenced_by);
+    // console.log("this.props.catalogModel.referenced_by");
+    // console.log(this.props.catalogModel.referenced_by);
 
     const dependentModels = () => this.props.catalogModel.referenced_by.map((value,index) => {
       return(
@@ -150,14 +143,46 @@ class Catalog extends Component {
       );
     };
   }
+
+  updateMetadata = (e) => {
+    console.log("updateMetadata");
+    console.log(e);
+    console.log(e.target.dataset.metadatafield);
+    console.log(e.target.innerText);
+    console.log(this.props.catalogModel.yaml_path);
+    console.log(this.props.catalogModel.model_path);
+    var metadataBody = {};
+    switch(e.target.dataset.metadatafield) {
+      case "Description":
+        metadataBody = {
+          "updateMethod": "yamlModelProperty",
+          "yaml_path": this.props.catalogModel.yaml_path,
+          "model": this.props.catalogModel.nodeID,
+          "property_name": "description",
+          "new_value": e.target.innerText
+        }
+        fetch('http://sqlgui.chrisjenkins.nz:3080/api/v1/update_metadata', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(metadataBody)
+        });
+      break;
+      default:
+        console.log("updateMetadata: no switch case found");
+    }
+  }
+
   lineageModal = (lineage) => {
     function LineageModal(lineage) {
       const [show, setShow] = useState(false);
     
       const handleClose = () => setShow(false);
       const handleShow = () => setShow(true);
-      console.log("lineageModal");
-      console.log(lineage);
+      // console.log("lineageModal");
+      // console.log(lineage);
     
       return (
         <>
@@ -216,7 +241,12 @@ class Catalog extends Component {
               </div>
             </div>
             <div className="row mt-md-3">
-                {this.catalogDescription()}
+                <ContentEditable
+                  innerRef={this.description}
+                  html={this.catalogDescription()}
+                  onBlur={this.updateMetadata}
+                  data-metadatafield="Description"
+                />
             </div>
             <div className="row mt-md-3">
               <div className="col col-md-auto">

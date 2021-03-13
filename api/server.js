@@ -4,6 +4,7 @@ const app = express(),
       port = 3080;
 const fs = require('fs');
 var cors = require('cors');
+const yaml = require('js-yaml');
 
 // place holder for the data
 // const users = [];
@@ -52,6 +53,8 @@ const populateFullCatalogNode = (nodeID, nodeOrSource) => {
     "bytes_stored": catalogNode.stats.bytes?catalogNode.stats.bytes.value:null,
     "last_modified": catalogNode.stats.last_modified?catalogNode.stats.last_modified.value:null,
     "row_count": catalogNode.stats.row_count?catalogNode.stats.row_count.value:null,
+    "yaml_path": manifestNode.patch_path,
+    "model_path": manifestNode.original_file_path,
     "columns": {},
     "referenced_by": [],
     "lineage": []
@@ -227,10 +230,11 @@ app.get('/api/v1/models/:modelName', (req, res) => {
   res.json(getModel(req.params.modelName));
 });
 
-// app.get('/api/v1/lineage/:modelName', (req, res) => {
-//   // TODO: Check security on all calls
-//   res.json(modelLineage(fullCatalog[req.params.modelName]));
-// });
+app.post('/api/v1/update_metadata', (req, res) => {
+  // TODO: Check security on all calls
+  console.log('Got body:', req.body);
+  res.sendStatus(200);
+});
 
 app.get('/api/v1/model_search/:searchString', (req, res) => {
   // TODO: Check security on all calls

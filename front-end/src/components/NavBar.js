@@ -20,8 +20,8 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
 
 
     const selectSearchResult = (e,index) => {
-        console.log("clickResult");
-        console.log(index);
+        // console.log("clickResult");
+        // console.log(index);
         openContextMenu(false);
         setSearchDropdown(false);
         e.stopPropagation();

@@ -1,14 +1,14 @@
-Compile better catalog, including dependencies from manifest
+Make model name & description editable (simple-git)
 Figure out why autocomplete isn't working in prod
 Create API call for downstream tests / models, to populate into test & references (from manifest.json)
 Import new model to modelbuilder on select from search
-Make model name & description editable
 Add Column Logic: 'definition' property for logic. Still needs sourcefields to be populated
 Refine GUI - make room for logic in output field, shrink models
 Change model from models.response to just models
     Change model name to "alias", freeing up name for database object name
 Add option to use dbt refs or qualified names
 Enhance ordering of search results
+Add "creator" and "contributors" to catalog from git history
 
 
 Add aggregations & groups to output

@@ -44,7 +44,7 @@ class App extends Component {
     // console.log(nodeId);
     getModel(nodeId)
       .then(response => {
-        console.log(response)
+        // console.log(response)
         if(this.state.appState === "Catalog") {
           this.setState({"catalogModel":response})
         }

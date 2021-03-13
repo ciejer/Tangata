@@ -1,0 +1,471 @@
+version: 2
+
+models:
+  - name: s_achievement_details
+    columns:
+      - name: HK_H_ACHIEVEMENT
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_achievement')
+              field: HK_H_ACHIEVEMENT          
+      - name: CHANGE_HASH
+        tests:
+          - not_null
+      - name: DATE_OF_ACHIEVEMENT
+        tests:
+          - not_null  
+      - name: ACHIEVEMENT_TITLE
+        tests:
+          - not_null
+      - name: RECORD_SOURCE
+        tests:
+          - not_null
+            
+  - name: s_achievement_syst
+    tests: 
+      - unique:
+          column_name: "concat(HK_H_ACHIEVEMENT, LOAD_DATETIME)"
+    columns: 
+      - name: HK_H_ACHIEVEMENT
+        tests:
+          - not_null   
+      - name: IS_DELETED
+        tests:
+          - not_null
+          - accepted_values: 
+              values: ['YES', 'NO']             
+
+  - name: s_compliance_details
+    columns:
+      - name: HK_H_COMPLIANCE
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_compliance')
+              field: HK_H_COMPLIANCE          
+      - name: CHANGE_HASH
+        tests:
+          - not_null
+      - name: DATE_OF_COMPLIANCE
+        tests:
+          - not_null  
+      - name: RECORD_SOURCE
+        tests:
+          - not_null
+            
+  - name: s_compliance_syst
+    tests:
+      - unique:
+          column_name: "concat(HK_H_COMPLIANCE, LOAD_DATETIME)"   
+    columns:
+      - name: HK_H_COMPLIANCE
+        tests:
+          - not_null 
+      - name: IS_DELETED
+        tests:
+          - not_null
+          - accepted_values: 
+              values: ['YES', 'NO']                      
+
+  - name: s_course_details
+    tests:
+      - unique:
+          column_name: "concat(HK_H_COURSE, CHANGE_HASH, LOAD_DATETIME)"
+    columns:
+      - name: HK_H_COURSE
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_course')
+              field: HK_H_COURSE   
+              severity: warn      
+      - name: CHANGE_HASH
+        tests:
+          - not_null 
+      - name: ACTIVE
+        tests:
+          - accepted_values:
+              values: ['true','false']
+      - name: RECORD_SOURCE
+        tests:
+          - not_null 
+            
+  - name: s_course_syst
+    tests:
+      - unique:
+          column_name: "concat(HK_H_COURSE, LOAD_DATETIME)"   
+    columns:
+      - name: HK_H_COURSE
+        tests:
+          - not_null 
+      - name: IS_DELETED
+        tests:
+          - not_null
+          - accepted_values: 
+              values: ['YES', 'NO']  
+
+  - name: s_course_team_enrolment_details
+    tests:
+      - unique:
+          column_name: "concat(HK_H_COURSE_TEAM_ENROLMENT, LOAD_DATETIME)" 
+    columns:
+      - name: HK_H_COURSE_TEAM_ENROLMENT
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_course_team_enrolment')
+              field: HK_H_COURSE_TEAM_ENROLMENT          
+      - name: CHANGE_HASH
+        tests:
+          - not_null
+      - name: RECORD_SOURCE
+        tests:
+          - not_null
+
+  - name: s_course_team_enrolment_syst
+    tests:
+      - unique:
+          column_name: "concat(HK_H_COURSE_TEAM_ENROLMENT, LOAD_DATETIME)"   
+    columns:
+      - name: HK_H_COURSE_TEAM_ENROLMENT
+        tests:
+          - not_null 
+      - name: IS_DELETED
+        tests:
+          - not_null
+          - accepted_values: 
+              values: ['YES', 'NO']  
+
+  - name: s_course_team_member_enrolment_details
+    tests:
+      - unique:
+          column_name: "concat(HK_H_COURSE_TEAM_MEMBER_ENROLMENT, LOAD_DATETIME)"    
+          severity: warn  
+    columns:
+      - name: HK_H_COURSE_TEAM_MEMBER_ENROLMENT
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_course_team_member_enrolment')
+              field: HK_H_COURSE_TEAM_MEMBER_ENROLMENT          
+      - name: CHANGE_HASH
+        tests:
+          - not_null
+      - name: COMPLETION_PERCENTAGE
+        tests:
+          - not_null  
+      - name: RECORD_SOURCE
+        tests:
+          - not_null
+
+  - name: s_course_team_member_enrolment_syst
+    tests:
+      - unique:
+          column_name: "concat(HK_H_COURSE_TEAM_MEMBER_ENROLMENT, LOAD_DATETIME)"   
+    columns:
+      - name: HK_H_COURSE_TEAM_MEMBER_ENROLMENT
+        tests:
+          - not_null 
+      - name: IS_DELETED
+        tests:
+          - not_null
+          - accepted_values: 
+              values: ['YES', 'NO'] 
+
+  - name: s_learning_module_details
+    tests:
+      - unique:
+          column_name: "concat(HK_H_LEARNING_MODULE, LOAD_DATETIME)"
+          severity: warn
+    columns:
+      - name: HK_H_LEARNING_MODULE
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_learning_module')
+              field: HK_H_LEARNING_MODULE
+      - name: CHANGE_HASH
+        tests:
+          - not_null
+      - name: MODULE_NAME
+        tests:
+          - not_null  
+      - name: RECORD_SOURCE
+        tests:
+          - not_null
+
+  - name: s_learning_path_course_details       
+    tests:
+      - unique:
+          column_name: "concat(HK_H_LEARNING_PATH_COURSE, LOAD_DATETIME)"
+    columns:
+      - name: HK_H_LEARNING_PATH_COURSE 
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_learning_path_course') 
+              field: HK_H_LEARNING_PATH_COURSE         
+
+  - name: s_learning_path_course_syst
+    tests:
+      - unique:
+          column_name: "concat(HK_H_LEARNING_PATH_COURSE, LOAD_DATETIME)"   
+    columns:
+      - name: HK_H_LEARNING_PATH_COURSE
+        tests:
+          - not_null 
+      - name: IS_DELETED
+        tests:
+          - not_null
+          - accepted_values: 
+              values: ['YES', 'NO']                
+
+  - name: s_learning_path_details
+    tests:
+      - unique:
+          column_name: "concat(HK_H_LEARNING_PATH, LOAD_DATETIME)"
+    columns:
+      - name: HK_H_LEARNING_PATH
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_learning_path')
+              field: HK_H_LEARNING_PATH        
+      - name: CHANGE_HASH
+        tests:
+          - not_null
+      - name: LEARNING_PATH_NAME
+        tests:
+          - not_null
+      - name: RECORD_SOURCE
+        tests:
+          - not_null
+
+  - name: s_learning_path_syst
+    tests:
+      - unique:
+          column_name: "concat(HK_H_LEARNING_PATH, LOAD_DATETIME)"   
+    columns:
+      - name: HK_H_LEARNING_PATH
+        tests:
+          - not_null 
+      - name: IS_DELETED
+        tests:
+          - not_null
+          - accepted_values: 
+              values: ['YES', 'NO'] 
+
+  - name: s_learning_path_team_enrolment_details
+    tests:
+      - unique:
+          column_name: "concat(HK_H_LEARNING_PATH_TEAM_ENROLMENT, LOAD_DATETIME)"
+    columns:
+      - name: HK_H_LEARNING_PATH_TEAM_ENROLMENT
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_learning_path_team_enrolment')
+              field: HK_H_LEARNING_PATH_TEAM_ENROLMENT        
+      - name: CHANGE_HASH
+        tests:
+          - not_null      
+      - name: RECORD_SOURCE
+        tests:
+          - not_null
+
+  - name: s_learning_path_team_enrolment_syst
+    tests:
+      - unique:
+          column_name: "concat(HK_H_LEARNING_PATH_TEAM_ENROLMENT, LOAD_DATETIME)"   
+    columns:
+      - name: HK_H_LEARNING_PATH_TEAM_ENROLMENT
+        tests:
+          - not_null 
+      - name: IS_DELETED
+        tests:
+          - not_null
+          - accepted_values: 
+              values: ['YES', 'NO']       
+
+  - name: s_learning_path_team_member_enrolment_details
+    tests:
+      - unique:
+          column_name: "concat(HK_H_LEARNING_PATH_TEAM_MEMBER_ENROLMENT, LOAD_DATETIME)"
+    columns:
+      - name: HK_H_LEARNING_PATH_TEAM_MEMBER_ENROLMENT
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_learning_path_team_member_enrolment')
+              field: HK_H_LEARNING_PATH_TEAM_MEMBER_ENROLMENT        
+      - name: CHANGE_HASH
+        tests:
+          - not_null
+      - name: COMPLETE
+        tests:
+          - not_null  
+          - accepted_values:
+              values: ['true', 'false']
+      - name: PERCENTAGE_COMPLETE
+        tests: 
+          - not_null        
+      - name: RECORD_SOURCE
+        tests:
+          - not_null
+
+  - name: s_learning_path_team_member_enrolment_syst
+    tests:
+      - unique:
+          column_name: "concat(HK_H_LEARNING_PATH_TEAM_MEMBER_ENROLMENT, LOAD_DATETIME)"   
+    columns:
+      - name: HK_H_LEARNING_PATH_TEAM_MEMBER_ENROLMENT
+        tests:
+          - not_null 
+      - name: IS_DELETED
+        tests:
+          - not_null
+          - accepted_values: 
+              values: ['YES', 'NO']      
+
+  - name: s_module_result_details
+    columns:
+      - name: HK_H_MODULE_RESULT
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_module_result')
+              field: HK_H_MODULE_RESULT        
+      - name: CHANGE_HASH
+        tests:
+          - not_null
+      - name: COURSE_ID
+        tests:
+          - not_null  
+      - name: COURSE_MODULE_ID
+        tests:
+          - not_null  
+      - name: USER_ID
+        tests:
+          - not_null                
+      - name: RECORD_SOURCE
+        tests:
+          - not_null
+
+  - name: s_team_details
+    tests:
+      - unique:
+          column_name: "concat(HK_H_TEAM, LOAD_DATETIME)"
+    columns:
+      - name: HK_H_TEAM
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_team')
+              field: HK_H_TEAM        
+      - name: CHANGE_HASH
+        tests:
+          - not_null
+      - name: TEAM_NAME
+        tests:
+          - not_null                         
+      - name: RECORD_SOURCE
+        tests:
+          - not_null
+ 
+  - name: s_team_syst
+    tests:
+      - unique:
+          column_name: "concat(HK_H_TEAM, LOAD_DATETIME, EFFECTIVE_DATETIME)"  
+    columns:
+      - name: HK_H_TEAM
+        tests:
+          - not_null 
+      - name: IS_DELETED
+        tests:
+          - not_null
+          - accepted_values: 
+              values: ['YES', 'NO']   
+
+  - name: s_team_leader_details
+    tests:
+      - unique:
+          column_name: "concat(HK_H_TEAM_LEADER, LOAD_DATETIME)"
+    columns:
+      - name: HK_H_TEAM_LEADER
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_team_leader')
+              field: HK_H_TEAM_LEADER  
+              severity: warn    
+      - name: CHANGE_HASH
+        tests:
+          - not_null
+      - name: TEAM_LEADER_NAME
+        tests:
+          - not_null  
+      - name: ACTIVE
+        tests:
+          - not_null  
+          - accepted_values:
+              values: ['true', 'false']                         
+      - name: RECORD_SOURCE
+        tests:
+          - not_null
+
+  - name: s_team_leader_syst
+    tests:
+      - unique:
+          column_name: "concat(HK_H_TEAM, LOAD_DATETIME)"   
+    columns:
+      - name: HK_H_TEAM
+        tests:
+          - not_null 
+      - name: IS_DELETED
+        tests:
+          - not_null
+          - accepted_values: 
+              values: ['YES', 'NO']      
+
+  - name: s_team_member_activity
+    columns:
+      - name: HK_H_TEAM_MEMBER
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_team_member')
+              field: HK_H_TEAM_MEMBER
+      - name: CHANGE_HASH
+        tests:
+          - not_null
+
+  - name: s_team_member_details
+    tests: 
+      - unique:
+          column_name: "concat(HK_H_TEAM_MEMBER , EFFECTIVE_DATETIME , LOAD_DATETIME , CONTRACT_START_DATE , CONTRACT_END_DATE)"
+    columns:
+      - name: HK_H_TEAM_MEMBER
+        tests:
+          - not_null
+          - relationships:
+              to: ref ('h_team_member')
+              field: HK_H_TEAM_MEMBER     
+      - name: CHANGE_HASH
+        tests:
+          - not_null                             
+   
+  - name: s_team_member_syst
+    tests:
+      - unique:
+          column_name: "concat(HK_H_TEAM_MEMBER, LOAD_DATETIME)"   
+    columns:
+      - name: HK_H_TEAM_MEMBER
+        tests:
+          - not_null 
+      - name: IS_DELETED
+        tests:
+          - not_null
+          - accepted_values: 
+              values: ['YES', 'NO']             
+           
