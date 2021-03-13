@@ -175,3 +175,30 @@ html, body, #root, #root>div {
 .test-warn {
   color:blue;
 }
+
+.lineagebox {
+  width: 1050 !important;
+  height: 60vh !important;
+  display: block;
+  flex-grow: 1;
+  position: relative;
+}
+
+.currentNode {
+  border-color:tomato;
+}
+
+.modal-90w {
+  width: 90vw;
+  height: 90vh;
+}
+
+.modal-dialog {
+  max-width: none;
+}
+
+.react-flow__node-default, .react-flow__node-input, .react-flow__node-output {
+  /* width:auto !important;
+  min-width: 170px; */
+  word-wrap:break-word;
+}

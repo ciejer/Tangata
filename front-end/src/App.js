@@ -116,7 +116,6 @@ class App extends Component {
             appState={this.state.appState}
             catalogModel={this.state.catalogModel}
           />
-
           </div>
         </div>
     );

@@ -1,7 +1,8 @@
-import React, { Component } from 'react';
-import {Container, Tabs, Tab, Accordion, Card, Button } from 'react-bootstrap';
+import React, { Component, useState } from 'react';
+import {Container, Tabs, Tab, Accordion, Card, Button, Modal } from 'react-bootstrap';
 import '../App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import  LayoutFlow  from './Lineage';
 
 class Catalog extends Component {
 
@@ -68,7 +69,10 @@ class Catalog extends Component {
     )
   }
 
+  
+
   catalogColumns = () => {
+
     const columnRows = () => {
       return Object.entries(this.props.catalogModel.columns).map((value,index) => {
         const testList = (tests) => {
@@ -146,6 +150,39 @@ class Catalog extends Component {
       );
     };
   }
+  lineageModal = (lineage) => {
+    function LineageModal(lineage) {
+      const [show, setShow] = useState(false);
+    
+      const handleClose = () => setShow(false);
+      const handleShow = () => setShow(true);
+      console.log("lineageModal");
+      console.log(lineage);
+    
+      return (
+        <>
+          <Button variant="primary" onClick={handleShow}>
+            Show Lineage
+          </Button>
+    
+          <Modal show={show} onHide={handleClose} size="xl">
+            <Modal.Header closeButton>
+              <Modal.Title>Modal heading</Modal.Title>
+            </Modal.Header>
+            <Modal.Body className="lineagebox">
+              <LayoutFlow className="lineagebox" lineageArray={lineage}/>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={handleClose}>
+                Close
+              </Button>
+            </Modal.Footer>
+          </Modal>
+        </>
+      );
+    }
+    return <LineageModal lineage={lineage}/>
+  }
 
   render() {
     if(this.props.appState !== "Catalog") return null;
@@ -181,7 +218,12 @@ class Catalog extends Component {
             <div className="row mt-md-3">
                 {this.catalogDescription()}
             </div>
-            <Accordion className="mt-md-5" defaultActiveKey="0">
+            <div className="row mt-md-3">
+              <div className="col col-md-auto">
+                {this.lineageModal(this.props.catalogModel.lineage)}
+              </div>
+            </div>
+            <Accordion className="mt-md-3" defaultActiveKey="0">
               <Card>
                 <Card.Header>
                   <Accordion.Toggle as={Button} variant="link" eventKey="0">
@@ -249,7 +291,6 @@ class Catalog extends Component {
                   </div>
                 </Accordion.Collapse>
               </Card>
-              
             </Accordion>
           </Container>
             

@@ -53,7 +53,8 @@ const populateFullCatalogNode = (nodeID, nodeOrSource) => {
     "last_modified": catalogNode.stats.last_modified?catalogNode.stats.last_modified.value:null,
     "row_count": catalogNode.stats.row_count?catalogNode.stats.row_count.value:null,
     "columns": {},
-    "referenced_by": []
+    "referenced_by": [],
+    "lineage": []
   }
   for (const [key, value] of Object.entries(catalogNode.columns)) {
     var catalogColumnNode = value;
@@ -95,7 +96,7 @@ const compileCatalogNodes = () => {
           tempCatalogNodes[catalogNodeName].columns[value.column_name.toLowerCase()].tests.push({"type": value.test_metadata.name,"severity": value.config.severity, "related_model": value.test_metadata.kwargs.to.split('\'')[1], "related_field": value.test_metadata.kwargs.field.toLowerCase()})
         }
       }
-    }
+    } 
   }
   Object.entries(tempCatalogNodes).map((catalogNode,index) => {
     if(Object.entries(catalogNode)[1][1].depends_on) {
@@ -127,7 +128,61 @@ const compileSearchIndex = (catalogToIndex) => {
 }
 const catalogIndex = compileSearchIndex(fullCatalog);
 
+const getModelLineage = () => {
+  const modelLineage = (currentModel) => {
+    var tempLineage = []
+    const recurseForwardLineage = (currentRecursedModel) => {
+      // console.log(currentRecursedModel);
+      if(currentRecursedModel && currentRecursedModel.referenced_by) {
+        currentRecursedModel.referenced_by.map((value) => {
+          if(tempLineage.filter((item, index) => { return (item.id === currentRecursedModel.nodeID+"_"+value)}).length===0) {
+            tempLineage.push({ id: currentRecursedModel.nodeID+"_"+value, source: currentRecursedModel.nodeID, target: value, animated: true }); //push edge
+          }
+          if(tempLineage.filter((item, index) => { return (item.id === value)}).length===0) {
+            tempLineage.push({ id: value, data: { label: value.split(".").pop().replace(/_/g, '_\u200B') }, connectable: false}); //push node
+          }
+          recurseForwardLineage(fullCatalog[value]);
+        });
+      }
+    };
+    const recurseBackLineage = (currentRecursedModel) => {
+      // console.log(currentRecursedModel.name);
+      if(currentRecursedModel && currentRecursedModel.depends_on && currentRecursedModel.depends_on.nodes) {
+        currentRecursedModel.depends_on.nodes.map((value) => {
+          if(tempLineage.filter((item, index) => { return(item.id === currentRecursedModel.nodeID+"_"+value)}).length===0) {
+            tempLineage.push({ id: currentRecursedModel.nodeID+"_"+value, target: currentRecursedModel.nodeID, source: value, animated: true }); //push edge
+          }
+          if(tempLineage.filter((item, index) => { return(item.id === value)}).length===0) {
+            tempLineage.push({ id: value, data: { label: value.split(".").pop().replace(/_/g, '_\u200B') }, connectable: false}); //push node
+          }
+          recurseBackLineage(fullCatalog[value]);
+        });
+      }
+    };
+    // console.log(currentModel);
+    recurseBackLineage(currentModel);
+    tempLineage.push({ id: currentModel.nodeID, style: {"borderColor": "tomato","borderWidth": "2px", "min-width":"151px", "width": "none"}, connectable: false, data: { label: currentModel.name.replace(/_/g, '_\u200B') }}); //push node
+    recurseForwardLineage(currentModel);
+    // return Array.from(new Set(tempLineage));
+    return tempLineage.filter((item, index) => {
+      // if(currentModel && currentModel.name==='litmos_learning_path_course_stage') {
+      // console.log(item);
+      // console.log(index);
+      // console.log(tempLineage.indexOf(item));}
+      return tempLineage.indexOf(item) === index;
+    });
+  };
+  for(catalogNode in fullCatalog) {
+    // console.log(fullCatalog[catalogNode]);
+    if(fullCatalog[catalogNode].model_type==="node") {
+      fullCatalog[catalogNode].lineage = modelLineage(fullCatalog[catalogNode]);
+    }
+  }
+}
+getModelLineage();
 
+// console.log(fullCatalog["model.trustpower.litmos_learning_path_course_stage"]);
+// console.log(modelLineage(fullCatalog["model.trustpower.litmos_learning_path_course_stage"]));
 
 const getModel = (modelName) => {
   return fullCatalog[modelName];
@@ -171,6 +226,11 @@ app.get('/api/v1/models/:modelName', (req, res) => {
   // TODO: Check security on all calls
   res.json(getModel(req.params.modelName));
 });
+
+// app.get('/api/v1/lineage/:modelName', (req, res) => {
+//   // TODO: Check security on all calls
+//   res.json(modelLineage(fullCatalog[req.params.modelName]));
+// });
 
 app.get('/api/v1/model_search/:searchString', (req, res) => {
   // TODO: Check security on all calls
