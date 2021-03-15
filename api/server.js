@@ -20,9 +20,9 @@ var corsOptions = {
   }
 }
 
-const rawCatalog = fs.readFileSync('./models/catalog.json');
+const rawCatalog = fs.readFileSync('./dbt/target/catalog.json');
 const catalog = JSON.parse(rawCatalog);
-const rawManifest = fs.readFileSync('./models/manifest.json');
+const rawManifest = fs.readFileSync('./dbt/target/manifest.json');
 const manifest = JSON.parse(rawManifest);
 
 const populateFullCatalogNode = (nodeID, nodeOrSource) => {
@@ -164,7 +164,7 @@ const getModelLineage = () => {
     };
     // console.log(currentModel);
     recurseBackLineage(currentModel);
-    tempLineage.push({ id: currentModel.nodeID, style: {"borderColor": "tomato","borderWidth": "2px", "min-width":"151px", "width": "none"}, connectable: false, data: { label: currentModel.name.replace(/_/g, '_\u200B') }}); //push node
+    tempLineage.push({ id: currentModel.nodeID, style: {"borderColor": "tomato","borderWidth": "2px"}, connectable: false, data: { label: currentModel.name.replace(/_/g, '_\u200B') }}); //push node
     recurseForwardLineage(currentModel);
     // return Array.from(new Set(tempLineage));
     return tempLineage.filter((item, index) => {
@@ -216,11 +216,174 @@ const searchModels = (searchString) => {
   );
 }
 
+const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schema, model_or_source) => {
+  // console.log("findOrCreateMetadataYML");
+  // console.log(yaml_path);
+  // console.log(model_path);
+  // console.log(model_name);
+
+  const useSchemaYML = () => {
+    const createNewYML = (schemaPath, modelName, source_schema) => {
+      if(model_or_source==='model') {
+        var newYAML = {
+          version: 2,
+          models: [
+            {
+              "name": modelName
+            }
+          ]
+        };
+      } else {
+        var newYAML = {
+          version: 2,
+          sources: [
+            {
+              "name": source_schema,
+              "tables": [
+                {
+                  "name": modelName
+                }
+              ]
+            }
+          ]
+        };
+      }
+      
+      var yamlToWrite = yaml.dump(newYAML);
+      fs.writeFileSync(schemaPath, yamlToWrite, 'utf8');
+      return schemaPath;
+    }
+
+    var path = './dbt/'+model_path.replaceAll('\\','/');
+    path = path.substr(0,path.lastIndexOf('/'));
+    if (!fs.existsSync(path)) fs.mkdirSync(path, { recursive: true });
+    const schemaPath = path+'/schema.yml'
+    try {
+      if (fs.existsSync(schemaPath)) {
+        let currentSchemaYML = yaml.load(fs.readFileSync(schemaPath,'utf8'));
+        if(model_or_source==='model') {
+          if(currentSchemaYML.models.filter(model => model.name === model_name).length>0) {
+            return schemaPath;
+          } else {
+            console.log('pushing model');
+            currentSchemaYML.models.push({
+              "name": model_name
+            });
+            fs.writeFileSync(schemaPath, yaml.dump(currentSchemaYML), 'utf8');
+          }
+        } else {
+          if(currentSchemaYML.sources.filter(source => source.name === source_schema).length>0 && currentSchemaYML.sources.filter(source => source.name === source_schema)[0].tables.filter(source_table => source_table.name === model_name).length>0) {
+            return schemaPath;
+          } else {
+            if(currentSchemaYML.sources.filter(source => source.name === source_schema).length===0) { //add source and table
+              console.log('pushing source and table');
+              currentSchemaYML.sources.push(
+                {
+                  "name": source_schema,
+                  "tables": [
+                    {
+                      "name": model_name
+                    }
+                  ]
+                }
+              );
+            } else { //add just sourcetable
+              console.log('pushing sourcetable');
+              currentSchemaYML.sources.filter(source => source.name === source_schema)[0].tables.push(
+                {
+                  "name": model_name
+                }
+              );
+            }
+            fs.writeFileSync(schemaPath, yaml.dump(currentSchemaYML), 'utf8');
+          }
+        }
+        return schemaPath;
+      } else {
+        return createNewYML(schemaPath, model_name, source_schema);
+      }
+    } catch(err) {
+      console.log(err);
+      return createNewYML(schemaPath, model_name, source_schema);
+    }
+  };
+  console.log(source_schema);
+  console.log(model_name);
+  if(model_or_source === 'source') {
+    var path = './dbt/'+model_path.replaceAll('\\','/');
+    console.log(path);
+    try {
+      if (fs.existsSync(path)) {
+        console.log(fs.readFileSync(path,'utf8'));
+        const currentSchemaYML = yaml.load(fs.readFileSync(path,'utf8'));
+        console.log(currentSchemaYML);
+        console.log(fs.existsSync(path));
+        // console.log(currentSchemaYML.sources);
+        if((currentSchemaYML.sources) && (currentSchemaYML.sources.filter(source => source.name === source_schema).length>0) && (currentSchemaYML.sources.filter(source => source.name === source_schema)[0].tables.filter(source_table => source_table.name === model_name).length>0)) {
+          return path;
+        } else {
+          console.log(currentSchemaYML.sources[0]);
+          if(currentSchemaYML.sources.filter(source => source.name === source_schema).length===0) { //add source and table
+            console.log('pushing source and table');
+            currentSchemaYML.sources.push(
+              {
+                "name": source_schema,
+                "tables": [
+                  {
+                    "name": model_name
+                  }
+                ]
+              }
+            );
+          } else { //add just sourcetable
+            console.log('pushing sourcetable');
+            currentSchemaYML.sources.filter(source => source.name === source_schema)[0].tables.push(
+              {
+                "name": model_name
+              }
+            );
+          }
+          fs.writeFileSync(path, yaml.dump(currentSchemaYML), 'utf8');
+        }
+        return path;
+      } else {
+        return useSchemaYML();
+      }
+    } catch(err) {
+      console.log(err);
+      return useSchemaYML();
+    }
+  } else if(yaml_path ) {
+    var path = './dbt/'+yaml_path.replaceAll('\\','/');
+    try {
+      if (fs.existsSync(path)) {
+        let currentSchemaYML = yaml.load(fs.readFileSync(path,'utf8'));
+        if(currentSchemaYML.models.filter(model => model.name === model_name).length>0) {
+          return path;
+        } else {
+          currentSchemaYML.models.push({
+            "name": model_name
+          });
+          fs.writeFileSync(path, yaml.dump(currentSchemaYML), 'utf8');
+        }
+        return path;
+      } else {
+        return useSchemaYML();
+      }
+    } catch(err) {
+      console.log(err);
+      return useSchemaYML();
+    }
+  } else {
+    return useSchemaYML();
+  }
+}
+
 app.use(bodyParser.json(), cors(corsOptions));
 
 app.get('/api/model_old/:modelJsonFilename', (req, res) => { //TODO: remove once new model api available
   // TODO: Check security on all calls
-  let rawmodel = fs.readFileSync('./models/' + req.params.modelJsonFilename);
+  let rawmodel = fs.readFileSync('./dbt/models/' + req.params.modelJsonFilename);
   let model = JSON.parse(rawmodel);
   res.json(model);
 });
@@ -234,6 +397,57 @@ app.post('/api/v1/update_metadata', (req, res) => {
   // TODO: Check security on all calls
   console.log('Got body:', req.body);
   res.sendStatus(200);
+  if(req.body.updateMethod==='yamlModelProperty') {
+    const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0]);
+    console.log(schemaYMLPath);
+    console.log("^ path that contains model yml config");
+    let currentSchemaYML = yaml.load(fs.readFileSync(schemaYMLPath,'utf8'));
+    // console.log(fs.readFileSync(schemaYMLPath,'utf8'));
+    console.log(currentSchemaYML);
+    let currentSchemaYMLModel = {};
+    if(req.body.node_id.split(".")[0] === 'model') {
+      currentSchemaYMLModel = currentSchemaYML.models.filter(model => model.name === req.body.model)[0];
+    } else {
+      currentSchemaYMLModel = currentSchemaYML.sources.filter(source => source.name === req.body.node_id.split(".")[2])[0].tables.filter(source_table => source_table.name === req.body.model)[0];
+    }
+    console.log(currentSchemaYMLModel);
+    currentSchemaYMLModel[req.body.property_name] = req.body.new_value;
+    console.log(currentSchemaYMLModel);
+    fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
+  } else if(req.body.updateMethod==='yamlModelColumnProperty') {
+    const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0]);
+    console.log(schemaYMLPath);
+    console.log("^ path that contains model yml config");
+    let currentSchemaYML = yaml.load(fs.readFileSync(schemaYMLPath,'utf8'));
+    let currentSchemaYMLModel = {}
+    if(req.body.node_id.split(".")[0] === 'model') {
+      currentSchemaYMLModel = currentSchemaYML.models.filter(model => model.name === req.body.model)[0];
+    } else {
+      currentSchemaYMLModel = currentSchemaYML.sources.filter(source => source.name === req.body.node_id.split(".")[2])[0].tables.filter(source_table => source_table.name === req.body.model)[0];
+    }
+    console.log(currentSchemaYMLModel);
+    if(currentSchemaYMLModel.columns) {
+      var currentSchemaYMLModelColumn = currentSchemaYMLModel.columns.filter(column => column.name === req.body.column)[0];
+      console.log(currentSchemaYMLModelColumn);
+      if(!currentSchemaYMLModelColumn) {
+        console.log('adding column');
+        currentSchemaYMLModel.columns.push({
+          "name": req.body.column
+        });
+        var currentSchemaYMLModelColumn = currentSchemaYMLModel.columns.filter(column => column.name === req.body.column)[0];
+      }
+    } else { //add columns section
+      currentSchemaYMLModel.columns = [];
+      currentSchemaYMLModel.columns.push({
+        "name": req.body.column
+      });
+      var currentSchemaYMLModelColumn = currentSchemaYMLModel.columns.filter(column => column.name === req.body.column)[0];
+    }
+    console.log(currentSchemaYMLModelColumn);
+    currentSchemaYMLModelColumn[req.body.property_name] = req.body.new_value;
+    console.log(currentSchemaYMLModelColumn);
+    fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
+  }
 });
 
 app.get('/api/v1/model_search/:searchString', (req, res) => {

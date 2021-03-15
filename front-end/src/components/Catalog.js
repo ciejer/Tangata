@@ -19,22 +19,28 @@ class Catalog extends Component {
     // console.log("this.props.catalogModel.depends_on");
     // console.log(this.props.catalogModel.depends_on);
 
-    const ancestorModels = () => this.props.catalogModel.depends_on.nodes.map((value,index) => {
-      return(
-        <div key={"catalogDependsOnModel"+index} title={value}>
-          {index===0?(<b>Models:<br/></b>):null}
-          {value.split(".").pop()}
-        </div>
-      )
-    });
-    const ancestorMacros = () => this.props.catalogModel.depends_on.macros.map((value,index) => {
-      return(
-        <div key={"catalogDependsOnMacro"+index} title={value}>
-          {index===0?(<b>Macros:<br/></b>):null}
-          {value.split(".").pop()}
-        </div>
-      )
-    });
+    const ancestorModels = () => {
+      if(!this.props.catalogModel.depends_on) return null;
+      this.props.catalogModel.depends_on.nodes.map((value,index) => {
+        return(
+          <div key={"catalogDependsOnModel"+index} title={value}>
+            {index===0?(<b>Models:<br/></b>):null}
+            {value.split(".").pop()}
+          </div>
+        )
+      });
+    }
+    const ancestorMacros = () => {
+      if(!this.props.catalogModel.depends_on) return null;
+      this.props.catalogModel.depends_on.macros.map((value,index) => {
+        return(
+          <div key={"catalogDependsOnMacro"+index} title={value}>
+            {index===0?(<b>Macros:<br/></b>):null}
+            {value.split(".").pop()}
+          </div>
+        )
+      });
+    }
     return (
       <>
         {ancestorModels()}
@@ -96,7 +102,14 @@ class Catalog extends Component {
               {value[1].type.toLowerCase()}
             </td>
             <td>
-              {value[1].comment}
+              
+            <ContentEditable
+                  html={value[1].comment}
+                  onBlur={this.updateMetadataModel}
+                  data-metadatafield="ColumnDescription"
+                  data-columnName={value[0].toLowerCase()}
+                  defaultValue="Add Column Description"
+                />
             </td>
             <td>
               {testList(value[1].tests)}
@@ -144,8 +157,8 @@ class Catalog extends Component {
     };
   }
 
-  updateMetadata = (e) => {
-    console.log("updateMetadata");
+  updateMetadataModel = (e) => {
+    console.log("updateMetadataModel");
     console.log(e);
     console.log(e.target.dataset.metadatafield);
     console.log(e.target.innerText);
@@ -157,7 +170,21 @@ class Catalog extends Component {
         metadataBody = {
           "updateMethod": "yamlModelProperty",
           "yaml_path": this.props.catalogModel.yaml_path,
-          "model": this.props.catalogModel.nodeID,
+          "model_path": this.props.catalogModel.model_path,
+          "model": this.props.catalogModel.name,
+          "node_id": this.props.catalogModel.nodeID,
+          "property_name": "description",
+          "new_value": e.target.innerText
+        }
+      break;
+      case "ColumnDescription":
+        metadataBody = {
+          "updateMethod": "yamlModelColumnProperty",
+          "yaml_path": this.props.catalogModel.yaml_path,
+          "model_path": this.props.catalogModel.model_path,
+          "model": this.props.catalogModel.name,
+          "node_id": this.props.catalogModel.nodeID,
+          "column": e.target.dataset.columnname,
           "property_name": "description",
           "new_value": e.target.innerText
         }
@@ -172,6 +199,16 @@ class Catalog extends Component {
       break;
       default:
         console.log("updateMetadata: no switch case found");
+    }
+    if(metadataBody) {
+      fetch('http://sqlgui.chrisjenkins.nz:3080/api/v1/update_metadata', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(metadataBody)
+      });
     }
   }
 
@@ -244,7 +281,7 @@ class Catalog extends Component {
                 <ContentEditable
                   innerRef={this.description}
                   html={this.catalogDescription()}
-                  onBlur={this.updateMetadata}
+                  onBlur={this.updateMetadataModel}
                   data-metadatafield="Description"
                 />
             </div>

@@ -1,0 +1,26 @@
+{
+    "actionButtons": {
+        "defaultColor": "#ff0034", // Can also use string color names.
+        "loadNpmCommands":true, // Disables automatic generation of actions for npm commands.
+        "commands": [
+            {
+                "name": "Run API",
+                "color": "white",
+                "singleInstance": true,
+                "command": "cd api && npm run dev", // This is executed in the terminal.
+            },
+            {
+                "name": "Run Front-End",
+                "color": "white",
+                "singleInstance": true,
+                "command": "cd front-end && npm start", // This is executed in the terminal.
+            },
+            {
+                "name": "Serve Front-End Public",
+                "color": "white",
+                "singleInstance": true,
+                "command": "cd front-end && npm run build && serve -s build -l 80", // This is executed in the terminal.
+            }
+        ]
+    }
+}
