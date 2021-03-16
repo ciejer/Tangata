@@ -104,11 +104,12 @@ class Catalog extends Component {
             <td>
               
             <ContentEditable
-                  html={value[1].comment}
+                  html={value[1].description}
                   onBlur={this.updateMetadataModel}
                   data-metadatafield="ColumnDescription"
                   data-columnName={value[0].toLowerCase()}
                   defaultValue="Add Column Description"
+                  style={{"white-space": "pre"}}
                 />
             </td>
             <td>
@@ -266,7 +267,7 @@ class Catalog extends Component {
                 {this.props.catalogModel.materialization}
               </div>
               <div className="col align-self-end pl-md-0 text-right">
-                tags: <i>{tags}</i>
+                {tags.length>0?"tags: ":null}<i>{tags}</i>
               </div>
             </div>
             <div className="row justify-content-between pt-md-1">
@@ -278,12 +279,14 @@ class Catalog extends Component {
               </div>
             </div>
             <div className="row mt-md-3">
+              <div className="col col-md-auto">
                 <ContentEditable
                   innerRef={this.description}
                   html={this.catalogDescription()}
                   onBlur={this.updateMetadataModel}
                   data-metadatafield="Description"
                 />
+              </div>
             </div>
             <div className="row mt-md-3">
               <div className="col col-md-auto">

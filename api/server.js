@@ -1,4 +1,5 @@
 const express = require('express');
+var spawn = require('child_process').spawn;
 const app = express(),
       bodyParser = require("body-parser");
       port = 3080;
@@ -20,10 +21,7 @@ var corsOptions = {
   }
 }
 
-const rawCatalog = fs.readFileSync('./dbt/target/catalog.json');
-const catalog = JSON.parse(rawCatalog);
-const rawManifest = fs.readFileSync('./dbt/target/manifest.json');
-const manifest = JSON.parse(rawManifest);
+var rawCatalog,catalog, rawManifest, manifest;
 
 const populateFullCatalogNode = (nodeID, nodeOrSource) => {
   var catalogNode = catalog[nodeOrSource+"s"][nodeID];
@@ -38,7 +36,7 @@ const populateFullCatalogNode = (nodeID, nodeOrSource) => {
     "type": catalogNode.metadata.type,
     "database": manifestNode.database.toLowerCase(),
     "schema": manifestNode.schema.toLowerCase(),
-    "description": catalogNode.metadata.comment,
+    "description": manifestNode.description,
     "owner": catalogNode.metadata.owner,
     "path": manifestNode.path,
     "enabled": manifestNode.config.enabled,
@@ -65,7 +63,7 @@ const populateFullCatalogNode = (nodeID, nodeOrSource) => {
     tempFullCatalogNode.columns[catalogColumnNode.name.toLowerCase()] = {
       "name": catalogColumnNode.name.toLowerCase(),
       "type": catalogColumnNode.type,
-      "description": catalogColumnNode.comment,
+      "description": manifestColumnNode?manifestColumnNode.description:null,
       "tests": []
     };
   };
@@ -73,6 +71,10 @@ const populateFullCatalogNode = (nodeID, nodeOrSource) => {
 };
 
 const compileCatalogNodes = () => {
+  rawCatalog = fs.readFileSync('./dbt/target/catalog.json');
+  catalog = JSON.parse(rawCatalog);
+  rawManifest = fs.readFileSync('./dbt/target/manifest.json');
+  manifest = JSON.parse(rawManifest);
   var tempCatalogNodes = [];
   for (const [key, value] of Object.entries(catalog.nodes)) {
     tempCatalogNodes[key] = populateFullCatalogNode(key, "node"); //push node to model
@@ -391,6 +393,26 @@ app.get('/api/model_old/:modelJsonFilename', (req, res) => { //TODO: remove once
 app.get('/api/v1/models/:modelName', (req, res) => {
   // TODO: Check security on all calls
   res.json(getModel(req.params.modelName));
+});
+
+app.post('/api/v1/reload_dbt', (req, res) => {
+  console.log('Running dbt_...')
+  const dbtRunner = spawn("cd dbt && dbt docs generate", {shell: true});
+  dbtRunner.stderr.on('data', function (data) {
+    console.error("dbt_ error:", data.toString());
+  });
+  dbtRunner.stdout.on('data', function (data) {
+    // console.log("dbt_ output:", data.toString());
+  });
+  dbtRunner.on('exit', function (exitCode) {
+    // console.log("dbt_ exited with code: " + exitCode);
+    if(exitCode===0) {
+      console.log('dbt_ update successful. Updating app catalog...');
+      fullCatalog = compileCatalogNodes();
+      console.log('Update complete.');
+    }
+  });
+  res.sendStatus(200);
 });
 
 app.post('/api/v1/update_metadata', (req, res) => {

@@ -122,6 +122,16 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
         
     }
 
+    const reloadDBT = () => {
+        fetch('http://sqlgui.chrisjenkins.nz:3080/api/v1/reload_dbt', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          }
+        });
+    }
+
     return(
     <nav className="navbar navbar-expand-lg navbar-dark bg-brand position-fixed w-100 z-100">
         <a className="navbar-brand bg-brand" href="/">TANGATA</a>
@@ -137,6 +147,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
                 {allSearchRows()}
             </div>
             <div className="navbar-nav p-2">
+                <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => reloadDBT()}>Refresh dbt_ catalog</div>
                 <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => addModel()}>Add Model </div>
                 <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => openSQLPanel()}>Open SQL Panel </div>
                 {debugLogState(reactState)}

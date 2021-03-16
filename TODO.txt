@@ -1,3 +1,5 @@
+Add 'Rebuild' button to regenerate dbt docs
+Hook dbt project up to its own git repo
 Hook GitHub up to server (@octokit/rest)
 Figure out why autocomplete isn't working in prod
 Create API call for downstream tests / models, to populate into test & references (from manifest.json)
