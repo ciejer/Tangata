@@ -132,6 +132,22 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
         });
     }
 
+    const createPR = () => {
+        var prTitle = prompt("Please describe your changes:", "Added descriptions to models x, y");
+        console.log(prTitle);
+        var prRequestBody = {
+            "prTitle": prTitle
+        }
+        fetch('http://sqlgui.chrisjenkins.nz:3080/api/v1/create_pr', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(prRequestBody)
+        });
+    }
+
     return(
     <nav className="navbar navbar-expand-lg navbar-dark bg-brand position-fixed w-100 z-100">
         <a className="navbar-brand bg-brand" href="/">TANGATA</a>
@@ -148,7 +164,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
             </div>
             <div className="navbar-nav p-2">
                 <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => reloadDBT()}>Refresh dbt_ catalog</div>
-                <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => addModel()}>Add Model </div>
+                <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => createPR()}>Submit changes</div>
                 <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => openSQLPanel()}>Open SQL Panel </div>
                 {debugLogState(reactState)}
             {/* <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>

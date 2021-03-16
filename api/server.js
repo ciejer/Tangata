@@ -6,6 +6,8 @@ const app = express(),
 const fs = require('fs');
 var cors = require('cors');
 const yaml = require('js-yaml');
+const { Octokit } = require("@octokit/rest");//Octokit is github api, for creating pull requests
+const simpleGit = require('simple-git'); //simple-git is git client, for cloning to local, branching, and making changes where dbt can run & compile.
 
 // place holder for the data
 // const users = [];
@@ -13,13 +15,21 @@ const yaml = require('js-yaml');
 var whitelist = ['http://sqlgui.chrisjenkins.nz', 'http://localhost', 'http://localhost:3000']
 var corsOptions = {
   origin: function (origin, callback) {
-    // if (whitelist.indexOf(origin) !== -1) {
+    if (whitelist.indexOf(origin) !== -1) {
       callback(null, true)
-    // } else {
-      // callback(new Error('Not allowed by CORS'))
-    // }
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
   }
 }
+const octokit = new Octokit({ 
+  auth: process.env.GitHubToken,
+});
+console.log(process.env.GitHubToken);
+const git = simpleGit('./dbt');
+git.branchLocal()
+  .then(branchLocal => {if(branchLocal.current==='master' || branchLocal.current==='main') {git.checkoutLocalBranch('currentBranch')}});
+console.log("next step after git");
 
 var rawCatalog,catalog, rawManifest, manifest;
 
@@ -470,6 +480,27 @@ app.post('/api/v1/update_metadata', (req, res) => {
     console.log(currentSchemaYMLModelColumn);
     fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
   }
+  git.add('./*').commit('auto-commit');
+});
+
+app.post('/api/v1/create_pr', (req, res) => {
+  console.log('Got body:', req.body);
+  console.log('Creating Pull Request...')
+  console.log(req.body.prTitle);
+  var prTitle = req.body.prTitle?req.body.prTitle:"Untitled Commit"
+  git.reset("soft", {"master":null}).commit(prTitle).push("origin", "HEAD", {"-u":null,"--force":null})
+    .then(
+      setTimeout(() => {
+        octokit.pulls.create({
+        "owner": "ciejer",
+        "repo": "sqlgui-dbt-demo",
+        "title": prTitle,
+        "head": "currentBranch",
+        "base": "master"
+        });
+      }, 2000)
+    )
+  res.sendStatus(200);
 });
 
 app.get('/api/v1/model_search/:searchString', (req, res) => {
