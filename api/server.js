@@ -490,7 +490,7 @@ app.post('/api/v1/create_pr', (req, res) => {
   var prTitle = req.body.prTitle?req.body.prTitle:"Untitled Commit"
   git.reset("soft", {"master":null}).commit(prTitle).push("origin", "HEAD", {"-u":null,"--force":null})
     .then(
-      setTimeout(() => {
+      setTimeout(() => { //this is required to ensure github catches up with the push before opening a pr
         octokit.pulls.create({
         "owner": "ciejer",
         "repo": "sqlgui-dbt-demo",
