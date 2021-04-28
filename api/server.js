@@ -23,13 +23,11 @@ var corsOptions = {
   }
 }
 const octokit = new Octokit({ 
-  auth: process.env.GitHubToken,
+  auth: process.env.GitHubToken, //This is set in system environment variables for now
 });
-console.log(process.env.GitHubToken);
 const git = simpleGit('./dbt');
 git.branchLocal()
   .then(branchLocal => {if(branchLocal.current==='master' || branchLocal.current==='main') {git.checkoutLocalBranch('currentBranch')}});
-console.log("next step after git");
 
 var rawCatalog,catalog, rawManifest, manifest;
 
