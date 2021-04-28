@@ -115,6 +115,7 @@ class App extends Component {
           <Catalog
             appState={this.state.appState}
             catalogModel={this.state.catalogModel}
+            selectModel={this.selectModel}
           />
           </div>
         </div>

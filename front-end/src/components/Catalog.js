@@ -178,6 +178,23 @@ class Catalog extends Component {
           "new_value": e.target.innerText
         }
       break;
+      case "Tags":
+        if(e.target.innerText === "None") {
+          metadataBody = null;
+          break;
+        }
+        metadataBody = {
+          "updateMethod": "yamlModelTags",
+          "yaml_path": this.props.catalogModel.yaml_path,
+          "model_path": this.props.catalogModel.model_path,
+          "model": this.props.catalogModel.name,
+          "node_id": this.props.catalogModel.nodeID,
+          "property_name": "tags",
+          "new_value": e.target.innerText.split(',').map(function(item) { // Split tags by commas, and remove any spaces if any
+              return item.trim();
+            })
+        }
+      break;
       case "ColumnDescription":
         metadataBody = {
           "updateMethod": "yamlModelColumnProperty",
@@ -213,7 +230,7 @@ class Catalog extends Component {
     }
   }
 
-  lineageModal = (lineage) => {
+  lineageModal = (lineage, selectModel) => {
     function LineageModal(lineage) {
       const [show, setShow] = useState(false);
     
@@ -233,7 +250,7 @@ class Catalog extends Component {
               <Modal.Title>Modal heading</Modal.Title>
             </Modal.Header>
             <Modal.Body className="lineagebox">
-              <LayoutFlow className="lineagebox" lineageArray={lineage}/>
+              <LayoutFlow className="lineagebox" lineageArray={lineage} selectModel={selectModel}/>
             </Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onClick={handleClose}>
@@ -256,7 +273,7 @@ class Catalog extends Component {
         </div>
       );
     } else {
-      const tags = this.props.catalogModel.tags.join(", ")
+      const tags = this.props.catalogModel.tags.length>0?this.props.catalogModel.tags.join(", "):"None"
       return (
           <Container className="catalogContainer display-block">
             <div className="row justify-content-md-left">
@@ -267,7 +284,15 @@ class Catalog extends Component {
                 {this.props.catalogModel.materialization}
               </div>
               <div className="col align-self-end pl-md-0 text-right">
-                {tags.length>0?"tags: ":null}<i>{tags}</i>
+                tags: <i>
+                  <ContentEditable
+                    innerRef={this.tags}
+                    html={tags}
+                    onBlur={this.updateMetadataModel}
+                    data-metadatafield="Tags"
+                    style= {{display: "inline", minWidth: "100px"}}
+                  />
+                </i>
               </div>
             </div>
             <div className="row justify-content-between pt-md-1">
@@ -290,7 +315,7 @@ class Catalog extends Component {
             </div>
             <div className="row mt-md-3">
               <div className="col col-md-auto">
-                {this.lineageModal(this.props.catalogModel.lineage)}
+                {this.lineageModal(this.props.catalogModel.lineage, this.props.selectModel)}
               </div>
             </div>
             <Accordion className="mt-md-3" defaultActiveKey="0">

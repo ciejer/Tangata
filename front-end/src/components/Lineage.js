@@ -58,6 +58,8 @@ const getLayoutedElements = (elements, direction = 'LR') => {
 };
 
 
+
+
 const LayoutFlow = (props) => {
 //   const { fitView } = useZoomPanHelper();
 console.log("LayoutFlow");  
@@ -67,6 +69,12 @@ console.log(props.lineageArray);
   const onLoad = (reactFlowInstance) => {
     reactFlowInstance.fitView();
   }
+  const onNodeRightClick = (event, node) => {
+    event.preventDefault();
+    console.log(event);
+    console.log(node.id);
+    props.selectModel(node.id);
+  }
   return (
     <div className="layoutflow lineagebox">
       <ReactFlowProvider>
@@ -74,6 +82,7 @@ console.log(props.lineageArray);
           elements={elements}
           connectionLineType="smoothstep"
           onLoad={onLoad}
+          onNodeContextMenu={onNodeRightClick}
         >
             <MiniMap />
         </ReactFlow>

@@ -446,6 +446,28 @@ app.post('/api/v1/update_metadata', (req, res) => {
     currentSchemaYMLModel[req.body.property_name] = req.body.new_value;
     console.log(currentSchemaYMLModel);
     fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
+          selectedYML[dbtProjectYMLModelPath[recurseCount]] = {}
+        }
+        if(recurseCount < dbtProjectYMLModelPath.length-1) {
+          populateDbtProject(selectedYML[dbtProjectYMLModelPath[recurseCount]], recurseCount += 1)
+        } else {
+          selectedYML[dbtProjectYMLModelPath[recurseCount]]["tags"] = req.body.new_value;
+        };
+      };
+      populateDbtProject(dbtProjectYML, 0);
+      fs.writeFileSync(dbtProjectPath, yaml.dump(dbtProjectYML), 'utf8', (err) => {if (err) console.log(err);});
+    } else {
+      const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0]);
+      console.log(schemaYMLPath);
+      console.log("^ path that contains model yml config");
+      let currentSchemaYML = yaml.load(fs.readFileSync(schemaYMLPath,'utf8'));
+      // console.log(fs.readFileSync(schemaYMLPath,'utf8'));
+      console.log(currentSchemaYML);
+      let currentSchemaYMLModel = {};
+      currentSchemaYMLModel = currentSchemaYML.sources.filter(source => source.name === req.body.node_id.split(".")[2])[0].tables.filter(source_table => source_table.name === req.body.model)[0];
+      currentSchemaYMLModel[req.body.property_name] = req.body.new_value;
+      fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
+    }
   } else if(req.body.updateMethod==='yamlModelColumnProperty') {
     const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0]);
     console.log(schemaYMLPath);
