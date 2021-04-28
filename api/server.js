@@ -446,6 +446,16 @@ app.post('/api/v1/update_metadata', (req, res) => {
     currentSchemaYMLModel[req.body.property_name] = req.body.new_value;
     console.log(currentSchemaYMLModel);
     fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
+  } else if(req.body.updateMethod==='yamlModelTags') {
+    if(req.body.node_id.split(".")[0] === 'model') {
+      let dbtProjectYMLModelPath = ['models',req.body.node_id.split(".")[1]];
+      let splitModelPath = req.body.model_path.split(".")[0].split("\\");
+      splitModelPath.shift();
+      dbtProjectYMLModelPath = dbtProjectYMLModelPath.concat(splitModelPath);
+      let dbtProjectPath = "./dbt/dbt_project.yml";
+      let dbtProjectYML = yaml.load(fs.readFileSync(dbtProjectPath,'utf8'));
+      let populateDbtProject = function(selectedYML, recurseCount) {
+        if(!selectedYML[dbtProjectYMLModelPath[recurseCount]]) {
           selectedYML[dbtProjectYMLModelPath[recurseCount]] = {}
         }
         if(recurseCount < dbtProjectYMLModelPath.length-1) {
