@@ -6,6 +6,7 @@ const app = express(),
 const fs = require('fs');
 var cors = require('cors');
 const yaml = require('js-yaml');
+const YAWN = require('yawn-yaml/cjs')
 const { Octokit } = require("@octokit/rest");//Octokit is github api, for creating pull requests
 const simpleGit = require('simple-git'); //simple-git is git client, for cloning to local, branching, and making changes where dbt can run & compile.
 
@@ -450,20 +451,39 @@ app.post('/api/v1/update_metadata', (req, res) => {
       let splitModelPath = req.body.model_path.split(".")[0].split("\\");
       splitModelPath.shift();
       dbtProjectYMLModelPath = dbtProjectYMLModelPath.concat(splitModelPath);
+      console.log(dbtProjectYMLModelPath);
       let dbtProjectPath = "./dbt/dbt_project.yml";
-      let dbtProjectYML = yaml.load(fs.readFileSync(dbtProjectPath,'utf8'));
-      let populateDbtProject = function(selectedYML, recurseCount) {
-        if(!selectedYML[dbtProjectYMLModelPath[recurseCount]]) {
-          selectedYML[dbtProjectYMLModelPath[recurseCount]] = {}
+      let dbtProjectYML = new YAWN(fs.readFileSync(dbtProjectPath,'utf8'));
+      var jsonToInsert = "";
+      for(i=0;i<dbtProjectYMLModelPath.length-1;i++) {
+        jsonToInsert += "{\"" + dbtProjectYMLModelPath[i] + "\": ";
+      }
+      jsonToInsert += "{\"tags\": [\""+req.body.new_value.join("\",\"")+"\"]}";
+      for(i=0;i<dbtProjectYMLModelPath.length-1;i++) {
+        jsonToInsert += "}";
+      }
+      jsonToInsert = JSON.parse(jsonToInsert);
+      var isObject = function(item) {
+        return (item && typeof item === 'object' && !Array.isArray(item));
+      }
+      var mergeDeep = function(target, source) {
+        let output = Object.assign({}, target);
+        if (isObject(target) && isObject(source)) {
+          Object.keys(source).forEach(key => {
+            if (isObject(source[key])) {
+              if (!(key in target))
+                Object.assign(output, { [key]: source[key] });
+              else
+                output[key] = mergeDeep(target[key], source[key]);
+            } else {
+              Object.assign(output, { [key]: source[key] });
+            }
+          });
         }
-        if(recurseCount < dbtProjectYMLModelPath.length-1) {
-          populateDbtProject(selectedYML[dbtProjectYMLModelPath[recurseCount]], recurseCount += 1)
-        } else {
-          selectedYML[dbtProjectYMLModelPath[recurseCount]]["tags"] = req.body.new_value;
-        };
+        return output;
       };
-      populateDbtProject(dbtProjectYML, 0);
-      fs.writeFileSync(dbtProjectPath, yaml.dump(dbtProjectYML), 'utf8', (err) => {if (err) console.log(err);});
+      dbtProjectYML.json = mergeDeep(dbtProjectYML.json, jsonToInsert);
+      fs.writeFileSync(dbtProjectPath, dbtProjectYML.yaml, 'utf8', (err) => {if (err) console.log(err);});
     } else {
       const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0]);
       console.log(schemaYMLPath);

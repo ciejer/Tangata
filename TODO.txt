@@ -1,4 +1,4 @@
-Fix broken pull requests?
+
 Setup user config
 Move git key to user config
 Set up dev branch naming per user, with their own dbt folder
@@ -30,3 +30,4 @@ Later:
 Move context menu to sub component
 Untangle lineage (see s_achievement_litmos)
 Create git branch per user
+Use YAWN for other yaml parsing
