@@ -1,4 +1,3 @@
-
 Setup user config
 Move git key to user config
 Set up dev branch naming per user, with their own dbt folder

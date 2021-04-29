@@ -188,7 +188,7 @@ const getModelLineage = () => {
   };
   for(catalogNode in fullCatalog) {
     // console.log(fullCatalog[catalogNode]);
-    if(fullCatalog[catalogNode].model_type==="node") {
+    if(["node", "source"].includes(fullCatalog[catalogNode].model_type)) {
       fullCatalog[catalogNode].lineage = modelLineage(fullCatalog[catalogNode]);
     }
   }
@@ -451,7 +451,6 @@ app.post('/api/v1/update_metadata', (req, res) => {
       let splitModelPath = req.body.model_path.split(".")[0].split("\\");
       splitModelPath.shift();
       dbtProjectYMLModelPath = dbtProjectYMLModelPath.concat(splitModelPath);
-      console.log(dbtProjectYMLModelPath);
       let dbtProjectPath = "./dbt/dbt_project.yml";
       let dbtProjectYML = new YAWN(fs.readFileSync(dbtProjectPath,'utf8'));
       var jsonToInsert = "";
