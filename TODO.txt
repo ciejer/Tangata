@@ -30,3 +30,4 @@ Move context menu to sub component
 Untangle lineage (see s_achievement_litmos)
 Create git branch per user
 Use YAWN for other yaml parsing
+Add debounce to search queries - to avoid spamming server

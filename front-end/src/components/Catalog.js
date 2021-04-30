@@ -21,18 +21,21 @@ class Catalog extends Component {
 
     const ancestorModels = () => {
       if(!this.props.catalogModel.depends_on) return null;
-      this.props.catalogModel.depends_on.nodes.map((value,index) => {
+      // console.log("found ancestors");
+      return this.props.catalogModel.depends_on.nodes.map((value,index) => {
+        // console.log(value);
+        var ancestorClickEvent = (e) => {e.preventDefault(); this.props.selectModel(value);};
         return(
           <div key={"catalogDependsOnModel"+index} title={value}>
             {index===0?(<b>Models:<br/></b>):null}
-            {value.split(".").pop()}
+            <a href="#" onClick={ancestorClickEvent}>{value.split(".").pop()}</a>
           </div>
         )
       });
     }
     const ancestorMacros = () => {
       if(!this.props.catalogModel.depends_on) return null;
-      this.props.catalogModel.depends_on.macros.map((value,index) => {
+      return this.props.catalogModel.depends_on.macros.map((value,index) => {
         return(
           <div key={"catalogDependsOnMacro"+index} title={value}>
             {index===0?(<b>Macros:<br/></b>):null}
@@ -54,10 +57,11 @@ class Catalog extends Component {
     // console.log(this.props.catalogModel.referenced_by);
 
     const dependentModels = () => this.props.catalogModel.referenced_by.map((value,index) => {
+      var dependentClickEvent = (e) => {e.preventDefault(); this.props.selectModel(value);};
       return(
         <div key={"catalogDependentModel"+index} title={value}>
           {index===0?(<b>Models:<br/></b>):null}
-          {value.split(".").pop()}
+          <a href="#" onClick={dependentClickEvent}>{value.split(".").pop()}</a>
         </div>
       )
     });

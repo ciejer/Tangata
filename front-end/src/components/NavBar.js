@@ -49,10 +49,21 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
                 return(
                     <div className="row">
                         <div className="col">
-                            {searchResult.columnName}
+                            Column: {searchResult.columnName}
                         </div>
                         <div className="col">
                             {searchResult.columnDescription}
+                        </div>
+                    </div>
+                );
+            } else return null;
+        }
+        const tagDetails = () => {
+            if(searchResult.type==="tag_name") {
+                return(
+                    <div className="row">
+                        <div className="col">
+                            Tag: {searchResult.tagName}
                         </div>
                     </div>
                 );
@@ -67,6 +78,9 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
                             <div className="col font-weight-bold">
                                 {searchResult.modelName.toLowerCase()}
                             </div>
+                            <div className="col font-weight-light font-italic text-right">
+                                {searchResult.nodeID.toLowerCase()}
+                            </div>
                         </div>
                         <div className="row">
                             <div className="col font-italic">
@@ -74,6 +88,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
                             </div>
                         </div>
                         {columnDetails()}
+                        {tagDetails()}
                     </div>
                 </div>
             </div>
@@ -94,8 +109,10 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
                     setSearchResults([]);
                     return null;
                 }
-                const allSearchRows = response.slice(0,15);
-                setSearchResults(allSearchRows);
+                if(response.searchString === searchBox.current.value) {
+                    const allSearchRows = response.results.slice(0,15);
+                    setSearchResults(allSearchRows);
+                }
                 // console.log("getSearchResults");
                 // console.log(allSearchRows);
             });

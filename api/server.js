@@ -134,8 +134,12 @@ const compileSearchIndex = (catalogToIndex) => {
     if(value.description) tempCatalogIndex.push({"searchable": value.description, "modelName": value.name, "nodeID": value.nodeID, "modelDescription": value.description, "type": "model_description"}) ;// model description
     // console.log(value.columns);
     for (const [columnKey, columnValue] of Object.entries(value.columns)) {
-      tempCatalogIndex.push({"searchable": columnKey, "columnName":columnKey, "modelName": value.name, "nodeID": value.nodeID, "modelDescription": value.description, "type": "column_name"}); // column name
+      tempCatalogIndex.push({"searchable": columnKey, "columnName": columnKey, "modelName": value.name, "nodeID": value.nodeID, "modelDescription": value.description, "type": "column_name"}); // column name
       if(columnValue.description) tempCatalogIndex.push({"searchable": columnValue.description, "columnName":columnKey, "modelName": value.name, "nodeID": value.nodeID, "modelDescription": value.description, "type": "column_description"}); // column name
+    }
+    // console.log(value.tags);
+    for (const [tagKey, tagValue] of Object.entries(value.tags)) {
+      tempCatalogIndex.push({"searchable": tagValue, "tagName": tagValue, "modelName": value.name, "nodeID": value.nodeID, "modelDescription": value.description, "type": "tag_name"}); // tag name
     }
   }
   return tempCatalogIndex;
@@ -554,7 +558,11 @@ app.post('/api/v1/create_pr', (req, res) => {
 
 app.get('/api/v1/model_search/:searchString', (req, res) => {
   // TODO: Check security on all calls
-  res.json(searchModels(req.params.searchString));
+  console.log(req.params.searchString);
+  let returnValue = {"results": searchModels(req.params.searchString)};
+  returnValue.searchString = req.params.searchString;
+  console.log(returnValue.searchString);
+  res.json(returnValue);
 });
 
 app.get('/api/v1/catalog_index', (req, res) => {
