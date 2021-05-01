@@ -228,6 +228,7 @@ class Catalog extends Component {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'Authorization': 'Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNocmlzQGNocmlzamVua2lucy5ueiIsImlkIjoiNjA4ZDQzNDE5OTU3Mzg2YjI0YjU2NWQ0IiwiZXhwIjoxNjI1MDU0NTQwLCJpYXQiOjE2MTk4NzA1NDB9.OVqMr26HS1yIxsGDGaVQB3ZKOQylgJ2tdwFfW6FFF3M', //temporary token for testing
         },
         body: JSON.stringify(metadataBody)
       });

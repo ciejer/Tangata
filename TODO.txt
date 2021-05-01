@@ -1,10 +1,11 @@
+Add 'user' textbox in interface, to type username - no validation initially, just send it to server to get preferences back
 Setup user config
 Move git key to user config
 Set up dev branch naming per user, with their own dbt folder
 Allow config of 'released' branch other than 'master'
 Delete local branches once pr'ed
 Figure out why autocomplete isn't working in prod
-Create API call for downstream tests / models, to populate into test & references (from manifest.json)
+Create API call for downstream tests / models, to populate into test & references (from manifest.json) - this will allow sideways lineage to show what's tested against a model and what's joined to it.
 Import new model to modelbuilder on select from search
 Add Column Logic: 'definition' property for logic. Still needs sourcefields to be populated
 Refine GUI - make room for logic in output field, shrink models
@@ -31,3 +32,4 @@ Untangle lineage (see s_achievement_litmos)
 Create git branch per user
 Use YAWN for other yaml parsing
 Add debounce to search queries - to avoid spamming server
+replace user textbox with login process and unique UID

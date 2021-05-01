@@ -1,14 +1,28 @@
 const express = require('express');
 var spawn = require('child_process').spawn;
 const app = express(),
-      bodyParser = require("body-parser");
       port = 3080;
 const fs = require('fs');
 var cors = require('cors');
 const yaml = require('js-yaml');
 const YAWN = require('yawn-yaml/cjs')
+const mongoose = require('mongoose');
 const { Octokit } = require("@octokit/rest");//Octokit is github api, for creating pull requests
 const simpleGit = require('simple-git'); //simple-git is git client, for cloning to local, branching, and making changes where dbt can run & compile.
+
+//Configure Mongoose for settings
+mongoose.connect('mongodb://localhost/tangata');
+mongoose.set('debug', true);
+
+//Add models
+require('./models/Users');
+const auth = require('./routes/auth');
+
+// load passport.js auth
+require('./config/passport'); //must be last to load
+
+app.use(express.json());
+app.use(require('./routes/index'));
 
 // place holder for the data
 // const users = [];
@@ -280,7 +294,7 @@ const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schem
           if(currentSchemaYML.models.filter(model => model.name === model_name).length>0) {
             return schemaPath;
           } else {
-            console.log('pushing model');
+            // console.log('pushing model');
             currentSchemaYML.models.push({
               "name": model_name
             });
@@ -291,7 +305,7 @@ const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schem
             return schemaPath;
           } else {
             if(currentSchemaYML.sources.filter(source => source.name === source_schema).length===0) { //add source and table
-              console.log('pushing source and table');
+              // console.log('pushing source and table');
               currentSchemaYML.sources.push(
                 {
                   "name": source_schema,
@@ -303,7 +317,7 @@ const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schem
                 }
               );
             } else { //add just sourcetable
-              console.log('pushing sourcetable');
+              // console.log('pushing sourcetable');
               currentSchemaYML.sources.filter(source => source.name === source_schema)[0].tables.push(
                 {
                   "name": model_name
@@ -322,24 +336,24 @@ const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schem
       return createNewYML(schemaPath, model_name, source_schema);
     }
   };
-  console.log(source_schema);
-  console.log(model_name);
+  // console.log(source_schema);
+  // console.log(model_name);
   if(model_or_source === 'source') {
     var path = './dbt/'+model_path.replaceAll('\\','/');
-    console.log(path);
+    // console.log(path);
     try {
       if (fs.existsSync(path)) {
-        console.log(fs.readFileSync(path,'utf8'));
+        // console.log(fs.readFileSync(path,'utf8'));
         const currentSchemaYML = yaml.load(fs.readFileSync(path,'utf8'));
-        console.log(currentSchemaYML);
-        console.log(fs.existsSync(path));
+        // console.log(currentSchemaYML);
+        // console.log(fs.existsSync(path));
         // console.log(currentSchemaYML.sources);
         if((currentSchemaYML.sources) && (currentSchemaYML.sources.filter(source => source.name === source_schema).length>0) && (currentSchemaYML.sources.filter(source => source.name === source_schema)[0].tables.filter(source_table => source_table.name === model_name).length>0)) {
           return path;
         } else {
-          console.log(currentSchemaYML.sources[0]);
+          // console.log(currentSchemaYML.sources[0]);
           if(currentSchemaYML.sources.filter(source => source.name === source_schema).length===0) { //add source and table
-            console.log('pushing source and table');
+            // console.log('pushing source and table');
             currentSchemaYML.sources.push(
               {
                 "name": source_schema,
@@ -351,7 +365,7 @@ const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schem
               }
             );
           } else { //add just sourcetable
-            console.log('pushing sourcetable');
+            // console.log('pushing sourcetable');
             currentSchemaYML.sources.filter(source => source.name === source_schema)[0].tables.push(
               {
                 "name": model_name
@@ -394,7 +408,8 @@ const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schem
   }
 }
 
-app.use(bodyParser.json(), cors(corsOptions));
+app.use(express.json(), cors(corsOptions));
+
 
 app.get('/api/model_old/:modelJsonFilename', (req, res) => { //TODO: remove once new model api available
   // TODO: Check security on all calls
@@ -428,26 +443,26 @@ app.post('/api/v1/reload_dbt', (req, res) => {
   res.sendStatus(200);
 });
 
-app.post('/api/v1/update_metadata', (req, res) => {
+app.post('/api/v1/update_metadata', auth.required, (req, res) => {
   // TODO: Check security on all calls
   console.log('Got body:', req.body);
   res.sendStatus(200);
   if(req.body.updateMethod==='yamlModelProperty') {
     const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0]);
-    console.log(schemaYMLPath);
-    console.log("^ path that contains model yml config");
+    // console.log(schemaYMLPath);
+    // console.log("^ path that contains model yml config");
     let currentSchemaYML = yaml.load(fs.readFileSync(schemaYMLPath,'utf8'));
     // console.log(fs.readFileSync(schemaYMLPath,'utf8'));
-    console.log(currentSchemaYML);
+    // console.log(currentSchemaYML);
     let currentSchemaYMLModel = {};
     if(req.body.node_id.split(".")[0] === 'model') {
       currentSchemaYMLModel = currentSchemaYML.models.filter(model => model.name === req.body.model)[0];
     } else {
       currentSchemaYMLModel = currentSchemaYML.sources.filter(source => source.name === req.body.node_id.split(".")[2])[0].tables.filter(source_table => source_table.name === req.body.model)[0];
     }
-    console.log(currentSchemaYMLModel);
+    // console.log(currentSchemaYMLModel);
     currentSchemaYMLModel[req.body.property_name] = req.body.new_value;
-    console.log(currentSchemaYMLModel);
+    // console.log(currentSchemaYMLModel);
     fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
   } else if(req.body.updateMethod==='yamlModelTags') {
     if(req.body.node_id.split(".")[0] === 'model') {
@@ -489,11 +504,11 @@ app.post('/api/v1/update_metadata', (req, res) => {
       fs.writeFileSync(dbtProjectPath, dbtProjectYML.yaml, 'utf8', (err) => {if (err) console.log(err);});
     } else {
       const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0]);
-      console.log(schemaYMLPath);
-      console.log("^ path that contains model yml config");
+      // console.log(schemaYMLPath);
+      // console.log("^ path that contains model yml config");
       let currentSchemaYML = yaml.load(fs.readFileSync(schemaYMLPath,'utf8'));
       // console.log(fs.readFileSync(schemaYMLPath,'utf8'));
-      console.log(currentSchemaYML);
+      // console.log(currentSchemaYML);
       let currentSchemaYMLModel = {};
       currentSchemaYMLModel = currentSchemaYML.sources.filter(source => source.name === req.body.node_id.split(".")[2])[0].tables.filter(source_table => source_table.name === req.body.model)[0];
       currentSchemaYMLModel[req.body.property_name] = req.body.new_value;
@@ -501,8 +516,8 @@ app.post('/api/v1/update_metadata', (req, res) => {
     }
   } else if(req.body.updateMethod==='yamlModelColumnProperty') {
     const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0]);
-    console.log(schemaYMLPath);
-    console.log("^ path that contains model yml config");
+    // console.log(schemaYMLPath);
+    // console.log("^ path that contains model yml config");
     let currentSchemaYML = yaml.load(fs.readFileSync(schemaYMLPath,'utf8'));
     let currentSchemaYMLModel = {}
     if(req.body.node_id.split(".")[0] === 'model') {
@@ -510,12 +525,12 @@ app.post('/api/v1/update_metadata', (req, res) => {
     } else {
       currentSchemaYMLModel = currentSchemaYML.sources.filter(source => source.name === req.body.node_id.split(".")[2])[0].tables.filter(source_table => source_table.name === req.body.model)[0];
     }
-    console.log(currentSchemaYMLModel);
+    // console.log(currentSchemaYMLModel);
     if(currentSchemaYMLModel.columns) {
       var currentSchemaYMLModelColumn = currentSchemaYMLModel.columns.filter(column => column.name === req.body.column)[0];
-      console.log(currentSchemaYMLModelColumn);
+      // console.log(currentSchemaYMLModelColumn);
       if(!currentSchemaYMLModelColumn) {
-        console.log('adding column');
+        // console.log('adding column');
         currentSchemaYMLModel.columns.push({
           "name": req.body.column
         });
@@ -528,11 +543,13 @@ app.post('/api/v1/update_metadata', (req, res) => {
       });
       var currentSchemaYMLModelColumn = currentSchemaYMLModel.columns.filter(column => column.name === req.body.column)[0];
     }
-    console.log(currentSchemaYMLModelColumn);
+    // console.log(currentSchemaYMLModelColumn);
     currentSchemaYMLModelColumn[req.body.property_name] = req.body.new_value;
-    console.log(currentSchemaYMLModelColumn);
+    // console.log(currentSchemaYMLModelColumn);
     fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
   }
+  console.log("response body: ");
+  console.log(res.body);
   git.add('./*').commit('auto-commit');
 });
 
