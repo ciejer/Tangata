@@ -11,7 +11,7 @@ class Catalog extends Component {
     if(this.props.catalogModel.description) {
       return this.props.catalogModel.description;
     } else {
-      return "This model does not yet have a description. In future releases, this will be editable here.";
+      return "This model does not yet have a description. Click here to add one.";
     };
   }
 
@@ -210,25 +210,18 @@ class Catalog extends Component {
           "property_name": "description",
           "new_value": e.target.innerText
         }
-        fetch('http://sqlgui.chrisjenkins.nz:3080/api/v1/update_metadata', {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(metadataBody)
-        });
       break;
       default:
         console.log("updateMetadata: no switch case found");
     }
     if(metadataBody) {
+      console.log(this.props.user.token);
       fetch('http://sqlgui.chrisjenkins.nz:3080/api/v1/update_metadata', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': 'Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNocmlzQGNocmlzamVua2lucy5ueiIsImlkIjoiNjA4ZDQzNDE5OTU3Mzg2YjI0YjU2NWQ0IiwiZXhwIjoxNjI1MDU0NTQwLCJpYXQiOjE2MTk4NzA1NDB9.OVqMr26HS1yIxsGDGaVQB3ZKOQylgJ2tdwFfW6FFF3M', //temporary token for testing
+          'Authorization': 'Token ' + this.props.user.token,
         },
         body: JSON.stringify(metadataBody)
       });

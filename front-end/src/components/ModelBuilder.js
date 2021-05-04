@@ -35,7 +35,7 @@ class ModelBuilder extends Component {
   }
 
   componentDidMount() { // on load
-    getModelJson('all_models.json')
+    getModelJson('all_models.json', this.props.user)
       .then(response => {
         this.setState({models: {response}});
         this.setState({conditions: response.conditions});

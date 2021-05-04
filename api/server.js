@@ -21,12 +21,7 @@ const auth = require('./routes/auth');
 // load passport.js auth
 require('./config/passport'); //must be last to load
 
-app.use(express.json());
-app.use(require('./routes/index'));
-
-// place holder for the data
-// const users = [];
-
+const Users = mongoose.model('Users');
 var whitelist = ['http://sqlgui.chrisjenkins.nz', 'http://localhost', 'http://localhost:3000']
 var corsOptions = {
   origin: function (origin, callback) {
@@ -37,12 +32,18 @@ var corsOptions = {
     }
   }
 }
+app.use(express.json(), cors(corsOptions));
+
+app.use(require('./routes/index'));
+
+// place holder for the data
+// const users = [];
+
+
 const octokit = new Octokit({ 
   auth: process.env.GitHubToken, //This is set in system environment variables for now
 });
-const git = simpleGit('./dbt');
-git.branchLocal()
-  .then(branchLocal => {if(branchLocal.current==='master' || branchLocal.current==='main') {git.checkoutLocalBranch('currentBranch')}});
+
 
 var rawCatalog,catalog, rawManifest, manifest;
 
@@ -93,12 +94,12 @@ const populateFullCatalogNode = (nodeID, nodeOrSource) => {
   return tempFullCatalogNode
 };
 
-const compileCatalogNodes = () => {
-  rawCatalog = fs.readFileSync('./dbt/target/catalog.json');
+const compileCatalogNodes = (id) => {
+  rawCatalog = fs.readFileSync('./user_folders/'+id+'/dbt/target/catalog.json');
   catalog = JSON.parse(rawCatalog);
-  rawManifest = fs.readFileSync('./dbt/target/manifest.json');
+  rawManifest = fs.readFileSync('./user_folders/'+id+'/dbt/target/manifest.json');
   manifest = JSON.parse(rawManifest);
-  var tempCatalogNodes = [];
+  var tempCatalogNodes = {};
   for (const [key, value] of Object.entries(catalog.nodes)) {
     tempCatalogNodes[key] = populateFullCatalogNode(key, "node"); //push node to model
   }
@@ -139,7 +140,7 @@ const compileCatalogNodes = () => {
     });
   return tempCatalogNodes;
 };
-var fullCatalog = compileCatalogNodes();
+
 
 const compileSearchIndex = (catalogToIndex) => {
   var tempCatalogIndex = [];
@@ -158,12 +159,11 @@ const compileSearchIndex = (catalogToIndex) => {
   }
   return tempCatalogIndex;
 }
-const catalogIndex = compileSearchIndex(fullCatalog);
 
-const getModelLineage = () => {
-  const modelLineage = (currentModel) => {
+const getModelLineage = (fullCatalog, id) => {
+  const modelLineage = (currentModel, id) => {
     var tempLineage = []
-    const recurseForwardLineage = (currentRecursedModel) => {
+    const recurseForwardLineage = (currentRecursedModel, id) => {
       // console.log(currentRecursedModel);
       if(currentRecursedModel && currentRecursedModel.referenced_by) {
         currentRecursedModel.referenced_by.map((value) => {
@@ -173,11 +173,11 @@ const getModelLineage = () => {
           if(tempLineage.filter((item, index) => { return (item.id === value)}).length===0) {
             tempLineage.push({ id: value, data: { label: value.split(".").pop().replace(/_/g, '_\u200B') }, connectable: false}); //push node
           }
-          recurseForwardLineage(fullCatalog[value]);
+          recurseForwardLineage(fullCatalog[value], id);
         });
       }
     };
-    const recurseBackLineage = (currentRecursedModel) => {
+    const recurseBackLineage = (currentRecursedModel, id) => {
       // console.log(currentRecursedModel.name);
       if(currentRecursedModel && currentRecursedModel.depends_on && currentRecursedModel.depends_on.nodes) {
         currentRecursedModel.depends_on.nodes.map((value) => {
@@ -187,14 +187,14 @@ const getModelLineage = () => {
           if(tempLineage.filter((item, index) => { return(item.id === value)}).length===0) {
             tempLineage.push({ id: value, data: { label: value.split(".").pop().replace(/_/g, '_\u200B') }, connectable: false}); //push node
           }
-          recurseBackLineage(fullCatalog[value]);
+          recurseBackLineage(fullCatalog[value], id);
         });
       }
     };
     // console.log(currentModel);
-    recurseBackLineage(currentModel);
+    recurseBackLineage(currentModel, id);
     tempLineage.push({ id: currentModel.nodeID, style: {"borderColor": "tomato","borderWidth": "2px"}, connectable: false, data: { label: currentModel.name.replace(/_/g, '_\u200B') }}); //push node
-    recurseForwardLineage(currentModel);
+    recurseForwardLineage(currentModel, id);
     // return Array.from(new Set(tempLineage));
     return tempLineage.filter((item, index) => {
       // if(currentModel && currentModel.name==='litmos_learning_path_course_stage') {
@@ -207,22 +207,45 @@ const getModelLineage = () => {
   for(catalogNode in fullCatalog) {
     // console.log(fullCatalog[catalogNode]);
     if(["node", "source"].includes(fullCatalog[catalogNode].model_type)) {
-      fullCatalog[catalogNode].lineage = modelLineage(fullCatalog[catalogNode]);
+      fullCatalog[catalogNode].lineage = modelLineage(fullCatalog[catalogNode], id);
     }
   }
 }
-getModelLineage();
+
+const refreshMetadata = (id) => {
+  var assemblingFullCatalog = compileCatalogNodes(id);
+  var assemblingCatalogIndex = compileSearchIndex(assemblingFullCatalog);
+  getModelLineage(assemblingFullCatalog, id); //this updates fullCatalog before it gets saved
+  fs.writeFileSync('./user_folders/'+id+'/catalog.json', JSON.stringify(assemblingFullCatalog), (err) => {
+    if (err) throw err;
+    console.log('The file has been saved!');
+  });
+  fs.writeFileSync('./user_folders/'+id+'/catalogindex.json', JSON.stringify(assemblingCatalogIndex), (err) => {
+    if (err) throw err;
+    console.log('The file has been saved!');
+  });
+}
+
+const fullCatalog = (id) => {
+  return JSON.parse(fs.readFileSync('./user_folders/'+id+'/catalog.json'));
+}
+
+const catalogIndex = (id) => {
+  return JSON.parse(fs.readFileSync('./user_folders/'+id+'/catalogindex.json'));
+}
+
 
 // console.log(fullCatalog["model.trustpower.litmos_learning_path_course_stage"]);
 // console.log(modelLineage(fullCatalog["model.trustpower.litmos_learning_path_course_stage"]));
 
-const getModel = (modelName) => {
-  return fullCatalog[modelName];
+const getModel = (modelName, id) => {
+  return fullCatalog(id)[modelName];
 }
 
-const searchModels = (searchString) => {
+const searchModels = (searchString, id) => {
   var regexp_needle = new RegExp(searchString, 'i')
-  return catalogIndex.filter(function (v) {
+  console.log(catalogIndex(id));
+  return catalogIndex(id).filter(function (v) {
     return regexp_needle.test(v.searchable)
   }).sort((a,b) =>
     (Math.abs(a.searchable.length-searchString.length)>Math.abs(b.searchable.length-searchString.length)) //Closest length match gets promted
@@ -245,13 +268,13 @@ const searchModels = (searchString) => {
   );
 }
 
-const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schema, model_or_source) => {
+const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schema, model_or_source, id) => {
   // console.log("findOrCreateMetadataYML");
   // console.log(yaml_path);
   // console.log(model_path);
   // console.log(model_name);
 
-  const useSchemaYML = () => {
+  const useSchemaYML = (id) => {
     const createNewYML = (schemaPath, modelName, source_schema) => {
       if(model_or_source==='model') {
         var newYAML = {
@@ -283,7 +306,7 @@ const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schem
       return schemaPath;
     }
 
-    var path = './dbt/'+model_path.replaceAll('\\','/');
+    var path = './user_folders/'+id+'/dbt/'+model_path.replaceAll('\\','/');
     path = path.substr(0,path.lastIndexOf('/'));
     if (!fs.existsSync(path)) fs.mkdirSync(path, { recursive: true });
     const schemaPath = path+'/schema.yml'
@@ -339,7 +362,7 @@ const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schem
   // console.log(source_schema);
   // console.log(model_name);
   if(model_or_source === 'source') {
-    var path = './dbt/'+model_path.replaceAll('\\','/');
+    var path = './user_folders/'+id+'/dbt/'+model_path.replaceAll('\\','/');
     // console.log(path);
     try {
       if (fs.existsSync(path)) {
@@ -376,14 +399,14 @@ const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schem
         }
         return path;
       } else {
-        return useSchemaYML();
+        return useSchemaYML(id);
       }
     } catch(err) {
       console.log(err);
-      return useSchemaYML();
+      return useSchemaYML(id);
     }
   } else if(yaml_path ) {
-    var path = './dbt/'+yaml_path.replaceAll('\\','/');
+    var path = './user_folders/'+id+'/dbt/'+yaml_path.replaceAll('\\','/');
     try {
       if (fs.existsSync(path)) {
         let currentSchemaYML = yaml.load(fs.readFileSync(path,'utf8'));
@@ -397,194 +420,263 @@ const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schem
         }
         return path;
       } else {
-        return useSchemaYML();
+        return useSchemaYML(id);
       }
     } catch(err) {
       console.log(err);
-      return useSchemaYML();
+      return useSchemaYML(id);
     }
   } else {
-    return useSchemaYML();
+    return useSchemaYML(id);
   }
 }
 
-app.use(express.json(), cors(corsOptions));
 
 
-app.get('/api/model_old/:modelJsonFilename', (req, res) => { //TODO: remove once new model api available
-  // TODO: Check security on all calls
-  let rawmodel = fs.readFileSync('./dbt/models/' + req.params.modelJsonFilename);
-  let model = JSON.parse(rawmodel);
-  res.json(model);
+
+app.get('/api/model_old/:modelJsonFilename', auth.required, (req, res) => { //TODO: remove once new model api available
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    // TODO: Check security on all calls
+    let rawmodel = fs.readFileSync('./user_folders/'+id+'/dbt/models/' + req.params.modelJsonFilename);
+    let model = JSON.parse(rawmodel);
+    res.json(model);
+  });
 });
 
-app.get('/api/v1/models/:modelName', (req, res) => {
-  // TODO: Check security on all calls
-  res.json(getModel(req.params.modelName));
+app.get('/api/v1/models/:modelName', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    res.json(getModel(req.params.modelName, id));
+  });
 });
 
-app.post('/api/v1/reload_dbt', (req, res) => {
-  console.log('Running dbt_...')
-  const dbtRunner = spawn("cd dbt && dbt docs generate", {shell: true});
-  dbtRunner.stderr.on('data', function (data) {
-    console.error("dbt_ error:", data.toString());
+app.post('/api/v1/reload_dbt', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    console.log('Running dbt_...')
+    const dbtRunner = spawn("cd ./user_folders/"+id+"/dbt && dbt docs generate", {shell: true});
+    dbtRunner.stderr.on('data', function (data) {
+      console.error("dbt_ error:", data.toString());
+    });
+    dbtRunner.stdout.on('data', function (data) {
+      // console.log("dbt_ output:", data.toString());
+    });
+    dbtRunner.on('exit', function (exitCode) {
+      // console.log("dbt_ exited with code: " + exitCode);
+      if(exitCode===0) {
+        console.log('dbt_ update successful. Updating app catalog...');
+        refreshMetadata(id);
+        console.log('Update complete.');
+      }
+    });
+    res.sendStatus(200);
   });
-  dbtRunner.stdout.on('data', function (data) {
-    // console.log("dbt_ output:", data.toString());
-  });
-  dbtRunner.on('exit', function (exitCode) {
-    // console.log("dbt_ exited with code: " + exitCode);
-    if(exitCode===0) {
-      console.log('dbt_ update successful. Updating app catalog...');
-      fullCatalog = compileCatalogNodes();
-      console.log('Update complete.');
-    }
-  });
-  res.sendStatus(200);
 });
 
 app.post('/api/v1/update_metadata', auth.required, (req, res) => {
-  // TODO: Check security on all calls
-  console.log('Got body:', req.body);
-  res.sendStatus(200);
-  if(req.body.updateMethod==='yamlModelProperty') {
-    const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0]);
-    // console.log(schemaYMLPath);
-    // console.log("^ path that contains model yml config");
-    let currentSchemaYML = yaml.load(fs.readFileSync(schemaYMLPath,'utf8'));
-    // console.log(fs.readFileSync(schemaYMLPath,'utf8'));
-    // console.log(currentSchemaYML);
-    let currentSchemaYMLModel = {};
-    if(req.body.node_id.split(".")[0] === 'model') {
-      currentSchemaYMLModel = currentSchemaYML.models.filter(model => model.name === req.body.model)[0];
-    } else {
-      currentSchemaYMLModel = currentSchemaYML.sources.filter(source => source.name === req.body.node_id.split(".")[2])[0].tables.filter(source_table => source_table.name === req.body.model)[0];
-    }
-    // console.log(currentSchemaYMLModel);
-    currentSchemaYMLModel[req.body.property_name] = req.body.new_value;
-    // console.log(currentSchemaYMLModel);
-    fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
-  } else if(req.body.updateMethod==='yamlModelTags') {
-    if(req.body.node_id.split(".")[0] === 'model') {
-      let dbtProjectYMLModelPath = ['models',req.body.node_id.split(".")[1]];
-      let splitModelPath = req.body.model_path.split(".")[0].split("\\");
-      splitModelPath.shift();
-      dbtProjectYMLModelPath = dbtProjectYMLModelPath.concat(splitModelPath);
-      let dbtProjectPath = "./dbt/dbt_project.yml";
-      let dbtProjectYML = new YAWN(fs.readFileSync(dbtProjectPath,'utf8'));
-      var jsonToInsert = "";
-      for(i=0;i<dbtProjectYMLModelPath.length-1;i++) {
-        jsonToInsert += "{\"" + dbtProjectYMLModelPath[i] + "\": ";
-      }
-      jsonToInsert += "{\"tags\": [\""+req.body.new_value.join("\",\"")+"\"]}";
-      for(i=0;i<dbtProjectYMLModelPath.length-1;i++) {
-        jsonToInsert += "}";
-      }
-      jsonToInsert = JSON.parse(jsonToInsert);
-      var isObject = function(item) {
-        return (item && typeof item === 'object' && !Array.isArray(item));
-      }
-      var mergeDeep = function(target, source) {
-        let output = Object.assign({}, target);
-        if (isObject(target) && isObject(source)) {
-          Object.keys(source).forEach(key => {
-            if (isObject(source[key])) {
-              if (!(key in target))
-                Object.assign(output, { [key]: source[key] });
-              else
-                output[key] = mergeDeep(target[key], source[key]);
-            } else {
-              Object.assign(output, { [key]: source[key] });
-            }
-          });
-        }
-        return output;
-      };
-      dbtProjectYML.json = mergeDeep(dbtProjectYML.json, jsonToInsert);
-      fs.writeFileSync(dbtProjectPath, dbtProjectYML.yaml, 'utf8', (err) => {if (err) console.log(err);});
-    } else {
-      const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0]);
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    console.log('Got body:', req.body);
+    res.sendStatus(200);
+    if(req.body.updateMethod==='yamlModelProperty') {
+      const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0], id);
       // console.log(schemaYMLPath);
       // console.log("^ path that contains model yml config");
       let currentSchemaYML = yaml.load(fs.readFileSync(schemaYMLPath,'utf8'));
       // console.log(fs.readFileSync(schemaYMLPath,'utf8'));
       // console.log(currentSchemaYML);
       let currentSchemaYMLModel = {};
-      currentSchemaYMLModel = currentSchemaYML.sources.filter(source => source.name === req.body.node_id.split(".")[2])[0].tables.filter(source_table => source_table.name === req.body.model)[0];
+      if(req.body.node_id.split(".")[0] === 'model') {
+        currentSchemaYMLModel = currentSchemaYML.models.filter(model => model.name === req.body.model)[0];
+      } else {
+        currentSchemaYMLModel = currentSchemaYML.sources.filter(source => source.name === req.body.node_id.split(".")[2])[0].tables.filter(source_table => source_table.name === req.body.model)[0];
+      }
+      // console.log(currentSchemaYMLModel);
       currentSchemaYMLModel[req.body.property_name] = req.body.new_value;
+      // console.log(currentSchemaYMLModel);
       fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
-    }
-  } else if(req.body.updateMethod==='yamlModelColumnProperty') {
-    const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0]);
-    // console.log(schemaYMLPath);
-    // console.log("^ path that contains model yml config");
-    let currentSchemaYML = yaml.load(fs.readFileSync(schemaYMLPath,'utf8'));
-    let currentSchemaYMLModel = {}
-    if(req.body.node_id.split(".")[0] === 'model') {
-      currentSchemaYMLModel = currentSchemaYML.models.filter(model => model.name === req.body.model)[0];
-    } else {
-      currentSchemaYMLModel = currentSchemaYML.sources.filter(source => source.name === req.body.node_id.split(".")[2])[0].tables.filter(source_table => source_table.name === req.body.model)[0];
-    }
-    // console.log(currentSchemaYMLModel);
-    if(currentSchemaYMLModel.columns) {
-      var currentSchemaYMLModelColumn = currentSchemaYMLModel.columns.filter(column => column.name === req.body.column)[0];
-      // console.log(currentSchemaYMLModelColumn);
-      if(!currentSchemaYMLModelColumn) {
-        // console.log('adding column');
+    } else if(req.body.updateMethod==='yamlModelTags') {
+      if(req.body.node_id.split(".")[0] === 'model') {
+        let dbtProjectYMLModelPath = ['models',req.body.node_id.split(".")[1]];
+        let splitModelPath = req.body.model_path.split(".")[0].split("\\");
+        splitModelPath.shift();
+        dbtProjectYMLModelPath = dbtProjectYMLModelPath.concat(splitModelPath);
+        let dbtProjectPath = "./user_folders/"+id+"/dbt/dbt_project.yml";
+        let dbtProjectYML = new YAWN(fs.readFileSync(dbtProjectPath,'utf8'));
+        var jsonToInsert = "";
+        for(i=0;i<dbtProjectYMLModelPath.length-1;i++) {
+          jsonToInsert += "{\"" + dbtProjectYMLModelPath[i] + "\": ";
+        }
+        jsonToInsert += "{\"tags\": [\""+req.body.new_value.join("\",\"")+"\"]}";
+        for(i=0;i<dbtProjectYMLModelPath.length-1;i++) {
+          jsonToInsert += "}";
+        }
+        jsonToInsert = JSON.parse(jsonToInsert);
+        var isObject = function(item) {
+          return (item && typeof item === 'object' && !Array.isArray(item));
+        }
+        var mergeDeep = function(target, source) {
+          let output = Object.assign({}, target);
+          if (isObject(target) && isObject(source)) {
+            Object.keys(source).forEach(key => {
+              if (isObject(source[key])) {
+                if (!(key in target))
+                  Object.assign(output, { [key]: source[key] });
+                else
+                  output[key] = mergeDeep(target[key], source[key]);
+              } else {
+                Object.assign(output, { [key]: source[key] });
+              }
+            });
+          }
+          return output;
+        };
+        dbtProjectYML.json = mergeDeep(dbtProjectYML.json, jsonToInsert);
+        fs.writeFileSync(dbtProjectPath, dbtProjectYML.yaml, 'utf8', (err) => {if (err) console.log(err);});
+      } else {
+        const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0], id);
+        // console.log(schemaYMLPath);
+        // console.log("^ path that contains model yml config");
+        let currentSchemaYML = yaml.load(fs.readFileSync(schemaYMLPath,'utf8'));
+        // console.log(fs.readFileSync(schemaYMLPath,'utf8'));
+        // console.log(currentSchemaYML);
+        let currentSchemaYMLModel = {};
+        currentSchemaYMLModel = currentSchemaYML.sources.filter(source => source.name === req.body.node_id.split(".")[2])[0].tables.filter(source_table => source_table.name === req.body.model)[0];
+        currentSchemaYMLModel[req.body.property_name] = req.body.new_value;
+        fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
+      }
+    } else if(req.body.updateMethod==='yamlModelColumnProperty') {
+      const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0], id);
+      // console.log(schemaYMLPath);
+      // console.log("^ path that contains model yml config");
+      let currentSchemaYML = yaml.load(fs.readFileSync(schemaYMLPath,'utf8'));
+      let currentSchemaYMLModel = {}
+      if(req.body.node_id.split(".")[0] === 'model') {
+        currentSchemaYMLModel = currentSchemaYML.models.filter(model => model.name === req.body.model)[0];
+      } else {
+        currentSchemaYMLModel = currentSchemaYML.sources.filter(source => source.name === req.body.node_id.split(".")[2])[0].tables.filter(source_table => source_table.name === req.body.model)[0];
+      }
+      // console.log(currentSchemaYMLModel);
+      if(currentSchemaYMLModel.columns) {
+        var currentSchemaYMLModelColumn = currentSchemaYMLModel.columns.filter(column => column.name === req.body.column)[0];
+        // console.log(currentSchemaYMLModelColumn);
+        if(!currentSchemaYMLModelColumn) {
+          // console.log('adding column');
+          currentSchemaYMLModel.columns.push({
+            "name": req.body.column
+          });
+          var currentSchemaYMLModelColumn = currentSchemaYMLModel.columns.filter(column => column.name === req.body.column)[0];
+        }
+      } else { //add columns section
+        currentSchemaYMLModel.columns = [];
         currentSchemaYMLModel.columns.push({
           "name": req.body.column
         });
         var currentSchemaYMLModelColumn = currentSchemaYMLModel.columns.filter(column => column.name === req.body.column)[0];
       }
-    } else { //add columns section
-      currentSchemaYMLModel.columns = [];
-      currentSchemaYMLModel.columns.push({
-        "name": req.body.column
-      });
-      var currentSchemaYMLModelColumn = currentSchemaYMLModel.columns.filter(column => column.name === req.body.column)[0];
+      // console.log(currentSchemaYMLModelColumn);
+      currentSchemaYMLModelColumn[req.body.property_name] = req.body.new_value;
+      // console.log(currentSchemaYMLModelColumn);
+      fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
     }
-    // console.log(currentSchemaYMLModelColumn);
-    currentSchemaYMLModelColumn[req.body.property_name] = req.body.new_value;
-    // console.log(currentSchemaYMLModelColumn);
-    fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
-  }
-  console.log("response body: ");
-  console.log(res.body);
-  git.add('./*').commit('auto-commit');
+    console.log("response body: ");
+    console.log(res.body);
+    const git = simpleGit('./user_folders/'+id+'/dbt');
+    git.branchLocal()
+      .then(branchLocal => {if(branchLocal.current==='master' || branchLocal.current==='main') {
+        git.checkoutLocalBranch('currentBranch')};
+        git.add('./*').commit('auto-commit');
+      });
+    
+  });
 });
 
-app.post('/api/v1/create_pr', (req, res) => {
-  console.log('Got body:', req.body);
-  console.log('Creating Pull Request...')
-  console.log(req.body.prTitle);
-  var prTitle = req.body.prTitle?req.body.prTitle:"Untitled Commit"
-  git.reset("soft", {"master":null}).commit(prTitle).push("origin", "HEAD", {"-u":null,"--force":null})
-    .then(
-      setTimeout(() => { //this is required to ensure github catches up with the push before opening a pr
-        octokit.pulls.create({
-        "owner": "ciejer",
-        "repo": "sqlgui-dbt-demo",
-        "title": prTitle,
-        "head": "currentBranch",
-        "base": "master"
-        });
-      }, 2000)
-    )
-  res.sendStatus(200);
+app.post('/api/v1/create_pr', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    console.log('Got body:', req.body);
+    console.log('Creating Pull Request...')
+    console.log(req.body.prTitle);
+    console.log(id);
+    var prTitle = req.body.prTitle?req.body.prTitle:"Untitled Commit"
+    
+    var git = simpleGit('./user_folders/'+id+'/dbt');
+    git.fetch()
+    git.branchLocal()
+    .then(branchLocal => {
+      if(branchLocal.current==='master' || branchLocal.current==='main') {
+        git.checkoutLocalBranch('currentBranch')
+      };
+      console.log("checking diff");
+      git.diff('origin/master', 'currentBranch')
+      .then( gitDiff => {
+        console.log("diff complete:");
+        console.log(gitDiff);
+        if(gitDiff.length > 0) {
+          git.reset("soft", {"master":null}).commit(prTitle).push("origin", "HEAD", {"-u":null,"--force":null})
+            .then(
+              
+              setTimeout(() => { //this is required to ensure github catches up with the push before opening a pr
+                octokit.pulls.list({
+                  "owner": "ciejer",
+                  "repo": "sqlgui-dbt-demo",
+                  "head": "currentBranch",
+                  "base": "master"
+                })
+                  .then(currentPulls => {
+                    if(currentPulls.data.length===0) {
+                      octokit.pulls.create({
+                        "owner": "ciejer",
+                        "repo": "sqlgui-dbt-demo",
+                        "title": prTitle,
+                        "head": "currentBranch",
+                        "base": "master"
+                        });
+                    } else {
+                      console.log("Pull request already exists. No new pull required.");
+                    }
+                  });
+                
+              }, 2000)
+            );
+        } else {
+          console.log("No changes from origin/master. No new pull required.");
+        }
+      res.sendStatus(200);
+      });
+    });
+  });
 });
 
-app.get('/api/v1/model_search/:searchString', (req, res) => {
-  // TODO: Check security on all calls
-  console.log(req.params.searchString);
-  let returnValue = {"results": searchModels(req.params.searchString)};
-  returnValue.searchString = req.params.searchString;
-  console.log(returnValue.searchString);
-  res.json(returnValue);
+app.get('/api/v1/model_search/:searchString', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    console.log("Search: "+req.params.searchString);
+    console.log(result.toAuthJSON()._id);
+    let returnValue = {"results": searchModels(req.params.searchString, id)};
+    returnValue.searchString = req.params.searchString;
+    console.log(returnValue.searchString);
+    res.json(returnValue);
+  });
 });
 
-app.get('/api/v1/catalog_index', (req, res) => {
-  // TODO: Check security on all calls
-  res.json(catalogIndex);
+app.get('/api/v1/catalog_index', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    res.json(catalogIndex(id));
+  });
+});
+
+
+
+app.post('/api/v1/refresh_metadata', auth.required, (req, res) => {
+  console.log("Refresh Metadata");
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    refreshMetadata(id);
+    res.sendStatus(200);
+  });
 });
 
 // app.post('/api/user', (req, res) => {

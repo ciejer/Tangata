@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Overlay, Popover } from 'react-bootstrap'; 
 import { getModelSearch } from '../services/getModelSearch';
 const reactState = process.env.NODE_ENV;
-export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, openCatalog, appState, contextMenuOpen, openContextMenu, selectModel}) => {
+export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, openCatalog, appState, contextMenuOpen, openContextMenu, selectModel, user}) => {
     const [searchDropdown, setSearchDropdown] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
     const debugLogState = (reactState) => {
@@ -103,7 +103,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
         };
         openContextMenu(true);
         setSearchDropdown(true);
-        getModelSearch(searchBox.current.value)
+        getModelSearch(searchBox.current.value, user)
             .then(response => {
                 if(response.length===0) {
                     setSearchResults([]);
@@ -145,6 +145,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
+            'Authorization': 'Token ' + user.token,
           }
         });
     }
@@ -160,6 +161,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
+            'Authorization': 'Token ' + user.token,
           },
           body: JSON.stringify(prRequestBody)
         });

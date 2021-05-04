@@ -4,6 +4,7 @@ import {Collapse, Container, Row, Col } from 'react-bootstrap';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 // import JsonFilenameInput from './components/JsonFilenameInput'
+import Login from './components/Login';
 import ModelBuilder from './components/ModelBuilder';
 import { NavBar } from './components/NavBar';
 import Catalog from './components/Catalog';
@@ -23,7 +24,8 @@ class App extends Component {
       "addModel": {}
     },
     contextMenuOpen: false,
-    catalogModel: {}
+    catalogModel: {},
+    user: {}
   }
   
 
@@ -42,7 +44,7 @@ class App extends Component {
   selectModel = (nodeId) => {
     // console.log("selectModel");
     // console.log(nodeId);
-    getModel(nodeId)
+    getModel(nodeId, this.state.user)
       .then(response => {
         // console.log(response)
         if(this.state.appState === "Catalog") {
@@ -88,38 +90,56 @@ class App extends Component {
     if(this.state.openSQLPanel === true) this.setState({"openSQLPanel": false});
   }
 
+  setUser = (newUser) => {
+    this.setState({"user": newUser.user})
+  }
+  
+
   render() {
-    return (
-      <div id="main" onClick={this.handleAllClicks} onContextMenu={this.handleAllClicks}>
-        <NavBar
-          addModel={this.addModel}
-          logState={this.logState}
-          openSQLPanel={this.openSQLPanel}
-          openModelBuilder={this.openModelBuilder}
-          openCatalog={this.openCatalog}
-          appState={this.state.appState}
-          openContextMenu={this.openContextMenu}
-          contextMenuOpen={this.state.contextMenuOpen}
-          selectModel={this.selectModel}
+    if(Object.keys(this.state.user).length === 0) {
+      return (
+        <div id="main">
+          <Login
+            setUser={this.setUser}
           />
-          <div className="body">
-          <ModelBuilder
-            modelBuilder={this.state.modelBuilder}
-            ref={this.modelBuilder}
-            logState={this.state.logState}
-            openSQLPanel={this.state.openSQLPanel}
+        </div>
+      )
+    } else {
+      return (
+        <div id="main" onClick={this.handleAllClicks} onContextMenu={this.handleAllClicks}>
+          <NavBar
+            addModel={this.addModel}
+            logState={this.logState}
+            openSQLPanel={this.openSQLPanel}
+            openModelBuilder={this.openModelBuilder}
+            openCatalog={this.openCatalog}
             appState={this.state.appState}
             openContextMenu={this.openContextMenu}
             contextMenuOpen={this.state.contextMenuOpen}
-          />
-          <Catalog
-            appState={this.state.appState}
-            catalogModel={this.state.catalogModel}
             selectModel={this.selectModel}
-          />
+            user={this.state.user}
+            />
+            <div className="body">
+            {/* <ModelBuilder
+              modelBuilder={this.state.modelBuilder}
+              ref={this.modelBuilder}
+              logState={this.state.logState}
+              openSQLPanel={this.state.openSQLPanel}
+              appState={this.state.appState}
+              openContextMenu={this.openContextMenu}
+              contextMenuOpen={this.state.contextMenuOpen}
+              user={this.state.user}
+            /> */}
+            <Catalog
+              appState={this.state.appState}
+              catalogModel={this.state.catalogModel}
+              selectModel={this.selectModel}
+              user={this.state.user}
+            />
+            </div>
           </div>
-        </div>
-    );
+      );
+    }
   }
 }
 

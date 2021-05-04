@@ -1,4 +1,4 @@
-Add 'user' textbox in interface, to type username - no validation initially, just send it to server to get preferences back
+Add username, and display it in navbar
 Setup user config
 Move git key to user config
 Set up dev branch naming per user, with their own dbt folder

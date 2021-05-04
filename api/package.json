@@ -25,7 +25,8 @@
   },
   "nodemonConfig": {
     "ignore": [
-      "dbt/"
+      "dbt/",
+      "user_folders/"
     ]
   },
   "dependencies": {
