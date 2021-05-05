@@ -1,3 +1,4 @@
+Update readme
 Add username, and display it in navbar
 Setup user config
 Move git key to user config

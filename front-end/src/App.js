@@ -97,6 +97,9 @@ class App extends Component {
 
   render() {
     if(Object.keys(this.state.user).length === 0) {
+      if(sessionStorage.getItem("user")) {
+        this.setUser(JSON.parse(sessionStorage.getItem("user")))
+      }
       return (
         <div id="main">
           <Login
@@ -118,6 +121,7 @@ class App extends Component {
             contextMenuOpen={this.state.contextMenuOpen}
             selectModel={this.selectModel}
             user={this.state.user}
+            setUser={this.setUser}
             />
             <div className="body">
             {/* <ModelBuilder

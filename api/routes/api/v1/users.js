@@ -84,7 +84,7 @@ router.post('/login', auth.optional, (req, res, next) => {
       return res.json({ user: user.toAuthJSON() });
     }
 
-    return status(400).info;
+    return res.status(400).info;
   })(req, res, next);
 });
 
@@ -100,6 +100,13 @@ router.get('/current', auth.required, (req, res, next) => {
 
       return res.json({ user: user.toAuthJSON() });
     });
+});
+
+router.get('/logout', auth.required, (req, res, next) => {
+  const { payload: { id } } = req;
+  console.log("logging out");
+  req.logout();
+  res.send('Logout Success');
 });
 
 module.exports = router;

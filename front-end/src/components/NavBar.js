@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Overlay, Popover } from 'react-bootstrap'; 
 import { getModelSearch } from '../services/getModelSearch';
 const reactState = process.env.NODE_ENV;
-export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, openCatalog, appState, contextMenuOpen, openContextMenu, selectModel, user}) => {
+export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, openCatalog, appState, contextMenuOpen, openContextMenu, selectModel, user, setUser}) => {
     const [searchDropdown, setSearchDropdown] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
     const debugLogState = (reactState) => {
@@ -167,6 +167,18 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
         });
     }
 
+    const logout = () => {
+        fetch('http://sqlgui.chrisjenkins.nz:3080/api/v1/users/logout', {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Token ' + user.token,
+          },
+        });
+        setUser({"user":{}});
+        sessionStorage.removeItem("user");
+    }
+
     return(
     <nav className="navbar navbar-expand-lg navbar-dark bg-brand position-fixed w-100 z-100">
         <a className="navbar-brand bg-brand" href="/">TANGATA</a>
@@ -186,6 +198,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
                 <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => createPR()}>Submit changes</div>
                 <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => openSQLPanel()}>Open SQL Panel </div>
                 {debugLogState(reactState)}
+                <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => logout()}>Logout </div>
             {/* <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>
             <a class="nav-item nav-link" href="#">Features</a>
             <a class="nav-item nav-link" href="#">Pricing</a>

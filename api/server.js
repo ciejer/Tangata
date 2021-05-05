@@ -244,7 +244,7 @@ const getModel = (modelName, id) => {
 
 const searchModels = (searchString, id) => {
   var regexp_needle = new RegExp(searchString, 'i')
-  console.log(catalogIndex(id));
+  // console.log(catalogIndex(id));
   return catalogIndex(id).filter(function (v) {
     return regexp_needle.test(v.searchable)
   }).sort((a,b) =>
@@ -455,7 +455,7 @@ app.post('/api/v1/reload_dbt', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
     console.log('Running dbt_...')
-    const dbtRunner = spawn("cd ./user_folders/"+id+"/dbt && dbt docs generate", {shell: true});
+    const dbtRunner = spawn("cd ./user_folders/"+id+"/dbt && dbt docs generate --profiles-dir ../", {shell: true});
     dbtRunner.stderr.on('data', function (data) {
       console.error("dbt_ error:", data.toString());
     });

@@ -19,6 +19,7 @@ export default function Login(props) {
     getLoginUser(loginBody)
         .then(response => {
             props.setUser(response);
+            sessionStorage.setItem("user", JSON.stringify(response));
             refreshMetadata(response.user);
         }
     );
