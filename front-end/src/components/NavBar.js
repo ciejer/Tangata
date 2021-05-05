@@ -198,7 +198,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
                 <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => createPR()}>Submit changes</div>
                 <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => openSQLPanel()}>Open SQL Panel </div>
                 {debugLogState(reactState)}
-                <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => logout()}>Logout </div>
+                <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => logout()} title={user.email}>Logout </div>
             {/* <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>
             <a class="nav-item nav-link" href="#">Features</a>
             <a class="nav-item nav-link" href="#">Pricing</a>
