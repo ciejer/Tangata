@@ -3,6 +3,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import { getLoginUser } from "../services/getLoginUser";
 import { refreshMetadata } from "../services/refreshMetadata";
+import { getUserConfig } from "../services/getUserConfig";
 // import "./Login.css";
 
 export default function Login(props) {
@@ -21,6 +22,12 @@ export default function Login(props) {
             props.setUser(response);
             sessionStorage.setItem("user", JSON.stringify(response));
             refreshMetadata(response.user);
+            getUserConfig(response.user)
+                .then(response => {
+                    props.setUserConfig(response);
+                    sessionStorage.setItem("userconfig", JSON.stringify(response));
+                }
+            );
         }
     );
     

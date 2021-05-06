@@ -1,9 +1,7 @@
-Update readme
-Add username, and display it in navbar
 Setup user config
 Move git key to user config
-Set up dev branch naming per user, with their own dbt folder
 Allow config of 'released' branch other than 'master'
+Update readme and todo - move tasks to github issues
 Delete local branches once pr'ed
 Figure out why autocomplete isn't working in prod
 Create API call for downstream tests / models, to populate into test & references (from manifest.json) - this will allow sideways lineage to show what's tested against a model and what's joined to it.

@@ -95,6 +95,7 @@ const populateFullCatalogNode = (nodeID, nodeOrSource) => {
 };
 
 const compileCatalogNodes = (id) => {
+  
   rawCatalog = fs.readFileSync('./user_folders/'+id+'/dbt/target/catalog.json');
   catalog = JSON.parse(rawCatalog);
   rawManifest = fs.readFileSync('./user_folders/'+id+'/dbt/target/manifest.json');
@@ -213,25 +214,45 @@ const getModelLineage = (fullCatalog, id) => {
 }
 
 const refreshMetadata = (id) => {
-  var assemblingFullCatalog = compileCatalogNodes(id);
-  var assemblingCatalogIndex = compileSearchIndex(assemblingFullCatalog);
-  getModelLineage(assemblingFullCatalog, id); //this updates fullCatalog before it gets saved
-  fs.writeFileSync('./user_folders/'+id+'/catalog.json', JSON.stringify(assemblingFullCatalog), (err) => {
-    if (err) throw err;
-    console.log('The file has been saved!');
-  });
-  fs.writeFileSync('./user_folders/'+id+'/catalogindex.json', JSON.stringify(assemblingCatalogIndex), (err) => {
-    if (err) throw err;
-    console.log('The file has been saved!');
-  });
+  if (fs.existsSync('./user_folders/'+id+'/dbt/target/catalog.json')) {
+    var assemblingFullCatalog = compileCatalogNodes(id);
+    var assemblingCatalogIndex = compileSearchIndex(assemblingFullCatalog);
+    getModelLineage(assemblingFullCatalog, id); //this updates fullCatalog before it gets saved
+    fs.writeFileSync('./user_folders/'+id+'/catalog.json', JSON.stringify(assemblingFullCatalog), (err) => {
+      if (err) throw err;
+      console.log('The file has been saved!');
+    });
+    fs.writeFileSync('./user_folders/'+id+'/catalogindex.json', JSON.stringify(assemblingCatalogIndex), (err) => {
+      if (err) throw err;
+      console.log('The file has been saved!');
+    });
+  } else {
+    console.log('User Metadata does not yet exist');
+  }
 }
 
 const fullCatalog = (id) => {
-  return JSON.parse(fs.readFileSync('./user_folders/'+id+'/catalog.json'));
+  if (fs.existsSync('./user_folders/'+id+'/catalog.json')) {
+    return JSON.parse(fs.readFileSync('./user_folders/'+id+'/catalog.json'));
+  } else {
+    return {"error": "catalog.json not yet created"}
+  }
 }
 
 const catalogIndex = (id) => {
-  return JSON.parse(fs.readFileSync('./user_folders/'+id+'/catalogindex.json'));
+  if (fs.existsSync('./user_folders/'+id+'/catalogindex.json')) {
+    return JSON.parse(fs.readFileSync('./user_folders/'+id+'/catalogindex.json'));
+  } else {
+    return {"error": "catalogindex.json not yet created"}
+  }
+}
+
+const userConfig = (id) => {
+  if (fs.existsSync('./user_folders/'+id+'/user.json')) {
+    return JSON.parse(fs.readFileSync('./user_folders/'+id+'/user.json'));
+  } else {
+    return {"error": "user.json not yet created"}
+  }
 }
 
 
@@ -239,33 +260,41 @@ const catalogIndex = (id) => {
 // console.log(modelLineage(fullCatalog["model.trustpower.litmos_learning_path_course_stage"]));
 
 const getModel = (modelName, id) => {
-  return fullCatalog(id)[modelName];
+  if(fullCatalog(id).length > 0) {
+    return fullCatalog(id)[modelName];
+  } else {
+    return {"error": "catalog not yet created"}
+  }
 }
 
 const searchModels = (searchString, id) => {
-  var regexp_needle = new RegExp(searchString, 'i')
-  // console.log(catalogIndex(id));
-  return catalogIndex(id).filter(function (v) {
-    return regexp_needle.test(v.searchable)
-  }).sort((a,b) =>
-    (Math.abs(a.searchable.length-searchString.length)>Math.abs(b.searchable.length-searchString.length)) //Closest length match gets promted
-    ?1
-    :(Math.abs(a.searchable.length-searchString.length)===Math.abs(b.searchable.length-searchString.length)
-      ?(
-        (a.type==="model_name"?1:0)>(b.type==="model_name"?1:0) //Models get promoted
-        ?-1
-        :(Math.abs(a.searchable.length-searchString.length)===Math.abs(b.searchable.length-searchString.length) && (a.type==="model_name"?1:0)===(b.type==="model_name"?1:0)
-          ?(
-            (a.nodeDescription!==null?1:0)>(b.nodeDescription!==null?1:0) //Objects with descriptions get promoted
-            ?-1
-            :1
+  if(catalogIndex(id).length > 0) {
+    var regexp_needle = new RegExp(searchString, 'i')
+    // console.log(catalogIndex(id));
+    return catalogIndex(id).filter(function (v) {
+      return regexp_needle.test(v.searchable)
+    }).sort((a,b) =>
+      (Math.abs(a.searchable.length-searchString.length)>Math.abs(b.searchable.length-searchString.length)) //Closest length match gets promted
+      ?1
+      :(Math.abs(a.searchable.length-searchString.length)===Math.abs(b.searchable.length-searchString.length)
+        ?(
+          (a.type==="model_name"?1:0)>(b.type==="model_name"?1:0) //Models get promoted
+          ?-1
+          :(Math.abs(a.searchable.length-searchString.length)===Math.abs(b.searchable.length-searchString.length) && (a.type==="model_name"?1:0)===(b.type==="model_name"?1:0)
+            ?(
+              (a.nodeDescription!==null?1:0)>(b.nodeDescription!==null?1:0) //Objects with descriptions get promoted
+              ?-1
+              :1
+            )
+            :-1
           )
-          :-1
         )
+        :-1
       )
-      :-1
-    )
-  );
+    );
+  } else {
+    return {"error": "catalog not yet created"}
+  }
 }
 
 const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schema, model_or_source, id) => {
@@ -676,6 +705,14 @@ app.post('/api/v1/refresh_metadata', auth.required, (req, res) => {
   Users.findById(id, function(err, result) {
     refreshMetadata(id);
     res.sendStatus(200);
+  });
+});
+
+app.get('/api/v1/get_user_config', auth.required, (req, res) => {
+  console.log("Get User Config");
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    res.json(userConfig(id));
   });
 });
 

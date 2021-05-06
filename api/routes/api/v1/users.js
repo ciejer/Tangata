@@ -3,6 +3,7 @@ const passport = require('passport');
 const router = require('express').Router();
 const auth = require('../../auth');
 const Users = mongoose.model('Users');
+const fs = require('fs');
 
 //POST new user route (optional, everyone has access)
 router.post('/', auth.optional, (req, res, next) => {
@@ -44,6 +45,18 @@ router.post('/', auth.optional, (req, res, next) => {
       const finalUser = new Users(user);
     
       finalUser.setPassword(user.password);
+      console.log(finalUser.id);
+      var userFolderDir = './user_folders';
+      if (!fs.existsSync(userFolderDir)){
+          fs.mkdirSync(userFolderDir); // ./user_folders is not created by Git, first user needs this
+      }
+      var userDir = './user_folders/'+finalUser.id;
+      if (!fs.existsSync(userDir)){
+          fs.mkdirSync(userDir);
+      }
+      fs.writeFileSync('./user_folders/'+finalUser.id+'/user.json', JSON.stringify(user.config), (err) => {
+        if (err) throw err;
+      });
     
       return finalUser.save()
         .then(() => res.json({ user: finalUser.toAuthJSON() }));

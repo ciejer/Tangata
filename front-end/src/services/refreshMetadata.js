@@ -6,5 +6,5 @@ export async function refreshMetadata(user) {
                 Authorization: "Token " + user.token
             }
     });
-    return await response.json();
+    return await response;
 }

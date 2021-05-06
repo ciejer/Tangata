@@ -25,7 +25,8 @@ class App extends Component {
     },
     contextMenuOpen: false,
     catalogModel: {},
-    user: {}
+    user: {},
+    userConfig: {}
   }
   
 
@@ -89,21 +90,32 @@ class App extends Component {
     }
     if(this.state.openSQLPanel === true) this.setState({"openSQLPanel": false});
   }
+  componentDidMount() {
+    if(Object.keys(this.state.user).length === 0) {
+      if(sessionStorage.getItem("user")) {
+        this.setUser(JSON.parse(sessionStorage.getItem("user")))
+      }
+      if(sessionStorage.getItem("userconfig")) {
+        this.setUserConfig(JSON.parse(sessionStorage.getItem("userconfig")))
+      }
+    }
+  }
 
   setUser = (newUser) => {
     this.setState({"user": newUser.user})
+  }
+  setUserConfig = (newUserConfig) => {
+    this.setState({"userConfig": newUserConfig})
   }
   
 
   render() {
     if(Object.keys(this.state.user).length === 0) {
-      if(sessionStorage.getItem("user")) {
-        this.setUser(JSON.parse(sessionStorage.getItem("user")))
-      }
       return (
         <div id="main">
           <Login
             setUser={this.setUser}
+            setUserConfig={this.setUserConfig}
           />
         </div>
       )
@@ -122,6 +134,8 @@ class App extends Component {
             selectModel={this.selectModel}
             user={this.state.user}
             setUser={this.setUser}
+            userConfig={this.state.userConfig}
+            setUserConfig={this.setUserConfig}
             />
             <div className="body">
             {/* <ModelBuilder
@@ -139,6 +153,7 @@ class App extends Component {
               catalogModel={this.state.catalogModel}
               selectModel={this.selectModel}
               user={this.state.user}
+              userConfig={this.state.userConfig}
             />
             </div>
           </div>
