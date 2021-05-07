@@ -105,7 +105,8 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
         setSearchDropdown(true);
         getModelSearch(searchBox.current.value, user)
             .then(response => {
-                if(response.length===0 || response.results.error.length > 0) {
+                console.log(response);
+                if(response.length===0 || response.error) {
                     setSearchResults([]);
                     return null;
                 }

@@ -267,7 +267,11 @@ const setUserConfig = (id, newConfig) => {
 // console.log(modelLineage(fullCatalog["model.trustpower.litmos_learning_path_course_stage"]));
 
 const getModel = (modelName, id) => {
-  if(fullCatalog(id).length > 0) {
+  if(Object.keys(fullCatalog(id)).length <= 0) {
+    console.log("Catalog does not exist. Building...")
+    refreshMetadata(id);
+  }
+  if(Object.keys(fullCatalog(id)).length > 0) { //if there's still no catalog
     return fullCatalog(id)[modelName];
   } else {
     return {"error": "catalog not yet created"}

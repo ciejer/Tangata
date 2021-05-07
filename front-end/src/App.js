@@ -49,9 +49,12 @@ class App extends Component {
     getModel(nodeId, this.state.user)
       .then(response => {
         // console.log(response)
-        if(this.state.appState === "Catalog") {
-          this.setState({"catalogModel":response})
+        if(!response.error) {
+          if(this.state.appState === "Catalog") {
+            this.setState({"catalogModel":response})
+          }
         }
+        
       });
   }
 
