@@ -212,4 +212,8 @@ html, body, #root, #root>div {
     margin: 0 auto;
     max-width: 320px;
   }
+
+  .Login nav {
+    justify-content: center;
+  }
 }
