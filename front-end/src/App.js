@@ -5,6 +5,7 @@ import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 // import JsonFilenameInput from './components/JsonFilenameInput'
 import Login from './components/Login';
+import Config from './components/Config';
 import ModelBuilder from './components/ModelBuilder';
 import { NavBar } from './components/NavBar';
 import Catalog from './components/Catalog';
@@ -82,6 +83,10 @@ class App extends Component {
     this.setState({"appState": "Catalog"})
   }
 
+  openConfig = () => {
+    this.setState({"appState": "Config"})
+  }
+
   componentDidUpdate() {
     if(this.state.logState === true) {
       console.log("App State:");
@@ -128,6 +133,7 @@ class App extends Component {
             openSQLPanel={this.openSQLPanel}
             openModelBuilder={this.openModelBuilder}
             openCatalog={this.openCatalog}
+            openConfig={this.openConfig}
             appState={this.state.appState}
             openContextMenu={this.openContextMenu}
             contextMenuOpen={this.state.contextMenuOpen}
@@ -154,6 +160,12 @@ class App extends Component {
               selectModel={this.selectModel}
               user={this.state.user}
               userConfig={this.state.userConfig}
+            />
+            <Config
+              appState={this.state.appState}
+              user={this.state.user}
+              userConfig={this.state.userConfig}
+              setUserConfig={this.setUserConfig}
             />
             </div>
           </div>

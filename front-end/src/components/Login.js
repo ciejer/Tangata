@@ -31,8 +31,8 @@ export default function Login(props) {
             refreshMetadata(response.user);
             getUserConfig(response.user)
                 .then(response => {
-                    props.setUserConfig(response);
-                    sessionStorage.setItem("userconfig", JSON.stringify(response));
+                    props.setUserConfig(response.user);
+                    sessionStorage.setItem("userconfig", JSON.stringify(response.user));
                 }
             );
         }
@@ -50,8 +50,8 @@ export default function Login(props) {
             refreshMetadata(response.user);
             getUserConfig(response.user)
                 .then(response => {
-                    props.setUserConfig(response);
-                    sessionStorage.setItem("userconfig", JSON.stringify(response));
+                    props.setUserConfig(response.user);
+                    sessionStorage.setItem("userconfig", JSON.stringify(response.user));
                 }
             );
         }
@@ -105,7 +105,7 @@ export default function Login(props) {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </Form.Group>
-            <Form.Group size="lg" controlId="registerEmail">
+            <Form.Group size="lg" controlId="firstname">
               <Form.Label>First Name</Form.Label>
               <Form.Control
                 autoFocus
@@ -114,7 +114,7 @@ export default function Login(props) {
                 onChange={(e) => setFirstName(e.target.value)}
               />
             </Form.Group>
-            <Form.Group size="lg" controlId="registerEmail">
+            <Form.Group size="lg" controlId="lastname">
               <Form.Label>Last Name</Form.Label>
               <Form.Control
                 autoFocus

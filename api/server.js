@@ -255,6 +255,13 @@ const userConfig = (id) => {
   }
 }
 
+const setUserConfig = (id, newConfig) => {
+    fs.writeFileSync('./user_folders/'+id+'/user.json', JSON.stringify(newConfig), (err) => {
+      if (err) throw err;
+      console.log('The file has been saved!');
+    });
+}
+
 
 // console.log(fullCatalog["model.trustpower.litmos_learning_path_course_stage"]);
 // console.log(modelLineage(fullCatalog["model.trustpower.litmos_learning_path_course_stage"]));
@@ -712,7 +719,17 @@ app.get('/api/v1/get_user_config', auth.required, (req, res) => {
   console.log("Get User Config");
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
-    res.json(userConfig(id));
+    res.json({"user": userConfig(id)});
+  });
+});
+
+app.post('/api/v1/set_user_config', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    console.log("Set User Config");
+    console.log("Got Body: " + JSON.stringify(req.body));
+    setUserConfig(id, req.body);
+    res.sendStatus(200);
   });
 });
 

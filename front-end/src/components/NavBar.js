@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Overlay, Popover } from 'react-bootstrap'; 
 import { getModelSearch } from '../services/getModelSearch';
 const reactState = process.env.NODE_ENV;
-export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, openCatalog, appState, contextMenuOpen, openContextMenu, selectModel, user, setUser, userConfig, setUserConfig}) => {
+export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, openCatalog, openConfig, appState, contextMenuOpen, openContextMenu, selectModel, user, setUser, userConfig, setUserConfig}) => {
     const [searchDropdown, setSearchDropdown] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
     const debugLogState = (reactState) => {
@@ -187,7 +187,8 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
         <div className="navbar-collapse d-flex justify-content-between" id="navbarNavAltMarkup">
             <div className="navbar-nav p-2 bg-brand">
                 <div className={"nav-item nav-link bg-brand "+(appState==="Catalog"?"active":null)} role="button" onClick={() => openCatalog()}>Catalog</div>
-                <div className={"nav-item nav-link bg-brand "+(appState==="ModelBuilder"?"active":null)} role="button" onClick={() => openModelBuilder()}>Model Builder</div>
+                {/* <div className={"nav-item nav-link bg-brand "+(appState==="ModelBuilder"?"active":null)} role="button" onClick={() => openModelBuilder()}>Model Builder</div> */}
+                <div className={"nav-item nav-link bg-brand "+(appState==="Config"?"active":null)} role="button" onClick={() => openConfig()}>Config</div>
             </div>
             <div className="navbar-nav p2">
                 <form className="form-inline">
