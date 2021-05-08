@@ -704,6 +704,64 @@ app.post('/api/v1/create_pr', auth.required, (req, res) => {
   });
 });
 
+app.get('/api/v1/generate_ssh', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    console.log('Got body:', req.body);
+    console.log('Creating SSH pair...')
+    console.log(id);
+    passPhrase = req.body.passphrase&&req.body.passphrase.length>0?req.body.passphrase:'""';
+    sshGenCommand = "cd ./user_folders/"+id+'/ && del id_rsa* && ssh-keygen -t rsa -f ./id_rsa -N ' + passPhrase;
+    console.log(sshGenCommand);
+    const sshGen = spawn(sshGenCommand, {shell: true});
+    sshGen.stderr.on('data', function (data) {
+      console.error("sshgen error:", data.toString());
+    });
+    sshGen.stdout.on('data', function (data) {
+      console.log("sshgen output:", data.toString());
+      if (fs.existsSync('./user_folders/'+id+'/id_rsa.pub')) {
+        newKey = fs.readFileSync('./user_folders/'+id+'/id_rsa.pub', 'utf-8')
+        res.send(newKey);
+      } else {
+        res.sendStatus(500);
+      }
+    });
+    sshGen.on('exit', function (exitCode) {
+      console.log("sshgen exited with code: " + exitCode);
+      if(exitCode===0) {
+        console.log('sshgen update successful.');
+        refreshMetadata(id);
+        console.log('Update complete.');
+      }
+    });
+  });
+});
+
+app.get('/api/v1/get_ssh', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    console.log('Got body:', req.body);
+    console.log('returning SSH public key...')
+    console.log(id);
+    if (fs.existsSync('./user_folders/'+id+'/id_rsa.pub')) {
+      newKey = fs.readFileSync('./user_folders/'+id+'/id_rsa.pub', 'utf-8')
+      res.send(newKey);
+    } else {
+      res.sendStatus(404);
+    }
+  });
+});
+
+app.get('/api/v1/setup_git', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    console.log('Got body:', req.body);
+    console.log('Setting up Git...')
+    console.log(id);
+    
+  });
+});
+
 app.get('/api/v1/model_search/:searchString', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {

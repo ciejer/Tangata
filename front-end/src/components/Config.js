@@ -9,7 +9,6 @@ export default function Config(props) {
     props.setUserConfig(newConfig);
     postUserConfig(props.user, newConfig);
   }
-
   if(props.appState === "Config") {
     return (
       <div className="container mt-3">
@@ -48,31 +47,32 @@ export default function Config(props) {
           </Tab>
           <Tab eventKey="gitConfig" title="Git Config" className="border-right border-left border-bottom p-3">
             <Form>
-              <Form.Group size="lg" controlId="loginEmail">
-                <Form.Label>Email</Form.Label>
+              <Form.Group size="lg" controlId="gitSSHKey">
+                <Form.Label>SSH Key</Form.Label>
                 <Form.Control
                   autoFocus
-                  type="email"
-                  value={props.user.email}
+                  type="button"
+                  value="Get current SSH public key"
+                  onClick={(e) => {e.stopPropagation(); props.setSSHKey()}}
+                />
+                <Form.Control
+                  autoFocus
+                  type="textarea"
+                  value={props.sshKey}
                   // onChange={(e) => setEmail(e.target.value)}
                 />
-              </Form.Group>
-              <Form.Group size="lg" controlId="firstname">
-                <Form.Label>First Name</Form.Label>
                 <Form.Control
                   autoFocus
-                  type="text"
-                  value={props.userConfig.firstname}
-                  // onChange={(e) => setFirstName(e.target.value)}
-                />
-              </Form.Group>
-              <Form.Group size="lg" controlId="lastname">
-                <Form.Label>Last Name</Form.Label>
-                <Form.Control
-                  autoFocus
-                  type="text"
-                  value={props.userConfig.lastname}
-                  // onChange={(e) => setLastName(e.target.value)}
+                  type="button"
+                  value="Create new SSH key"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    let checkIntent = prompt("This will delete your current SSH key. Please type 'New Key' to continue");
+                    if(checkIntent === "New Key") {
+                      props.generateSSHKey()
+
+                    }
+                  }}
                 />
               </Form.Group>
             </Form>

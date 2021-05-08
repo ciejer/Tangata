@@ -10,6 +10,8 @@ import ModelBuilder from './components/ModelBuilder';
 import { NavBar } from './components/NavBar';
 import Catalog from './components/Catalog';
 import { getModel } from './services/getModel';
+import { getSSH } from "./services/getSSH";
+import { getGenerateSSH } from "./services/getGenerateSSH";
 
 class App extends Component {
   constructor(props) {
@@ -26,6 +28,7 @@ class App extends Component {
     },
     contextMenuOpen: false,
     catalogModel: {},
+    sshKey: "",
     user: {},
     userConfig: {}
   }
@@ -115,6 +118,23 @@ class App extends Component {
   setUserConfig = (newUserConfig) => {
     this.setState({"userConfig": newUserConfig})
   }
+
+  setSSHKey = () => {
+    getSSH(this.state.user)
+    .then(response=> response.text())
+    .then(responseText => {
+      console.log(responseText);
+      this.setState({"sshKey": responseText});
+    });
+  }
+
+  generateSSHKey = () => {
+    getGenerateSSH(this.state.user)
+    .then(response=> response.text())
+    .then(responseText => {
+      this.setState({"sshKey": responseText});
+    });
+  }
   
 
   render() {
@@ -169,6 +189,9 @@ class App extends Component {
               user={this.state.user}
               userConfig={this.state.userConfig}
               setUserConfig={this.setUserConfig}
+              sshKey={this.state.sshKey}
+              setSSHKey={this.setSSHKey}
+              generateSSHKey={this.generateSSHKey}
             />
             </div>
           </div>
