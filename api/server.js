@@ -752,13 +752,31 @@ app.get('/api/v1/get_ssh', auth.required, (req, res) => {
   });
 });
 
-app.get('/api/v1/setup_git', auth.required, (req, res) => {
+app.get('/api/v1/open_git_connection', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
     console.log('Got body:', req.body);
     console.log('Setting up Git...')
     console.log(id);
-    
+    var dir = './user_folders/'+id+'/dbt/'
+    if (fs.existsSync(dir)) {
+      fs.rmdirSync(dir, {recursive: true, force: true}) //delete current dbt installation. It's ok, we're about to reclone it.
+    }
+    var gitRun = spawn('git -c core.sshCommand="ssh -i ./user_folders/'+id+'/id_rsa" clone git@github.com:ciejer/sqlgui-dbt-demo.git ./user_folders/'+id+'/dbt/', {shell: true});
+    gitRun.stderr.on('data', function (data) {
+      console.error("git clone error:", data.toString());
+    });
+    gitRun.stdout.on('data', function (data) {
+      console.log("git clone output:", data.toString());
+    });
+    gitRun.on('exit', function (exitCode) {
+      console.log("git clone exited with code: " + exitCode);
+      if(exitCode===0) {
+        console.log('git clone update successful.');
+        refreshMetadata(id);
+        console.log('Update complete.');
+      }
+    });
   });
 });
 

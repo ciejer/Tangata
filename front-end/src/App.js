@@ -12,6 +12,7 @@ import Catalog from './components/Catalog';
 import { getModel } from './services/getModel';
 import { getSSH } from "./services/getSSH";
 import { getGenerateSSH } from "./services/getGenerateSSH";
+import { getOpenGit } from "./services/getOpenGit";
 
 class App extends Component {
   constructor(props) {
@@ -135,6 +136,14 @@ class App extends Component {
       this.setState({"sshKey": responseText});
     });
   }
+
+  openGitConnection = () => {
+    getOpenGit(this.state.user)
+    .then(response=> response.text())
+    .then(responseText => {
+      return responseText;
+    });
+  }
   
 
   render() {
@@ -192,6 +201,7 @@ class App extends Component {
               sshKey={this.state.sshKey}
               setSSHKey={this.setSSHKey}
               generateSSHKey={this.generateSSHKey}
+              openGitConnection={this.openGitConnection}
             />
             </div>
           </div>
