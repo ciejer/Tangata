@@ -7,6 +7,7 @@ var cors = require('cors');
 const yaml = require('js-yaml');
 const YAWN = require('yawn-yaml/cjs')
 const mongoose = require('mongoose');
+const fileUpload = require('express-fileupload');
 const { Octokit } = require("@octokit/rest");//Octokit is github api, for creating pull requests
 const simpleGit = require('simple-git'); //simple-git is git client, for cloning to local, branching, and making changes where dbt can run & compile.
 
@@ -32,7 +33,7 @@ var corsOptions = {
     }
   }
 }
-app.use(express.json(), cors(corsOptions));
+app.use(express.json(), fileUpload(), cors(corsOptions));
 
 app.use(require('./routes/index'));
 
@@ -761,7 +762,7 @@ app.get('/api/v1/open_git_connection', auth.required, (req, res) => {
     var dir = './user_folders/'+id+'/dbt/'
     if (fs.existsSync(dir)) {
       fs.rmdirSync(dir, {recursive: true, force: true}) //delete current dbt installation. It's ok, we're about to reclone it.
-    }
+    };
     var gitRun = spawn('git -c core.sshCommand="ssh -i ./user_folders/'+id+'/id_rsa" clone git@github.com:ciejer/sqlgui-dbt-demo.git ./user_folders/'+id+'/dbt/', {shell: true});
     gitRun.stderr.on('data', function (data) {
       console.error("git clone error:", data.toString());
@@ -826,6 +827,76 @@ app.post('/api/v1/set_user_config', auth.required, (req, res) => {
     setUserConfig(id, req.body);
     res.sendStatus(200);
   });
+});
+
+app.post('/api/v1/file_upload', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    console.log("Upload File");
+    // console.log("Got File: " + JSON.stringify(req.files.file));
+    // console.log("Got Headers: " + JSON.stringify(req.headers));
+    if(req.headers.uploadtype === "ProfilesYML") {
+      console.log("Profiles.YML uploaded.");
+      profilesYMLFile = req.files.file;
+      profilesYMLFile.mv('./user_folders/'+id+'/profiles.yml', function(err) {
+        if (err) {
+          res.status(500).send(err);
+        } else {
+          res.send('File uploaded!');
+        }
+      });
+    } else if(req.headers.uploadtype === "ManifestJSON") {
+      console.log("manifest.json uploaded.");
+      profilesYMLFile = req.files.file;
+      profilesYMLFile.mv('./user_folders/'+id+'/dbt/target/manifest.json', function(err) {
+        if(err) {
+          console.log("error");
+          res.status(500).send(err);
+        } else {
+          console.log("success");
+          res.send('File uploaded!');
+        }
+      });
+    } else if(req.headers.uploadtype === "CatalogJSON") {
+      console.log("catalog.json uploaded.");
+      profilesYMLFile = req.files.file;
+      profilesYMLFile.mv('./user_folders/'+id+'/dbt/target/catalog.json', function(err) {
+        if (err) {
+          res.status(500).send(err);
+        } else {
+          res.send('File uploaded!');
+        }
+      });
+    }
+  });
+});
+
+app.get('/api/v1/check_dbt_connection', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    console.log("Check DBT Connection");
+    let dbtOutput = ""
+    const dbtRunner = spawn("cd ./user_folders/"+id+"/dbt && dbt compile --profiles-dir ../", {shell: true});
+    dbtRunner.stderr.on('data', function (data) {
+      console.error("dbt_ error:", data.toString());
+      dbtOutput += data.toString();
+    });
+    dbtRunner.stdout.on('data', function (data) {
+      // console.log("dbt_ output:", data.toString());
+      dbtOutput += data.toString();
+    });
+    dbtRunner.on('exit', function (exitCode) {
+      // console.log("dbt_ exited with code: " + exitCode);
+      if(exitCode===0) {
+        console.log('dbt_ compile successful.');
+        res.sendStatus(200);
+      } else {
+        console.log('dbt_ compile failed.');
+        res.status(500).send(dbtOutput);
+      }
+    });
+  });
+    
 });
 
 // app.post('/api/user', (req, res) => {

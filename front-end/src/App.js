@@ -13,6 +13,9 @@ import { getModel } from './services/getModel';
 import { getSSH } from "./services/getSSH";
 import { getGenerateSSH } from "./services/getGenerateSSH";
 import { getOpenGit } from "./services/getOpenGit";
+import { getCheckDBTConnection } from "./services/getCheckDBTConnection";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 class App extends Component {
   constructor(props) {
@@ -31,7 +34,8 @@ class App extends Component {
     catalogModel: {},
     sshKey: "",
     user: {},
-    userConfig: {}
+    userConfig: {},
+    userMessages: []
   }
   
 
@@ -144,8 +148,41 @@ class App extends Component {
       return responseText;
     });
   }
-  
+  checkDBTConnection = () => {
+    getCheckDBTConnection(this.state.user)
+    .then(response=> {
+      console.log(response);
+      if(response.ok === true) {
+        console.log("Success");
+        toast.success("DBT_ Connection Successful.");
+      } else {
+        response.text()
+        .then(responseText=> {
+          console.log(response);
+          console.log(responseText);
+          toast.error("DBT_ Connection Failed: " + responseText, {
+            autoClose: 10000,
+            });
+          // toast(response);
+        });
+      }
+    });
+  }
 
+  toastSender = (message, toastType) => {
+    if(toastType === "error") {
+      toast.error(message);
+    } else if (toastType === "success") {
+      toast.success(message);
+    } else {
+      toast(message);
+    }
+  }
+  
+  clearUserMessages = () => {
+    this.setState({"userMessages": []})
+  } 
+  
   render() {
     if(Object.keys(this.state.user).length === 0) {
       return (
@@ -202,6 +239,19 @@ class App extends Component {
               setSSHKey={this.setSSHKey}
               generateSSHKey={this.generateSSHKey}
               openGitConnection={this.openGitConnection}
+              checkDBTConnection={this.checkDBTConnection}
+              toastSender={this.toastSender}
+            />
+            <ToastContainer
+              position="bottom-center"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
             />
             </div>
           </div>
