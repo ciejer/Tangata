@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Overlay, Popover } from 'react-bootstrap'; 
+import { Overlay, Popover, Navbar, Nav } from 'react-bootstrap'; 
 import { getModelSearch } from '../services/getModelSearch';
 const reactState = process.env.NODE_ENV;
 export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, openCatalog, openConfig, appState, contextMenuOpen, openContextMenu, selectModel, user, setUser, userConfig, setUserConfig}) => {
@@ -183,12 +183,13 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
     }
 
     return(
-    <nav className="navbar navbar-expand-lg navbar-dark bg-brand position-fixed w-100 z-100">
-        <a className="navbar-brand bg-brand" href="/">TANGATA</a>
-        <div className="navbar-collapse d-flex justify-content-between" id="navbarNavAltMarkup">
+    <Navbar className="navbar-dark bg-brand position-fixed w-100 z-100" expand="xl">
+        <Navbar.Brand href="/">TANGATA</Navbar.Brand>
+        {/* <a className="navbar-brand bg-brand" href="/">TANGATA</a> */}
+        <Navbar.Toggle aria-controls="navbarContent"/>
+        <Navbar.Collapse id="navbarContent" className="justify-content-between">
             <div className="navbar-nav p-2 bg-brand">
                 <div className={"nav-item nav-link bg-brand "+(appState==="Catalog"?"active":null)} role="button" onClick={() => openCatalog()}>Catalog</div>
-                {/* <div className={"nav-item nav-link bg-brand "+(appState==="ModelBuilder"?"active":null)} role="button" onClick={() => openModelBuilder()}>Model Builder</div> */}
                 <div className={"nav-item nav-link bg-brand "+(appState==="Config"?"active":null)} role="button" onClick={() => openConfig()}>Config</div>
             </div>
             <div className="navbar-nav p2">
@@ -208,8 +209,8 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
             <a class="nav-item nav-link" href="#">Pricing</a>
             <a class="nav-item nav-link disabled" href="#">Disabled</a> */}
             </div>
-        </div>
-    </nav>
+        </Navbar.Collapse>
+    </Navbar>
     )
 }
 

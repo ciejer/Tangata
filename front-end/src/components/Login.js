@@ -32,7 +32,6 @@ export default function Login(props) {
             getUserConfig(response.user)
                 .then(response => {
                     props.setUserConfig(response.user);
-                    sessionStorage.setItem("userconfig", JSON.stringify(response.user));
                 }
             );
         }
@@ -51,7 +50,6 @@ export default function Login(props) {
             getUserConfig(response.user)
                 .then(response => {
                     props.setUserConfig(response.user);
-                    sessionStorage.setItem("userconfig", JSON.stringify(response.user));
                 }
             );
         }

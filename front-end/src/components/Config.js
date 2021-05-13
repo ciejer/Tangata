@@ -3,10 +3,16 @@ import React, { useRef, useState } from 'react';
 import { postUserConfig } from "../services/postUserConfig";
 import { postFileUpload } from "../services/postFileUpload";
 import { refreshMetadata } from "../services/refreshMetadata";
+import { getDBTCloudAccounts } from "../services/getDBTCloudAccounts";
+import { getDBTCloudJobs } from "../services/getDBTCloudJobs";
 export default function Config(props) {
   const [copySuccess, setCopySuccess] = useState('');
-  const [dbtMethod, setdbtMethod] = useState('dbtLiveDB');
+  const [dbtMethod, setdbtMethod] = useState('LiveDB');
+  const [dbtAccounts, setdbtAccounts] = useState({});
+  const [dbtDocsJobs, setdbtDocsJobs] = useState({});
   const sshKeyRef = useRef(null);
+  const dbtAccountRef = useRef(null);
+  const dbtJobRef = useRef(null);
   
   function copyToClipboard(e) {
     sshKeyRef.current.select();
@@ -48,6 +54,99 @@ export default function Config(props) {
         }
       });
     }
+  }
+
+  function updateDBTCloudKey(newKey) {
+    if(newKey.length>0) {
+      const uploadData = new FormData();
+      var keyFile = new Blob([newKey], {type: 'text/plain'});
+        uploadData.append('file', keyFile);
+        postFileUpload(uploadData, 'dbt_ Cloud Key', props.user)
+        .then(response=> {
+          console.log(response);
+          if(response.ok === true) {
+            console.log("Success");
+            props.toastSender("dbt_ Cloud Key Upload Successful.","success");
+          } else {
+            response.text()
+            .then(responseText=> {
+              console.log(response);
+              console.log(responseText);
+              props.toastSender("dbt_ Cloud Key Upload Failed: \n" + responseText,"error");
+            });
+          }
+        });
+    }
+  }
+
+  function loadDBTAccounts() {
+    getDBTCloudAccounts(props.user)
+    .then(response=> response.json())
+    .then(returnedDBTCloudAccounts => {
+      console.log(returnedDBTCloudAccounts);
+      setdbtAccounts(returnedDBTCloudAccounts);
+      selectAccount();
+    })
+  }
+
+  function selectAccount() {
+    console.log("Account Selected")
+    console.log(dbtAccountRef.current.value);
+    getDBTCloudJobs(props.user, dbtAccountRef.current.value)
+    .then(response=> response.json())
+    .then(returnedDBTCloudJobs => {
+      console.log(returnedDBTCloudJobs);
+      setdbtDocsJobs(returnedDBTCloudJobs);
+      selectJob();
+    });
+  }
+
+  function selectJob() {
+    console.log("Job Selected")
+    console.log(dbtJobRef.current.value);
+  }
+
+  function listDBTDocsJobs() {
+    console.log(dbtDocsJobs);
+    return dbtDocsJobs.map((job, index) => {return(<option key={"dbt job "+index} value={job.id}>{job.id}: {job.name}</option>)})
+  }
+  function dbtDocsJobsSelect() {
+    if(dbtDocsJobs.length > 0) {
+      return(
+        <Form.Group size="lg" controlId="dbt_cloud_jobs">
+          <Form.Label>dbt_ Cloud Jobs</Form.Label>
+          <Form.Control
+            autoFocus
+            as="select"
+            custom
+            ref={dbtJobRef}
+            onChange={e => selectJob()}
+          >
+            {listDBTDocsJobs()}
+          </Form.Control>
+        </Form.Group>);
+    } else return null;
+  }
+
+  function listDBTAccounts() {
+    return dbtAccounts.map((account, index) => {return(<option key={"dbt account "+index} value={account.id}>{account.id}: {account.name}</option>)})
+  }
+  function dbtAccountsSelect() {
+    if(dbtAccounts.length > 0) {
+      return(
+        <Form.Group size="lg" controlId="dbt_cloud_accounts">
+          <Form.Label>dbt_ Cloud Accounts</Form.Label>
+          <Form.Control
+            autoFocus
+            as="select"
+            custom
+            ref={dbtAccountRef}
+            onChange={e => selectAccount()}
+          >
+            {listDBTAccounts()}
+          </Form.Control>
+        </Form.Group>);
+    } else return null;
   }
 
   if(props.appState === "Config") {
@@ -167,7 +266,7 @@ export default function Config(props) {
                     inline
                     label="Live Database Connection"
                     type='radio'
-                    id={'dbtLiveDB'}
+                    id={'LiveDB'}
                     checked={props.userConfig.dbtmethod==="LiveDB"}
                     onClick={(e) => {e.stopPropagation(); updateConfigValue("LiveDB", "dbtmethod")}}
                   />
@@ -176,9 +275,18 @@ export default function Config(props) {
                     inline
                     label="Upload Compiled Metadata"
                     type='radio'
-                    id={'dbtUploadMetadata'}
+                    id={'UploadMetadata'}
                     checked={props.userConfig.dbtmethod==="UploadMetadata"}
                     onClick={(e) => {e.stopPropagation(); updateConfigValue("UploadMetadata", "dbtmethod")}}
+                  />
+                  <Form.Check
+                    custom
+                    inline
+                    label="dbt_ Cloud API"
+                    type='radio'
+                    id={'Cloud'}
+                    checked={props.userConfig.dbtmethod==="Cloud"}
+                    onClick={(e) => {e.stopPropagation(); updateConfigValue("Cloud", "dbtmethod")}}
                   />
                 </div>
               </Form.Group>
@@ -244,6 +352,24 @@ export default function Config(props) {
                 >
                   Load Metadata
                 </Button>
+              </div>
+              <div className={props.userConfig.dbtmethod==="Cloud"?null:"d-none"}>
+                <Form.Group size="lg" controlId="firstname">
+                  <Form.Label>dbt_ Cloud API Key</Form.Label>
+                  <Form.Control
+                    autoFocus
+                    type="text"
+                    placeholder="Change dbt_ Cloud Key"
+                    onBlur={(e) => updateDBTCloudKey(e.target.value)}
+                  />
+                </Form.Group>
+                <Button
+                  variant="primary"
+                  className="m-1"
+                  onClick={(e) => {e.stopPropagation(); loadDBTAccounts();}}
+                >Load dbt_ Cloud Accounts</Button>
+                {dbtAccountsSelect()}
+                {dbtDocsJobsSelect()}
               </div>
             </Form>
           </Tab>
