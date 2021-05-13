@@ -1,11 +1,15 @@
 const express = require('express');
 var spawn = require('child_process').spawn;
+var socketio = require('socket.io')(8080);
+var passportSocketIo = require('passport.socketio');
 const app = express(),
-      port = 3080;
+      port = 3080
 const fs = require('fs');
+const path = require("path");
 var cors = require('cors');
 const yaml = require('js-yaml');
-const YAWN = require('yawn-yaml/cjs')
+const YAWN = require('yawn-yaml/cjs');
+const request = require('request');
 const mongoose = require('mongoose');
 const fileUpload = require('express-fileupload');
 const { Octokit } = require("@octokit/rest");//Octokit is github api, for creating pull requests
@@ -13,7 +17,6 @@ const simpleGit = require('simple-git'); //simple-git is git client, for cloning
 
 //Configure Mongoose for settings
 mongoose.connect('mongodb://localhost/tangata');
-mongoose.set('debug', true);
 
 //Add models
 require('./models/Users');
@@ -23,19 +26,23 @@ const auth = require('./routes/auth');
 require('./config/passport'); //must be last to load
 
 const Users = mongoose.model('Users');
-var whitelist = ['http://sqlgui.chrisjenkins.nz', 'http://localhost', 'http://localhost:3000']
+var userSockets = {};
+var whitelist = ['http://sqlgui.chrisjenkins.nz', 'http://localhost', 'http://localhost:3000', 'http://localhost:3080']
 var corsOptions = {
   origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1) {
+    // console.log(origin);
+    if (!origin || whitelist.indexOf(origin) !== -1) {
       callback(null, true)
     } else {
       callback(new Error('Not allowed by CORS'))
     }
   }
 }
-app.use(express.json(), fileUpload(), cors(corsOptions));
+app.use(express.json(), fileUpload());
+app.use(cors(corsOptions));
 
 app.use(require('./routes/index'));
+app.use(express.static(path.join(__dirname, '/../front-end/build/')));
 
 // place holder for the data
 // const users = [];
@@ -44,6 +51,10 @@ app.use(require('./routes/index'));
 const octokit = new Octokit({ 
   auth: process.env.GitHubToken, //This is set in system environment variables for now
 });
+
+const sendToast = (id, message, type) => {
+  io.to(userSockets[id]).emit('toast', {"message": message, "type": type});
+}
 
 
 var rawCatalog,catalog, rawManifest, manifest;
@@ -221,12 +232,11 @@ const refreshMetadata = (id) => {
     getModelLineage(assemblingFullCatalog, id); //this updates fullCatalog before it gets saved
     fs.writeFileSync('./user_folders/'+id+'/catalog.json', JSON.stringify(assemblingFullCatalog), (err) => {
       if (err) throw err;
-      console.log('The file has been saved!');
     });
     fs.writeFileSync('./user_folders/'+id+'/catalogindex.json', JSON.stringify(assemblingCatalogIndex), (err) => {
       if (err) throw err;
-      console.log('The file has been saved!');
     });
+    sendToast(id, "Metadata has been refreshed successfully.", "success");
   } else {
     console.log('User Metadata does not yet exist');
   }
@@ -699,6 +709,7 @@ app.post('/api/v1/create_pr', auth.required, (req, res) => {
         // } else {
         //   console.log("No changes from origin/master. No new pull required.");
         // }
+      sendToast(id, "Changes have been pushed to git repository.", "success");
       res.sendStatus(200);
       // }); --end of disabled section
     });
@@ -867,6 +878,16 @@ app.post('/api/v1/file_upload', auth.required, (req, res) => {
           res.send('File uploaded!');
         }
       });
+    } else if(req.headers.uploadtype === "dbt_ Cloud Key") {
+      console.log("dbt_ Cloud Key uploaded.");
+      profilesYMLFile = req.files.file;
+      profilesYMLFile.mv('./user_folders/'+id+'/dbt_cloud.key', function(err) {
+        if (err) {
+          res.status(500).send(err);
+        } else {
+          res.send('File uploaded!');
+        }
+      });
     }
   });
 });
@@ -889,6 +910,7 @@ app.get('/api/v1/check_dbt_connection', auth.required, (req, res) => {
       // console.log("dbt_ exited with code: " + exitCode);
       if(exitCode===0) {
         console.log('dbt_ compile successful.');
+        refreshMetadata(id);
         res.sendStatus(200);
       } else {
         console.log('dbt_ compile failed.');
@@ -897,6 +919,43 @@ app.get('/api/v1/check_dbt_connection', auth.required, (req, res) => {
     });
   });
     
+});
+
+app.get('/api/v1/get_dbt_cloud_accounts', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    console.log("Get DBT Cloud Accounts:");
+    let dbtResponse = {}
+    request.get('https://cloud.getdbt.com/api/v2/accounts/', { json: true, 'headers': {'Authorization': 'Token 94add6a201a67342ecc930abe65ccfaf7321e3ae'} }, (dbterr, dbtres, dbtbody) => {
+      if (dbterr) { return console.log(dbterr); }
+      // console.log(dbtbody);
+      var accountRecords = []
+      dbtbody.data.forEach(accountRecord => {
+        accountRecords.push({"id": accountRecord.id, "name": accountRecord.name});
+      });
+      res.json(accountRecords);
+    });
+  });
+});
+
+app.get('/api/v1/get_dbt_cloud_jobs/:accountid', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    console.log("Get DBT Cloud Accounts:");
+    let dbtResponse = {}
+    console.log('https://cloud.getdbt.com/api/v2/accounts/'+req.params.accountid+'/jobs/')
+    request.get('https://cloud.getdbt.com/api/v2/accounts/'+req.params.accountid+'/jobs/', { json: true, 'headers': {'Authorization': 'Token 94add6a201a67342ecc930abe65ccfaf7321e3ae'} }, (dbterr, dbtres, dbtbody) => {
+      if (dbterr) { return console.log(dbterr); }
+      // console.log(dbtbody);
+      var jobRecords = []
+      dbtbody.data.forEach(jobRecord => {
+        if(jobRecord.generate_docs === true) {
+          jobRecords.push({"id": jobRecord.id, "name": jobRecord.name});
+        }
+      });
+      res.json(jobRecords);
+    });
+  });
 });
 
 // app.post('/api/user', (req, res) => {
@@ -911,6 +970,43 @@ app.get('/api/v1/check_dbt_connection', auth.required, (req, res) => {
 //     res.send('App Works !!!!');
 // });
 
-app.listen(port, () => {
-    console.log(`Server listening on the port::${port}`);
+var appServer = app.listen(port, () => {
+    console.log('Server listening on the port::${port}');
+});
+
+io = socketio.listen(appServer, {
+  cors: {
+    origin: function (origin, callback) {
+      // console.log(origin);
+      if (!origin || whitelist.indexOf(origin) !== -1) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+io.on('connection', (socket) => {
+  const token = socket.handshake.auth.jwt;
+  Users.findOne({ token: token }, function (err, user) {
+    if (user) {
+      // console.log('a user connected');
+      userSockets[user._id] = socket.id;
+      socket.on('disconnect', () => {
+        // console.log('user disconnected');
+        userSockets[user._id] = null;
+      });
+      // handle the event sent with socket.send()
+      socket.on("message", (data) => {
+        if(user) {
+          // console.log(data);
+          // console.log("Socket User ID: " + user._id);
+          // console.log(socket.id);
+        }
+      });
+    };
+  });
 });

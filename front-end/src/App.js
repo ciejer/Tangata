@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import {Collapse, Container, Row, Col } from 'react-bootstrap';
+import { io } from "socket.io-client";
 // import logo from './logo.svg';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -11,6 +12,7 @@ import { NavBar } from './components/NavBar';
 import Catalog from './components/Catalog';
 import { getModel } from './services/getModel';
 import { getSSH } from "./services/getSSH";
+import { getUserConfig } from "./services/getUserConfig";
 import { getGenerateSSH } from "./services/getGenerateSSH";
 import { getOpenGit } from "./services/getOpenGit";
 import { getCheckDBTConnection } from "./services/getCheckDBTConnection";
@@ -109,11 +111,13 @@ class App extends Component {
   componentDidMount() {
     if(Object.keys(this.state.user).length === 0) {
       if(sessionStorage.getItem("user")) {
+        getUserConfig(JSON.parse(sessionStorage.getItem("user")).user)
+        .then(response => {
+          this.setUserConfig(response.user);
+        });
         this.setUser(JSON.parse(sessionStorage.getItem("user")))
       }
-      if(sessionStorage.getItem("userconfig")) {
-        this.setUserConfig(JSON.parse(sessionStorage.getItem("userconfig")))
-      }
+      
     }
   }
 
@@ -184,6 +188,7 @@ class App extends Component {
   } 
   
   render() {
+    
     if(Object.keys(this.state.user).length === 0) {
       return (
         <div id="main">
@@ -194,6 +199,21 @@ class App extends Component {
         </div>
       )
     } else {
+      const socket = io({
+        auth: (cb) => {
+          cb({
+            token: this.state.user
+          });
+        }
+      });
+  
+      socket.on("connect", () => {
+        // either with send()
+        socket.send("Hello!");
+      });
+      socket.on("toast", (data) => {
+        this.toastSender(data.message, data.type);
+      });
       return (
         <div id="main" onClick={this.handleAllClicks} onContextMenu={this.handleAllClicks}>
           <NavBar
@@ -244,7 +264,7 @@ class App extends Component {
             />
             <ToastContainer
               position="bottom-center"
-              autoClose={5000}
+              autoClose={8000}
               hideProgressBar={false}
               newestOnTop={false}
               closeOnClick
