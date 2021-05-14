@@ -91,7 +91,9 @@ const populateFullCatalogNode = (nodeID, nodeOrSource) => {
     "model_path": manifestNode.original_file_path,
     "columns": {},
     "referenced_by": [],
-    "lineage": []
+    "lineage": [],
+    "all_contributors": [],
+    "all_commits": []
   }
   for (const [key, value] of Object.entries(catalogNode.columns)) {
     var catalogColumnNode = value;
@@ -112,6 +114,7 @@ const compileCatalogNodes = (id) => {
   catalog = JSON.parse(rawCatalog);
   rawManifest = fs.readFileSync('./user_folders/'+id+'/dbt/target/manifest.json');
   manifest = JSON.parse(rawManifest);
+  var git = simpleGit('./user_folders/'+id+'/dbt');
   var tempCatalogNodes = {};
   for (const [key, value] of Object.entries(catalog.nodes)) {
     tempCatalogNodes[key] = populateFullCatalogNode(key, "node"); //push node to model
@@ -147,12 +150,11 @@ const compileCatalogNodes = (id) => {
           tempCatalogNodes[nodeAncestor].referenced_by.push(Object.entries(catalogNode)[1][1].nodeID);
         }
       })
-        
-  }
-    
-    });
+    }
+  });
   return tempCatalogNodes;
 };
+
 
 
 const compileSearchIndex = (catalogToIndex) => {
@@ -171,6 +173,17 @@ const compileSearchIndex = (catalogToIndex) => {
     }
   }
   return tempCatalogIndex;
+}
+const getGitHistory = async (fullCatalog, id) => {
+  var git = simpleGit('./user_folders/'+id+'/dbt');
+  var gitFields = []
+  for (let i = 0; i < Object.entries(fullCatalog).length; i++) {
+    var path = './user_folders/'+id+'/dbt/'+Object.entries(fullCatalog)[i][1].model_path.replaceAll('\\','/');
+    eachGitLog = await git.log(path)
+    Object.entries(fullCatalog)[i][1].created_by = eachGitLog.all[eachGitLog.all.length-1].author_name;
+    Object.entries(fullCatalog)[i][1].all_contributors = [...new Set(eachGitLog.all.map(thisCommit => thisCommit.author_name))];
+    Object.entries(fullCatalog)[i][1].all_commits = eachGitLog.all;
+  }
 }
 
 const getModelLineage = (fullCatalog, id) => {
@@ -225,20 +238,58 @@ const getModelLineage = (fullCatalog, id) => {
   }
 }
 
-const refreshMetadata = (id) => {
+const compileCatalog = (id) => {
   if (fs.existsSync('./user_folders/'+id+'/dbt/target/catalog.json')) {
     var assemblingFullCatalog = compileCatalogNodes(id);
     var assemblingCatalogIndex = compileSearchIndex(assemblingFullCatalog);
     getModelLineage(assemblingFullCatalog, id); //this updates fullCatalog before it gets saved
-    fs.writeFileSync('./user_folders/'+id+'/catalog.json', JSON.stringify(assemblingFullCatalog), (err) => {
-      if (err) throw err;
+    getGitHistory(assemblingFullCatalog, id)
+    .then(dummyField => {
+      fs.writeFileSync('./user_folders/'+id+'/catalog.json', JSON.stringify(assemblingFullCatalog), (err) => {
+        if (err) throw err;
+      });
+      fs.writeFileSync('./user_folders/'+id+'/catalogindex.json', JSON.stringify(assemblingCatalogIndex), (err) => {
+        if (err) throw err;
+      });
+      console.log("Metadata Refresh Complete");
+      sendToast(id, "Metadata has been refreshed successfully.", "success");
     });
-    fs.writeFileSync('./user_folders/'+id+'/catalogindex.json', JSON.stringify(assemblingCatalogIndex), (err) => {
-      if (err) throw err;
-    });
-    sendToast(id, "Metadata has been refreshed successfully.", "success");
+    
   } else {
     console.log('User Metadata does not yet exist');
+  }
+}
+
+const refreshMetadata = (id) => {
+  if(userConfig(id).dbtmethod === "Cloud" && userConfig(id).dbt_cloud_job && userConfig(id).dbt_cloud_account) {
+    request.get({"url": 'https://cloud.getdbt.com/api/v2/accounts/'+userConfig(id).dbt_cloud_account+'/runs/', "qs": {"order_by": "-finished_at", "limit": 10, "job_definition_id": userConfig(id).dbt_cloud_job}, json: true, 'headers': {'Authorization': 'Token ' + dbtKey(id)} }, (dbterr, dbtres, dbtbody) => {
+      if (dbterr) { return console.log(dbterr); }
+      // console.log(dbtbody);
+      var lastRun = dbtbody.data[0].id;
+      var jobRecords = []
+      dbtbody.data.forEach(jobRecord => {
+        if(jobRecord.is_success && jobRecord.has_docs_generated) {
+          jobRecords.push({"id": jobRecord.id});
+        }
+      });
+      if(jobRecords.length > 0) {
+        console.log('https://cloud.getdbt.com/api/v2/accounts/'+userConfig(id).dbt_cloud_account+'/runs/'+jobRecords[0].id+'/artifacts/catalog.json');
+        request.get({"url": 'https://cloud.getdbt.com/api/v2/accounts/'+userConfig(id).dbt_cloud_account+'/runs/'+jobRecords[0].id+'/artifacts/catalog.json', 'headers': {'Authorization': 'Token ' + dbtKey(id)} }, (catalogerr, catalogres, catalogbody) => {
+          if (catalogerr) { return console.log(catalogerr); }
+          fs.writeFileSync('./user_folders/'+id+'/dbt/target/catalog.json', catalogbody);
+        });
+        request.get({"url": 'https://cloud.getdbt.com/api/v2/accounts/'+userConfig(id).dbt_cloud_account+'/runs/'+jobRecords[0].id+'/artifacts/manifest.json', 'headers': {'Authorization': 'Token ' + dbtKey(id)} }, (manifesterr, manifestres, manifestbody) => {
+          if (manifesterr) { return console.log(manifesterr); }
+          fs.writeFileSync('./user_folders/'+id+'/dbt/target/manifest.json', manifestbody);
+        });
+        sendToast(id, "Refreshed metadata from dbt_ Cloud", "success");
+        compileCatalog(id);
+      } else {
+        sendToast(id, "No dbt_ Cloud runs found for selected job; please check config", "error");
+      }
+    });
+  } else {
+    compileCatalog(id);
   }
 }
 
@@ -272,6 +323,14 @@ const setUserConfig = (id, newConfig) => {
       console.log('The file has been saved!');
     });
 }
+
+const dbtKey = (id) => {
+  if (fs.existsSync('./user_folders/'+id+'/dbt_cloud.key')) {
+    var dbtKey = fs.readFileSync('./user_folders/'+id+'/dbt_cloud.key', 'utf-8');
+    return dbtKey;
+  } else null;
+}
+
 
 
 // console.log(fullCatalog["model.trustpower.litmos_learning_path_course_stage"]);
@@ -526,23 +585,30 @@ app.get('/api/v1/models/:modelName', auth.required, (req, res) => {
 app.post('/api/v1/reload_dbt', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
-    console.log('Running dbt_...')
-    const dbtRunner = spawn("cd ./user_folders/"+id+"/dbt && dbt docs generate --profiles-dir ../", {shell: true});
-    dbtRunner.stderr.on('data', function (data) {
-      console.error("dbt_ error:", data.toString());
-    });
-    dbtRunner.stdout.on('data', function (data) {
-      // console.log("dbt_ output:", data.toString());
-    });
-    dbtRunner.on('exit', function (exitCode) {
-      // console.log("dbt_ exited with code: " + exitCode);
-      if(exitCode===0) {
-        console.log('dbt_ update successful. Updating app catalog...');
-        refreshMetadata(id);
-        console.log('Update complete.');
-      }
-    });
-    res.sendStatus(200);
+    console.log("Reloading Metadata")
+    if(userConfig(id).dbtmethod === "LiveDB") {
+      console.log('Running dbt_...')
+      const dbtRunner = spawn("cd ./user_folders/"+id+"/dbt && dbt deps && dbt docs generate --profiles-dir ../", {shell: true});
+      dbtRunner.stderr.on('data', function (data) {
+        console.error("dbt_ error:", data.toString());
+      });
+      dbtRunner.stdout.on('data', function (data) {
+        // console.log("dbt_ output:", data.toString());
+      });
+      dbtRunner.on('exit', function (exitCode) {
+        // console.log("dbt_ exited with code: " + exitCode);
+        if(exitCode===0) {
+          console.log('dbt_ update successful. Updating app catalog...');
+          refreshMetadata(id);
+          console.log('Update complete.');
+        }
+      });
+      res.sendStatus(200);
+    } else if(userConfig(id).dbtmethod === "Cloud") {
+      console.log("Reloading from dbt_ Cloud");
+      refreshMetadata(id);
+      res.sendStatus(200);
+    }
   });
 });
 
@@ -840,6 +906,7 @@ app.post('/api/v1/set_user_config', auth.required, (req, res) => {
   });
 });
 
+
 app.post('/api/v1/file_upload', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
@@ -897,7 +964,7 @@ app.get('/api/v1/check_dbt_connection', auth.required, (req, res) => {
   Users.findById(id, function(err, result) {
     console.log("Check DBT Connection");
     let dbtOutput = ""
-    const dbtRunner = spawn("cd ./user_folders/"+id+"/dbt && dbt compile --profiles-dir ../", {shell: true});
+    const dbtRunner = spawn("cd ./user_folders/"+id+"/dbt && dbt deps && dbt compile --profiles-dir ../", {shell: true});
     dbtRunner.stderr.on('data', function (data) {
       console.error("dbt_ error:", data.toString());
       dbtOutput += data.toString();
@@ -926,7 +993,7 @@ app.get('/api/v1/get_dbt_cloud_accounts', auth.required, (req, res) => {
   Users.findById(id, function(err, result) {
     console.log("Get DBT Cloud Accounts:");
     let dbtResponse = {}
-    request.get('https://cloud.getdbt.com/api/v2/accounts/', { json: true, 'headers': {'Authorization': 'Token 94add6a201a67342ecc930abe65ccfaf7321e3ae'} }, (dbterr, dbtres, dbtbody) => {
+    request.get('https://cloud.getdbt.com/api/v2/accounts/', { json: true, 'headers': {'Authorization': 'Token ' + dbtKey(id)} }, (dbterr, dbtres, dbtbody) => {
       if (dbterr) { return console.log(dbterr); }
       // console.log(dbtbody);
       var accountRecords = []
@@ -944,7 +1011,7 @@ app.get('/api/v1/get_dbt_cloud_jobs/:accountid', auth.required, (req, res) => {
     console.log("Get DBT Cloud Accounts:");
     let dbtResponse = {}
     console.log('https://cloud.getdbt.com/api/v2/accounts/'+req.params.accountid+'/jobs/')
-    request.get('https://cloud.getdbt.com/api/v2/accounts/'+req.params.accountid+'/jobs/', { json: true, 'headers': {'Authorization': 'Token 94add6a201a67342ecc930abe65ccfaf7321e3ae'} }, (dbterr, dbtres, dbtbody) => {
+    request.get('https://cloud.getdbt.com/api/v2/accounts/'+req.params.accountid+'/jobs/', { json: true, 'headers': {'Authorization': 'Token ' + dbtKey(id)} }, (dbterr, dbtres, dbtbody) => {
       if (dbterr) { return console.log(dbterr); }
       // console.log(dbtbody);
       var jobRecords = []
@@ -986,8 +1053,10 @@ io = socketio.listen(appServer, {
     },
     methods: ["GET", "POST"],
     credentials: true
-  }
+  }, pingTimeout: 4000, pintInterval: 1000
 });
+
+
 
 io.on('connection', (socket) => {
   const token = socket.handshake.auth.jwt;

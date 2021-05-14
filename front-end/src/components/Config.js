@@ -11,6 +11,7 @@ export default function Config(props) {
   const [dbtAccounts, setdbtAccounts] = useState({});
   const [dbtDocsJobs, setdbtDocsJobs] = useState({});
   const sshKeyRef = useRef(null);
+  const dbtCloudKey = useRef(null);
   const dbtAccountRef = useRef(null);
   const dbtJobRef = useRef(null);
   
@@ -79,6 +80,14 @@ export default function Config(props) {
     }
   }
 
+  function updateDBTCloudConfig() { //doing it manually rather than updateConfigValue because it's two at once - saving one without the other breaks existing config
+    var newConfig = {...props.userConfig};
+    newConfig["dbt_cloud_account"] = dbtAccountRef.current.value;
+    newConfig["dbt_cloud_job"] = dbtJobRef.current.value;
+    postUserConfig(props.user, newConfig);
+    props.setUserConfig(newConfig);
+  }
+
   function loadDBTAccounts() {
     getDBTCloudAccounts(props.user)
     .then(response=> response.json())
@@ -97,13 +106,7 @@ export default function Config(props) {
     .then(returnedDBTCloudJobs => {
       console.log(returnedDBTCloudJobs);
       setdbtDocsJobs(returnedDBTCloudJobs);
-      selectJob();
     });
-  }
-
-  function selectJob() {
-    console.log("Job Selected")
-    console.log(dbtJobRef.current.value);
   }
 
   function listDBTDocsJobs() {
@@ -113,18 +116,27 @@ export default function Config(props) {
   function dbtDocsJobsSelect() {
     if(dbtDocsJobs.length > 0) {
       return(
-        <Form.Group size="lg" controlId="dbt_cloud_jobs">
-          <Form.Label>dbt_ Cloud Jobs</Form.Label>
-          <Form.Control
-            autoFocus
-            as="select"
-            custom
-            ref={dbtJobRef}
-            onChange={e => selectJob()}
+        <>
+          <Form.Group size="lg" controlId="dbt_cloud_jobs">
+            <Form.Label>dbt_ Cloud Jobs</Form.Label>
+            <Form.Control
+              autoFocus
+              as="select"
+              custom
+              ref={dbtJobRef}
+            >
+              {listDBTDocsJobs()}
+            </Form.Control>
+          </Form.Group>
+          <Button
+            variant="primary"
+            className="m-1"
+            onClick={(e) => {e.stopPropagation(); updateDBTCloudConfig();}}
           >
-            {listDBTDocsJobs()}
-          </Form.Control>
-        </Form.Group>);
+            Save
+          </Button>
+        </>
+      );
     } else return null;
   }
 
@@ -360,13 +372,13 @@ export default function Config(props) {
                     autoFocus
                     type="text"
                     placeholder="Change dbt_ Cloud Key"
-                    onBlur={(e) => updateDBTCloudKey(e.target.value)}
+                    ref={dbtCloudKey}
                   />
                 </Form.Group>
                 <Button
                   variant="primary"
                   className="m-1"
-                  onClick={(e) => {e.stopPropagation(); loadDBTAccounts();}}
+                  onClick={(e) => {e.stopPropagation(); updateDBTCloudKey(dbtCloudKey.current.value); loadDBTAccounts();}}
                 >Load dbt_ Cloud Accounts</Button>
                 {dbtAccountsSelect()}
                 {dbtDocsJobsSelect()}

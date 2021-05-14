@@ -26,6 +26,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
         setSearchDropdown(false);
         e.stopPropagation();
         selectModel(searchResults[index].nodeID);
+        openCatalog();
     }
 
     const toggleSearchDropdown = (newValue) => {
@@ -199,7 +200,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
                 {allSearchRows()}
             </div>
             <div className="navbar-nav p-2">
-                <div className={"nav-item nav-link mr-sm-2"+(userConfig.dbtmethod==="LiveDB"?null:" d-none")} role="button" onClick={() => reloadDBT()}>Refresh dbt_ catalog</div>
+                <div className={"nav-item nav-link mr-sm-2"+(userConfig.dbtmethod!=="UploadMetadata"?null:" d-none")} role="button" onClick={() => reloadDBT()}>Refresh dbt_ catalog</div>
                 <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => createPR()}>Submit changes</div>
                 <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => openSQLPanel()}>Open SQL Panel </div>
                 {debugLogState(reactState)}
