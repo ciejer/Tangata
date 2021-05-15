@@ -72,6 +72,88 @@ class Catalog extends Component {
     )
   }
 
+  nodeContributors = () => {
+    // console.log("this.props.catalogModel.referenced_by");
+    // console.log(this.props.catalogModel.referenced_by);
+
+    const nodeContributorMap = () => this.props.catalogModel.all_contributors.map((value,index) => {
+      return(
+        <div key={"nodeContributor"+index} title={value}>
+          {index===0?(<b>Contributors:<br/></b>):null}
+          {value}
+        </div>
+      )
+    });
+
+    if(this.props.catalogModel.all_contributors.length > 1) {
+      return (
+        <>
+          {nodeContributorMap()}
+        </>
+      )
+    } else {
+      return null;
+    }
+    
+  }
+
+
+  nodeHistory = () => {
+    // console.log("this.props.catalogModel.referenced_by");
+    // console.log(this.props.catalogModel.referenced_by);
+    var gitRepo = null;
+      if(this.props.userConfig.dbtmethod === "LiveDB") {
+        let gitExtract = this.props.userConfig.gitrepo.match(/[^@]+@(github.com|gitlab.com):([^.]+).git/);
+        // console.log(gitExtract);
+        gitRepo = "http://"+gitExtract[1]+"/"+gitExtract[2]+"/";
+        // console.log(gitRepo);
+      }
+    const fileCommits = () => this.props.catalogModel.all_commits.map((value,index) => {
+      var gitLink = null;
+      if(gitRepo !== null) {
+        gitLink = gitRepo + 'commit/' + value.hash;
+        // console.log(gitLink);
+      }
+      return(
+        <tr key={"catalogFileCommit "+index} title={value.hash}>
+          <td title={value.authorDate}>
+            {value.authorDateRel}
+          </td>
+          <td>
+            {value.authorName}
+          </td>
+          <td>
+            <a href={this.gitLink !== null?gitLink:null} target="_blank">
+              {value.subject}
+            </a>
+          </td>
+        </tr>
+      )
+    });
+    return (
+      <>
+        <table className="table">
+          <thead>
+            <tr>
+              <th scope="col">
+                Date
+              </th>
+              <th scope="col">
+                Author
+              </th>
+              <th scope="col">
+                Commit Message
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {fileCommits()}
+          </tbody>
+        </table>
+      </>
+    )
+  }
+  
   
 
   catalogColumns = () => {
@@ -262,6 +344,19 @@ class Catalog extends Component {
     return <LineageModal lineage={lineage}/>
   }
 
+  showCreatedBy = () => {
+    if(this.props.catalogModel.model_type==="node" && this.props.catalogModel.created_by) { 
+      return(
+        <div className="row mt-md-3">
+          <div className="col col-md-auto">
+            Created: {this.props.catalogModel.created_by + (this.props.catalogModel.created_relative_date?", "+this.props.catalogModel.created_relative_date:null)} 
+          </div>
+        </div>
+      );
+    }
+  
+  }
+
   render() {
     if(this.props.appState !== "Catalog") return null;
     if(Object.keys(this.props.catalogModel).length === 0) { //Default catalog screen
@@ -301,6 +396,7 @@ class Catalog extends Component {
                 {this.props.catalogModel.row_count?Number(this.props.catalogModel.row_count).toLocaleString()+" rows":null}
               </div>
             </div>
+            {this.showCreatedBy()}
             <div className="row mt-md-3">
               <div className="col col-md-auto">
                 <ContentEditable
@@ -355,10 +451,31 @@ class Catalog extends Component {
               <Card>
                 <Card.Header>
                   <Accordion.Toggle as={Button} variant="link" eventKey="2">
-                    Depends On
+                    Code Change History
                   </Accordion.Toggle>
                 </Card.Header>
                 <Accordion.Collapse eventKey="2">
+                  <div className="container">
+                    <div className="row mt-md-3 mb-md-3">
+                      <div className="col col-md-auto">
+                        {this.nodeContributors()}
+                      </div>
+                    </div>
+                    <div className="row mt-md-3 mb-md-3">
+                      <div className="col col-md-auto">
+                        {this.nodeHistory()}
+                      </div>
+                    </div>
+                  </div>
+                </Accordion.Collapse>
+              </Card>
+              <Card>
+                <Card.Header>
+                  <Accordion.Toggle as={Button} variant="link" eventKey="3">
+                    Depends On
+                  </Accordion.Toggle>
+                </Card.Header>
+                <Accordion.Collapse eventKey="3">
                   <div className="container">
                     <div className="row mt-md-3 mb-md-3">
                       <div className="col col-md-auto">
@@ -370,11 +487,11 @@ class Catalog extends Component {
               </Card>
               <Card>
                 <Card.Header>
-                  <Accordion.Toggle as={Button} variant="link" eventKey="3">
+                  <Accordion.Toggle as={Button} variant="link" eventKey="4">
                     Dependencies
                   </Accordion.Toggle>
                 </Card.Header>
-                <Accordion.Collapse eventKey="3">
+                <Accordion.Collapse eventKey="4">
                   <div className="container">
                     <div className="row mt-md-3 mb-md-3">
                       <div className="col col-md-auto">

@@ -212,6 +212,7 @@ class App extends Component {
         socket.send("Hello!");
       });
       socket.on("toast", (data) => {
+        console.log("Toast received");
         this.toastSender(data.message, data.type);
       });
       return (

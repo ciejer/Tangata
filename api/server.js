@@ -14,6 +14,7 @@ const mongoose = require('mongoose');
 const fileUpload = require('express-fileupload');
 const { Octokit } = require("@octokit/rest");//Octokit is github api, for creating pull requests
 const simpleGit = require('simple-git'); //simple-git is git client, for cloning to local, branching, and making changes where dbt can run & compile.
+const gitlog = require("gitlog").default;
 
 //Configure Mongoose for settings
 mongoose.connect('mongodb://localhost/tangata');
@@ -53,6 +54,8 @@ const octokit = new Octokit({
 });
 
 const sendToast = (id, message, type) => {
+  console.log("Attempting Send Toast");
+  console.log(userSockets[id]);
   io.to(userSockets[id]).emit('toast', {"message": message, "type": type});
 }
 
@@ -175,14 +178,26 @@ const compileSearchIndex = (catalogToIndex) => {
   return tempCatalogIndex;
 }
 const getGitHistory = async (fullCatalog, id) => {
-  var git = simpleGit('./user_folders/'+id+'/dbt');
   var gitFields = []
   for (let i = 0; i < Object.entries(fullCatalog).length; i++) {
-    var path = './user_folders/'+id+'/dbt/'+Object.entries(fullCatalog)[i][1].model_path.replaceAll('\\','/');
-    eachGitLog = await git.log(path)
-    Object.entries(fullCatalog)[i][1].created_by = eachGitLog.all[eachGitLog.all.length-1].author_name;
-    Object.entries(fullCatalog)[i][1].all_contributors = [...new Set(eachGitLog.all.map(thisCommit => thisCommit.author_name))];
-    Object.entries(fullCatalog)[i][1].all_commits = eachGitLog.all;
+    // var git = simpleGit('./user_folders/'+id+'/dbt');
+    const options = {
+      repo: './user_folders/'+id+'/dbt',
+      number: 50,
+      fields: ["hash", "abbrevHash", "subject", "authorName", "authorDateRel", "authorDate"],
+      execOptions: { maxBuffer: 1000 * 1024 },
+      file: Object.entries(fullCatalog)[i][1].model_path
+    };
+    eachGitLog = gitlog(options);
+    // console.log(Object.entries(fullCatalog)[i][1].model_path);
+    // let path = './user_folders/'+id+'/dbt/'+Object.entries(fullCatalog)[i][1].model_path.replaceAll('\\','/');
+    // let eachGitLog = await git.log(path)
+    // console.log(eachGitLog);
+    Object.entries(fullCatalog)[i][1].created_by = eachGitLog[eachGitLog.length-1].authorName;
+    Object.entries(fullCatalog)[i][1].created_date = eachGitLog[eachGitLog.length-1].authorDate;
+    Object.entries(fullCatalog)[i][1].created_relative_date = eachGitLog[eachGitLog.length-1].authorDateRel;
+    Object.entries(fullCatalog)[i][1].all_contributors = [...new Set(eachGitLog.map(thisCommit => thisCommit.authorName))];
+    Object.entries(fullCatalog)[i][1].all_commits = eachGitLog;
   }
 }
 
@@ -840,7 +855,7 @@ app.get('/api/v1/open_git_connection', auth.required, (req, res) => {
     if (fs.existsSync(dir)) {
       fs.rmdirSync(dir, {recursive: true, force: true}) //delete current dbt installation. It's ok, we're about to reclone it.
     };
-    var gitRun = spawn('git -c core.sshCommand="ssh -i ./user_folders/'+id+'/id_rsa" clone git@github.com:ciejer/sqlgui-dbt-demo.git ./user_folders/'+id+'/dbt/', {shell: true});
+    var gitRun = spawn('git -c core.sshCommand="ssh -i ./user_folders/'+id+'/id_rsa" clone '+userConfig(id).gitrepo+' ./user_folders/'+id+'/dbt/', {shell: true});
     gitRun.stderr.on('data', function (data) {
       console.error("git clone error:", data.toString());
     });
@@ -1052,7 +1067,7 @@ io = socketio.listen(appServer, {
       }
     },
     methods: ["GET", "POST"],
-    credentials: true
+    credentials: true,
   }, pingTimeout: 4000, pintInterval: 1000
 });
 
@@ -1062,7 +1077,7 @@ io.on('connection', (socket) => {
   const token = socket.handshake.auth.jwt;
   Users.findOne({ token: token }, function (err, user) {
     if (user) {
-      // console.log('a user connected');
+      console.log('a user connected');
       userSockets[user._id] = socket.id;
       socket.on('disconnect', () => {
         // console.log('user disconnected');

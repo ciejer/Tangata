@@ -39,6 +39,7 @@
     "express-fileupload": "^1.2.1",
     "express-jwt": "^6.0.0",
     "express-unless": "^0.3.1",
+    "gitlog": "^4.0.4",
     "js-yaml": "^4.0.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.12.7",
