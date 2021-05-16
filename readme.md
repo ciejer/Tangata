@@ -1,4 +1,4 @@
-# Tāngata
+# Tāngata 
 >“Hutia te rito o te harakeke  
 Kei whea to kōmako e kō?  
 Ki mai ki ahau  
@@ -13,8 +13,8 @@ I would be compelled to reply,
 it is people, it is people, it is people.  
 *Ngaroto*
 
-In te ao Māori (the Māori world view), Tāngata describes something much larger than an addressed group of people: it describes *whakapapa*, the surrounding network of ancestors and descendants we are connected to.  
-In honour of this, with this work we intend to put our people first: not just the data & analytics engineers, but those around our workplaces that know the deep details of how our businesses actually run.  
+In te ao Māori (the Māori world view), Tāngata (*TAHNG-uh-tuh*) describes something much larger than an addressed group of people: it describes *whakapapa*, the surrounding network of ancestors and descendants we are connected to.  
+With this work we intend to follow these principles to put our people first: not just the data & analytics engineers, but those around our workplaces that know the deep details of how our businesses actually run.  
 These people are the lifeblood of what we do - and to keep moving forward, we need their context far more than ever.
 
 # Current Functionality
