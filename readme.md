@@ -1,100 +1,35 @@
-# Elevator pitch
-Catalog / lineage becomes the creation tool. To create a new model, select the catalog models that are needed, and click "create".
-This zooms into an Alteryx-like development screen, to step through:
-- Write description
-- Define join conditions
-- Filter results
-- Select / group by combo.
+# Tāngata
+>“Hutia te rito o te harakeke  
+Kei whea to kōmako e kō?  
+Ki mai ki ahau  
+He aha te mea nui o te Ao?  
+Maku e kī atu,  
+he tāngata, he tāngata, he tāngata..."
 
-# Requirements
-## Scope for alpha
-- Display dummy models
-- Interface to create dependent model
-- SQL generation for join, select, criteria, group, and basic aggregation functions
-- Modular approach
-    - Assume all languages have SELECT -> FROM/JOIN -> WHERE -> GROUP structure, but use a modular approach within
+If the heart of the harakeke *(flax plant)* was removed,  
+where would the bellbird sing?  
+If I was asked what was the most important thing in the world  
+I would be compelled to reply,  
+it is people, it is people, it is people.  
+*Ngaroto*
 
-## Framework Requirements
-- Backend:
-    - Generate model list on change
-    - Receive & store usage data (for suggested joins)
-    - Read/write to git repo, to save models for deployment
-        - Create files
-        - Edit files
-        - Git commit & push as logged in user
-        - Squash commits at various points
-        - "Propose changes" for pull request
-        - Look at Looker for ideas on how git stuff is hidden
-- Clean flowing lines between models
-- Beautiful front end
-- Open source
+In te ao Māori (the Māori world view), Tāngata describes something much larger than an addressed group of people: it describes *whakapapa*, the surrounding network of ancestors and descendants we are connected to.  
+In honour of this, with this work we intend to put our people first: not just the data & analytics engineers, but those around our workplaces that know the deep details of how our businesses actually run.  
+These people are the lifeblood of what we do - and to keep moving forward, we need their context far more than ever.
 
-## Behaviour expectations
-- Front end should pull just the list of all models
-- Front end should pull down details of requested models quickly
+# Current Functionality
+Tāngata is an editable Data Catalog, describing a dbt_ repository.  
+It interfaces with dbt_ itself, git, and other sources to compile metadata in one place; and allows a non-technical user to understand what's been built, and contribute metadata to the sources & models within.  
+With descriptive metadata, edit history, lineage, and SQL code all available in one place, this should become the default search engine of an organisation's data users; and with specific attention applied to runtime speed will be an enjoyable place to work regardless of the technical background of any user.
 
-# Things to plan for post alpha
+The complexity of Git and engineering practise in general can be difficult to approach. With Tāngata, this sits behind the scenes - giving comfort to those who are important, while maintaining a strong, secure foundation for our most critical metadata.
 
-## Design questions
-- Untangle lineage lines with many models on screen
-- Highlight join logic
-    - field = field
-    - more complex
-- Highlight Group by / granularity
-- Table vs View
-- Show field type category
+# Future Functionality
+This project started as a graphical SQL interface - and still contains some of the pieces behind the scenes.  
+While the pivot to editable catalog has taken over for some time, the dream is still bigger: what if a non-technical user could design a straightforward dbt_ model using just drag and drop?  
+This approach may take some time, but not out of reach - SQL is structured by definition, it just takes the right interface.
 
-## Potential Enhancements past alpha, to consider during early decisions
-- Generate model list in backend (dummy for alpha)
-- Backend parsing of dbt manifest.json / catalog.json
-- Zoom out / zoom in between lineage and new model / edit model screen
-- Should suggest things that have been joined to currently selected models before
-    - Prioritise by user (self) and frequency
-    - Display in context menu of a field (right click on "lead id", menu should contain "join to...")
-    - Once nobody uses a join, remove it (perhaps populate based on current git contents?)
-- Colour blind mode
-- Allow changing already created objects
-- Suggest table / incremental / view based on usage
-    - Collect usage stats from database
-    - Ask expected frequency
-        - Use standard tags for dbt project: 5min, hourly, daily, weekly etc
-    - Feed frequency requirements up to parent models (and highlight where issues)
-- Implement dummy dbt_ macros
-    - request dummy for all found macros
-- Allow creation of simple dbt_ macros
-- Allow more granular visibility of field types
-- Force best practise git behaviour - can't edit main branch
-    - Allow override
-- Security on rest calls
-- Implement security for sensitive models
-- Store data profiling info in model.json
-    - Implement security around data in sensitive models
-- Read only access to lineage view as data catalog
-- Descriptions - interaction with dbt metadata
-
-# Design
-- Backend metadata
-    - model_list.json
-    - model_1.json
-    - model_2.json
-    - model_1.sql
-    - model_2.sql
-    - ...
-
-- Front end
-    - load_model_list()
-    - load_model(model_1)
-    - - Allow loading all from a single file if performant at scale
-    - Display model in canvas
-    - Drag model around
-    - Create join interface
-    - Add fields to select interface
-    - Add aggregation interface
-    - Require group if aggregated
-    - Highlight grouping fields
-    - Generate SQL function
-
-Launch:
-Server: \api> npm run dev
+# To Run:
+>Build React front end: \front-end> npm run build  
+Server: \api> npm run dev  
 Front end dev: \front-end> npm start
-Serve: \front-end> npm run build; serve -s build -l 80
