@@ -142,7 +142,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
     }
 
     const reloadDBT = () => {
-        fetch('http://sqlgui.chrisjenkins.nz:3080/api/v1/reload_dbt', {
+        fetch('/api/v1/reload_dbt', {
           method: 'POST',
           headers: {
             'Accept': 'application/json',
@@ -158,7 +158,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
         var prRequestBody = {
             "prTitle": prTitle
         }
-        fetch('http://sqlgui.chrisjenkins.nz:3080/api/v1/create_pr', {
+        fetch('/api/v1/create_pr', {
           method: 'POST',
           headers: {
             'Accept': 'application/json',
@@ -170,7 +170,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
     }
 
     const logout = () => {
-        fetch('http://sqlgui.chrisjenkins.nz:3080/api/v1/users/logout', {
+        fetch('/api/v1/users/logout', {
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',

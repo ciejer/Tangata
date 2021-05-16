@@ -1,6 +1,6 @@
 export async function postRegisterUser(registerBody) {
     console.log(registerBody);
-    const response = await fetch('http://sqlgui.chrisjenkins.nz:3080/api/v1/users', {
+    const response = await fetch('/api/v1/users', {
         method: 'POST', 
         headers: {
             'Accept': 'application/json',

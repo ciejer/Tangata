@@ -4,7 +4,7 @@ export async function postUserConfig(user, newConfig) {
     delete configToSend._id;
     delete configToSend.email;
     delete configToSend.token;
-    const response = await fetch('http://sqlgui.chrisjenkins.nz:3080/api/v1/set_user_config', {
+    const response = await fetch('/api/v1/set_user_config', {
         method: 'POST',
         headers: {
             'Accept': 'application/json',

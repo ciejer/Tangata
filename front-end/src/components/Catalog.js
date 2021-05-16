@@ -298,7 +298,7 @@ class Catalog extends Component {
     }
     if(metadataBody) {
       console.log(this.props.user.token);
-      fetch('http://sqlgui.chrisjenkins.nz:3080/api/v1/update_metadata', {
+      fetch('/api/v1/update_metadata', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',

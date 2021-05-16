@@ -2,11 +2,11 @@ const express = require('express');
 var spawn = require('child_process').spawn;
 var socketio = require('socket.io')(8080);
 var passportSocketIo = require('passport.socketio');
-const app = express(),
-      port = 3080
+const app = express();
+const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require("path");
-var cors = require('cors');
 const yaml = require('js-yaml');
 const YAWN = require('yawn-yaml/cjs');
 const request = require('request');
@@ -15,6 +15,15 @@ const fileUpload = require('express-fileupload');
 const { Octokit } = require("@octokit/rest");//Octokit is github api, for creating pull requests
 const simpleGit = require('simple-git'); //simple-git is git client, for cloning to local, branching, and making changes where dbt can run & compile.
 const gitlog = require("gitlog").default;
+
+const privateKey = fs.readFileSync('C:\\Certbot\\live\\sqlgui.chrisjenkins.nz\\privkey.pem', 'utf8');
+const certificate = fs.readFileSync('C:\\Certbot\\live\\sqlgui.chrisjenkins.nz\\cert.pem', 'utf8');
+const ca = fs.readFileSync('C:\\Certbot\\live\\sqlgui.chrisjenkins.nz\\chain.pem', 'utf8');
+const credentials = {
+	key: privateKey,
+	cert: certificate,
+	ca: ca
+};
 
 //Configure Mongoose for settings
 mongoose.connect('mongodb://localhost/tangata');
@@ -28,19 +37,8 @@ require('./config/passport'); //must be last to load
 
 const Users = mongoose.model('Users');
 var userSockets = {};
-var whitelist = ['http://sqlgui.chrisjenkins.nz', 'http://localhost', 'http://localhost:3000', 'http://localhost:3080']
-var corsOptions = {
-  origin: function (origin, callback) {
-    // console.log(origin);
-    if (!origin || whitelist.indexOf(origin) !== -1) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  }
-}
+
 app.use(express.json(), fileUpload());
-app.use(cors(corsOptions));
 
 app.use(require('./routes/index'));
 app.use(express.static(path.join(__dirname, '/../front-end/build/')));
@@ -1052,23 +1050,21 @@ app.get('/api/v1/get_dbt_cloud_jobs/:accountid', auth.required, (req, res) => {
 //     res.send('App Works !!!!');
 // });
 
-var appServer = app.listen(port, () => {
-    console.log('Server listening on the port::${port}');
+// Starting both http & https servers
+const httpServer = http.createServer(app);
+const httpsServer = https.createServer(credentials, app);
+
+httpServer.listen(80, () => {
+	console.log('HTTP Server running on port 80');
 });
 
-io = socketio.listen(appServer, {
-  cors: {
-    origin: function (origin, callback) {
-      // console.log(origin);
-      if (!origin || whitelist.indexOf(origin) !== -1) {
-        callback(null, true)
-      } else {
-        callback(new Error('Not allowed by CORS'))
-      }
-    },
-    methods: ["GET", "POST"],
-    credentials: true,
-  }, pingTimeout: 4000, pintInterval: 1000
+httpsServer.listen(443, () => {
+	console.log('HTTPS Server running on port 443');
+});
+
+io = socketio.listen(httpsServer, {
+  pingTimeout: 4000,
+  pingInterval: 1000
 });
 
 

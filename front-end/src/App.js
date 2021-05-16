@@ -199,6 +199,7 @@ class App extends Component {
         </div>
       )
     } else {
+      
       const socket = io({
         auth: (cb) => {
           cb({

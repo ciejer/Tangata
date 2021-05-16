@@ -1,6 +1,6 @@
 export async function postLoginUser(loginBody) {
     console.log(loginBody);
-    const response = await fetch('http://sqlgui.chrisjenkins.nz:3080/api/v1/users/login', {
+    const response = await fetch('/api/v1/users/login', {
         method: 'POST', 
         headers: {
             'Accept': 'application/json',
