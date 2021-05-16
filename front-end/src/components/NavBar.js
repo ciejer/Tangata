@@ -106,7 +106,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
         setSearchDropdown(true);
         getModelSearch(searchBox.current.value, user)
             .then(response => {
-                console.log(response);
+                // console.log(response);
                 if(response.length===0 || response.error) {
                     setSearchResults([]);
                     return null;
@@ -154,7 +154,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
 
     const createPR = () => {
         var prTitle = prompt("Please describe your changes:", "Added descriptions to models x, y");
-        console.log(prTitle);
+        // console.log(prTitle);
         var prRequestBody = {
             "prTitle": prTitle
         }

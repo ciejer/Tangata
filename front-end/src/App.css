@@ -217,3 +217,8 @@ html, body, #root, #root>div {
     justify-content: center;
   }
 }
+
+[contenteditable=true]:empty:before {
+  content: attr(placeholder);
+  color: #aaa;
+}

@@ -1,5 +1,5 @@
 export async function postLoginUser(loginBody) {
-    console.log(loginBody);
+    // console.log(loginBody);
     const response = await fetch('/api/v1/users/login', {
         method: 'POST', 
         headers: {

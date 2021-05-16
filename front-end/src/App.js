@@ -42,7 +42,7 @@ class App extends Component {
   
 
   handleAllClicks = (e) => {
-    console.log("handleAllClicks");
+    // console.log("handleAllClicks");
     if(this.state.contextMenuOpen===true) {
       this.setState({contextMenuOpen: false});
     }
@@ -85,7 +85,7 @@ class App extends Component {
   }
 
   addModel = () => {
-    console.log("Not yet implemented"); //TODO: add input model from catalog
+    // console.log("Not yet implemented"); //TODO: add input model from catalog
   }
 
   openModelBuilder = () => {
@@ -132,7 +132,7 @@ class App extends Component {
     getSSH(this.state.user)
     .then(response=> response.text())
     .then(responseText => {
-      console.log(responseText);
+      // console.log(responseText);
       this.setState({"sshKey": responseText});
     });
   }
@@ -155,15 +155,15 @@ class App extends Component {
   checkDBTConnection = () => {
     getCheckDBTConnection(this.state.user)
     .then(response=> {
-      console.log(response);
+      // console.log(response);
       if(response.ok === true) {
-        console.log("Success");
+        // console.log("Success");
         toast.success("DBT_ Connection Successful.");
       } else {
         response.text()
         .then(responseText=> {
-          console.log(response);
-          console.log(responseText);
+          // console.log(response);
+          // console.log(responseText);
           toast.error("DBT_ Connection Failed: " + responseText, {
             autoClose: 10000,
             });
@@ -213,7 +213,7 @@ class App extends Component {
         socket.send("Hello!");
       });
       socket.on("toast", (data) => {
-        console.log("Toast received");
+        // console.log("Toast received");
         this.toastSender(data.message, data.type);
       });
       return (

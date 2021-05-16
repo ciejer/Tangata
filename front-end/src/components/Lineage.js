@@ -26,8 +26,8 @@ const nodeHeight = 33;
 const getLayoutedElements = (elements, direction = 'LR') => {
   const isHorizontal = direction === 'LR';
   dagreGraph.setGraph({ rankdir: direction });
-  console.log("getLayoutedElements");
-  console.log(elements);
+  // console.log("getLayoutedElements");
+  // console.log(elements);
   elements.forEach((el) => {
     if (isNode(el)) {
       dagreGraph.setNode(el.id, { width: nodeWidth, height: nodeHeight });
@@ -62,8 +62,8 @@ const getLayoutedElements = (elements, direction = 'LR') => {
 
 const LayoutFlow = (props) => {
 //   const { fitView } = useZoomPanHelper();
-console.log("LayoutFlow");  
-console.log(props.lineageArray);
+// console.log("LayoutFlow");  
+// console.log(props.lineageArray);
     const layoutedElements = getLayoutedElements(props.lineageArray.lineage);
   const [elements, setElements] = useState(layoutedElements);
   const onLoad = (reactFlowInstance) => {
@@ -71,8 +71,8 @@ console.log(props.lineageArray);
   }
   const onNodeRightClick = (event, node) => {
     event.preventDefault();
-    console.log(event);
-    console.log(node.id);
+    // console.log(event);
+    // console.log(node.id);
     props.selectModel(node.id);
   }
   return (

@@ -1,5 +1,5 @@
 export async function postUserConfig(user, newConfig) {
-    console.log(newConfig);
+    // console.log(newConfig);
     var configToSend = {...newConfig};
     delete configToSend._id;
     delete configToSend.email;

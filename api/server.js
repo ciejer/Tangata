@@ -52,8 +52,8 @@ const octokit = new Octokit({
 });
 
 const sendToast = (id, message, type) => {
-  console.log("Attempting Send Toast");
-  console.log(userSockets[id]);
+  // console.log("Attempting Send Toast");
+  // console.log(userSockets[id]);
   io.to(userSockets[id]).emit('toast', {"message": message, "type": type});
 }
 
@@ -264,12 +264,12 @@ const compileCatalog = (id) => {
       fs.writeFileSync('./user_folders/'+id+'/catalogindex.json', JSON.stringify(assemblingCatalogIndex), (err) => {
         if (err) throw err;
       });
-      console.log("Metadata Refresh Complete");
+      // console.log("Metadata Refresh Complete");
       sendToast(id, "Metadata has been refreshed successfully.", "success");
     });
     
   } else {
-    console.log('User Metadata does not yet exist');
+    // console.log('User Metadata does not yet exist');
   }
 }
 
@@ -286,7 +286,7 @@ const refreshMetadata = (id) => {
         }
       });
       if(jobRecords.length > 0) {
-        console.log('https://cloud.getdbt.com/api/v2/accounts/'+userConfig(id).dbt_cloud_account+'/runs/'+jobRecords[0].id+'/artifacts/catalog.json');
+        // console.log('https://cloud.getdbt.com/api/v2/accounts/'+userConfig(id).dbt_cloud_account+'/runs/'+jobRecords[0].id+'/artifacts/catalog.json');
         request.get({"url": 'https://cloud.getdbt.com/api/v2/accounts/'+userConfig(id).dbt_cloud_account+'/runs/'+jobRecords[0].id+'/artifacts/catalog.json', 'headers': {'Authorization': 'Token ' + dbtKey(id)} }, (catalogerr, catalogres, catalogbody) => {
           if (catalogerr) { return console.log(catalogerr); }
           fs.writeFileSync('./user_folders/'+id+'/dbt/target/catalog.json', catalogbody);
@@ -333,7 +333,7 @@ const userConfig = (id) => {
 const setUserConfig = (id, newConfig) => {
     fs.writeFileSync('./user_folders/'+id+'/user.json', JSON.stringify(newConfig), (err) => {
       if (err) throw err;
-      console.log('The file has been saved!');
+      // console.log('The file has been saved!');
     });
 }
 
@@ -351,7 +351,7 @@ const dbtKey = (id) => {
 
 const getModel = (modelName, id) => {
   if(Object.keys(fullCatalog(id)).length <= 0) {
-    console.log("Catalog does not exist. Building...")
+    // console.log("Catalog does not exist. Building...")
     refreshMetadata(id);
   }
   if(Object.keys(fullCatalog(id)).length > 0) { //if there's still no catalog
@@ -562,10 +562,10 @@ const checkoutChangeBranch = (id) => {
       if(branchLocal.current==='master' || branchLocal.current==='main') {
         if(branchLocal.branches.currentBranch) {
           git.checkout('currentBranch')
-          .then(currentBranch => {console.log("checked out"); resolve();})
+          .then(currentBranch => {resolve();})
         } else {
           git.checkoutLocalBranch('currentBranch')
-          .then(currentBranch => {console.log("checked out"); resolve();})
+          .then(currentBranch => {resolve();})
         }
       } else {
         resolve();
@@ -598,9 +598,9 @@ app.get('/api/v1/models/:modelName', auth.required, (req, res) => {
 app.post('/api/v1/reload_dbt', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
-    console.log("Reloading Metadata")
+    // console.log("Reloading Metadata")
     if(userConfig(id).dbtmethod === "LiveDB") {
-      console.log('Running dbt_...')
+      // console.log('Running dbt_...')
       const dbtRunner = spawn("cd ./user_folders/"+id+"/dbt && dbt deps && dbt docs generate --profiles-dir ../", {shell: true});
       dbtRunner.stderr.on('data', function (data) {
         console.error("dbt_ error:", data.toString());
@@ -611,14 +611,14 @@ app.post('/api/v1/reload_dbt', auth.required, (req, res) => {
       dbtRunner.on('exit', function (exitCode) {
         // console.log("dbt_ exited with code: " + exitCode);
         if(exitCode===0) {
-          console.log('dbt_ update successful. Updating app catalog...');
+          // console.log('dbt_ update successful. Updating app catalog...');
           refreshMetadata(id);
-          console.log('Update complete.');
+          // console.log('Update complete.');
         }
       });
       res.sendStatus(200);
     } else if(userConfig(id).dbtmethod === "Cloud") {
-      console.log("Reloading from dbt_ Cloud");
+      // console.log("Reloading from dbt_ Cloud");
       refreshMetadata(id);
       res.sendStatus(200);
     }
@@ -630,7 +630,7 @@ app.post('/api/v1/update_metadata', auth.required, (req, res) => {
   Users.findById(id, function(err, result) {
     checkoutChangeBranch(id)
     .then(() => {
-      console.log('Got body:', req.body);
+      // console.log('Got body:', req.body);
       res.sendStatus(200);
       if(req.body.updateMethod==='yamlModelProperty') {
         const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0], id);
@@ -733,8 +733,8 @@ app.post('/api/v1/update_metadata', auth.required, (req, res) => {
         // console.log(currentSchemaYMLModelColumn);
         fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
       }
-      console.log("response body: ");
-      console.log(res.body);
+      // console.log("response body: ");
+      // console.log(res.body);
       
     });
   });
@@ -743,10 +743,10 @@ app.post('/api/v1/update_metadata', auth.required, (req, res) => {
 app.post('/api/v1/create_pr', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
-    console.log('Got body:', req.body);
-    console.log('Creating Pull Request...')
-    console.log(req.body.prTitle);
-    console.log(id);
+    // console.log('Got body:', req.body);
+    // console.log('Creating Pull Request...')
+    // console.log(req.body.prTitle);
+    // console.log(id);
     var prTitle = req.body.prTitle?req.body.prTitle:"Untitled Commit"
     
     var git = simpleGit('./user_folders/'+id+'/dbt');
@@ -798,18 +798,18 @@ app.post('/api/v1/create_pr', auth.required, (req, res) => {
 app.get('/api/v1/generate_ssh', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
-    console.log('Got body:', req.body);
-    console.log('Creating SSH pair...')
-    console.log(id);
+    // console.log('Got body:', req.body);
+    // console.log('Creating SSH pair...')
+    // console.log(id);
     passPhrase = req.body.passphrase&&req.body.passphrase.length>0?req.body.passphrase:'""';
     sshGenCommand = "cd ./user_folders/"+id+'/ && del id_rsa* && ssh-keygen -t rsa -f ./id_rsa -N ' + passPhrase;
-    console.log(sshGenCommand);
+    // console.log(sshGenCommand);
     const sshGen = spawn(sshGenCommand, {shell: true});
     sshGen.stderr.on('data', function (data) {
       console.error("sshgen error:", data.toString());
     });
     sshGen.stdout.on('data', function (data) {
-      console.log("sshgen output:", data.toString());
+      // console.log("sshgen output:", data.toString());
       if (fs.existsSync('./user_folders/'+id+'/id_rsa.pub')) {
         newKey = fs.readFileSync('./user_folders/'+id+'/id_rsa.pub', 'utf-8')
         res.send(newKey);
@@ -818,11 +818,11 @@ app.get('/api/v1/generate_ssh', auth.required, (req, res) => {
       }
     });
     sshGen.on('exit', function (exitCode) {
-      console.log("sshgen exited with code: " + exitCode);
+      // console.log("sshgen exited with code: " + exitCode);
       if(exitCode===0) {
-        console.log('sshgen update successful.');
+        // console.log('sshgen update successful.');
         refreshMetadata(id);
-        console.log('Update complete.');
+        // console.log('Update complete.');
       }
     });
   });
@@ -831,9 +831,9 @@ app.get('/api/v1/generate_ssh', auth.required, (req, res) => {
 app.get('/api/v1/get_ssh', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
-    console.log('Got body:', req.body);
-    console.log('returning SSH public key...')
-    console.log(id);
+    // console.log('Got body:', req.body);
+    // console.log('returning SSH public key...')
+    // console.log(id);
     if (fs.existsSync('./user_folders/'+id+'/id_rsa.pub')) {
       newKey = fs.readFileSync('./user_folders/'+id+'/id_rsa.pub', 'utf-8')
       res.send(newKey);
@@ -846,9 +846,9 @@ app.get('/api/v1/get_ssh', auth.required, (req, res) => {
 app.get('/api/v1/open_git_connection', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
-    console.log('Got body:', req.body);
-    console.log('Setting up Git...')
-    console.log(id);
+    // console.log('Got body:', req.body);
+    // console.log('Setting up Git...')
+    // console.log(id);
     var dir = './user_folders/'+id+'/dbt/'
     if (fs.existsSync(dir)) {
       fs.rmdirSync(dir, {recursive: true, force: true}) //delete current dbt installation. It's ok, we're about to reclone it.
@@ -858,14 +858,14 @@ app.get('/api/v1/open_git_connection', auth.required, (req, res) => {
       console.error("git clone error:", data.toString());
     });
     gitRun.stdout.on('data', function (data) {
-      console.log("git clone output:", data.toString());
+      // console.log("git clone output:", data.toString());
     });
     gitRun.on('exit', function (exitCode) {
-      console.log("git clone exited with code: " + exitCode);
+      // console.log("git clone exited with code: " + exitCode);
       if(exitCode===0) {
-        console.log('git clone update successful.');
+        // console.log('git clone update successful.');
         refreshMetadata(id);
-        console.log('Update complete.');
+        // console.log('Update complete.');
       }
     });
   });
@@ -874,11 +874,11 @@ app.get('/api/v1/open_git_connection', auth.required, (req, res) => {
 app.get('/api/v1/model_search/:searchString', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
-    console.log("Search: "+req.params.searchString);
-    console.log(result.toAuthJSON()._id);
+    // console.log("Search: "+req.params.searchString);
+    // console.log(result.toAuthJSON()._id);
     let returnValue = {"results": searchModels(req.params.searchString, id)};
     returnValue.searchString = req.params.searchString;
-    console.log(returnValue.searchString);
+    // console.log(returnValue.searchString);
     res.json(returnValue);
   });
 });
@@ -893,7 +893,7 @@ app.get('/api/v1/catalog_index', auth.required, (req, res) => {
 
 
 app.post('/api/v1/refresh_metadata', auth.required, (req, res) => {
-  console.log("Refresh Metadata");
+  // console.log("Refresh Metadata");
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
     refreshMetadata(id);
@@ -902,7 +902,7 @@ app.post('/api/v1/refresh_metadata', auth.required, (req, res) => {
 });
 
 app.get('/api/v1/get_user_config', auth.required, (req, res) => {
-  console.log("Get User Config");
+  // console.log("Get User Config");
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
     res.json({"user": userConfig(id)});
@@ -912,8 +912,8 @@ app.get('/api/v1/get_user_config', auth.required, (req, res) => {
 app.post('/api/v1/set_user_config', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
-    console.log("Set User Config");
-    console.log("Got Body: " + JSON.stringify(req.body));
+    // console.log("Set User Config");
+    // console.log("Got Body: " + JSON.stringify(req.body));
     setUserConfig(id, req.body);
     res.sendStatus(200);
   });
@@ -923,11 +923,11 @@ app.post('/api/v1/set_user_config', auth.required, (req, res) => {
 app.post('/api/v1/file_upload', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
-    console.log("Upload File");
+    // console.log("Upload File");
     // console.log("Got File: " + JSON.stringify(req.files.file));
     // console.log("Got Headers: " + JSON.stringify(req.headers));
     if(req.headers.uploadtype === "ProfilesYML") {
-      console.log("Profiles.YML uploaded.");
+      // console.log("Profiles.YML uploaded.");
       profilesYMLFile = req.files.file;
       profilesYMLFile.mv('./user_folders/'+id+'/profiles.yml', function(err) {
         if (err) {
@@ -937,19 +937,19 @@ app.post('/api/v1/file_upload', auth.required, (req, res) => {
         }
       });
     } else if(req.headers.uploadtype === "ManifestJSON") {
-      console.log("manifest.json uploaded.");
+      // console.log("manifest.json uploaded.");
       profilesYMLFile = req.files.file;
       profilesYMLFile.mv('./user_folders/'+id+'/dbt/target/manifest.json', function(err) {
         if(err) {
-          console.log("error");
+          // console.log("error");
           res.status(500).send(err);
         } else {
-          console.log("success");
+          // console.log("success");
           res.send('File uploaded!');
         }
       });
     } else if(req.headers.uploadtype === "CatalogJSON") {
-      console.log("catalog.json uploaded.");
+      // console.log("catalog.json uploaded.");
       profilesYMLFile = req.files.file;
       profilesYMLFile.mv('./user_folders/'+id+'/dbt/target/catalog.json', function(err) {
         if (err) {
@@ -959,7 +959,7 @@ app.post('/api/v1/file_upload', auth.required, (req, res) => {
         }
       });
     } else if(req.headers.uploadtype === "dbt_ Cloud Key") {
-      console.log("dbt_ Cloud Key uploaded.");
+      // console.log("dbt_ Cloud Key uploaded.");
       profilesYMLFile = req.files.file;
       profilesYMLFile.mv('./user_folders/'+id+'/dbt_cloud.key', function(err) {
         if (err) {
@@ -975,7 +975,7 @@ app.post('/api/v1/file_upload', auth.required, (req, res) => {
 app.get('/api/v1/check_dbt_connection', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
-    console.log("Check DBT Connection");
+    // console.log("Check DBT Connection");
     let dbtOutput = ""
     const dbtRunner = spawn("cd ./user_folders/"+id+"/dbt && dbt deps && dbt compile --profiles-dir ../", {shell: true});
     dbtRunner.stderr.on('data', function (data) {
@@ -989,11 +989,11 @@ app.get('/api/v1/check_dbt_connection', auth.required, (req, res) => {
     dbtRunner.on('exit', function (exitCode) {
       // console.log("dbt_ exited with code: " + exitCode);
       if(exitCode===0) {
-        console.log('dbt_ compile successful.');
+        // console.log('dbt_ compile successful.');
         refreshMetadata(id);
         res.sendStatus(200);
       } else {
-        console.log('dbt_ compile failed.');
+        // console.log('dbt_ compile failed.');
         res.status(500).send(dbtOutput);
       }
     });
@@ -1004,7 +1004,7 @@ app.get('/api/v1/check_dbt_connection', auth.required, (req, res) => {
 app.get('/api/v1/get_dbt_cloud_accounts', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
-    console.log("Get DBT Cloud Accounts:");
+    // console.log("Get DBT Cloud Accounts:");
     let dbtResponse = {}
     request.get('https://cloud.getdbt.com/api/v2/accounts/', { json: true, 'headers': {'Authorization': 'Token ' + dbtKey(id)} }, (dbterr, dbtres, dbtbody) => {
       if (dbterr) { return console.log(dbterr); }
@@ -1021,9 +1021,9 @@ app.get('/api/v1/get_dbt_cloud_accounts', auth.required, (req, res) => {
 app.get('/api/v1/get_dbt_cloud_jobs/:accountid', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
-    console.log("Get DBT Cloud Accounts:");
+    // console.log("Get DBT Cloud Accounts:");
     let dbtResponse = {}
-    console.log('https://cloud.getdbt.com/api/v2/accounts/'+req.params.accountid+'/jobs/')
+    // console.log('https://cloud.getdbt.com/api/v2/accounts/'+req.params.accountid+'/jobs/')
     request.get('https://cloud.getdbt.com/api/v2/accounts/'+req.params.accountid+'/jobs/', { json: true, 'headers': {'Authorization': 'Token ' + dbtKey(id)} }, (dbterr, dbtres, dbtbody) => {
       if (dbterr) { return console.log(dbterr); }
       // console.log(dbtbody);
@@ -1073,7 +1073,7 @@ io.on('connection', (socket) => {
   const token = socket.handshake.auth.jwt;
   Users.findOne({ token: token }, function (err, user) {
     if (user) {
-      console.log('a user connected');
+      // console.log('a user connected');
       userSockets[user._id] = socket.id;
       socket.on('disconnect', () => {
         // console.log('user disconnected');

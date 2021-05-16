@@ -7,7 +7,7 @@ const fs = require('fs');
 
 //POST new user route (optional, everyone has access)
 router.post('/', auth.optional, (req, res, next) => {
-  console.log(req.body);
+  // console.log(req.body);
   const { body: { user } } = req;
   Users.findOne({ 'email': user.email }, function(err, userLookup) {
     if (err) {
@@ -45,7 +45,7 @@ router.post('/', auth.optional, (req, res, next) => {
       const finalUser = new Users(user);
     
       finalUser.setPassword(user.password);
-      console.log(finalUser.id);
+      // console.log(finalUser.id);
       var userFolderDir = './user_folders';
       if (!fs.existsSync(userFolderDir)){
           fs.mkdirSync(userFolderDir); // ./user_folders is not created by Git, first user needs this
@@ -117,7 +117,7 @@ router.get('/current', auth.required, (req, res, next) => {
 
 router.get('/logout', auth.required, (req, res, next) => {
   const { payload: { id } } = req;
-  console.log("logging out");
+  // console.log("logging out");
   req.logout();
   res.send('Logout Success');
 });

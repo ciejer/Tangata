@@ -1,5 +1,5 @@
 export async function getCheckDBTConnection(user) {
-    console.log(user);
+    // console.log(user);
     const response = await fetch('/api/v1/check_dbt_connection', {
         method: 'GET', 
         headers: {

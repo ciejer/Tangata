@@ -11,7 +11,7 @@ class Catalog extends Component {
     if(this.props.catalogModel.description) {
       return this.props.catalogModel.description;
     } else {
-      return "This model does not yet have a description. Click here to add one.";
+      return null;
     };
   }
 
@@ -194,7 +194,7 @@ class Catalog extends Component {
                   onBlur={this.updateMetadataModel}
                   data-metadatafield="ColumnDescription"
                   data-columnName={value[0].toLowerCase()}
-                  defaultValue="Add Column Description"
+                  placeholder={"Add a description"}
                   style={{"white-space": "pre"}}
                 />
             </td>
@@ -245,12 +245,12 @@ class Catalog extends Component {
   }
 
   updateMetadataModel = (e) => {
-    console.log("updateMetadataModel");
-    console.log(e);
-    console.log(e.target.dataset.metadatafield);
-    console.log(e.target.innerText);
-    console.log(this.props.catalogModel.yaml_path);
-    console.log(this.props.catalogModel.model_path);
+    // console.log("updateMetadataModel");
+    // console.log(e);
+    // console.log(e.target.dataset.metadatafield);
+    // console.log(e.target.innerText);
+    // console.log(this.props.catalogModel.yaml_path);
+    // console.log(this.props.catalogModel.model_path);
     var metadataBody = {};
     switch(e.target.dataset.metadatafield) {
       case "Description":
@@ -294,10 +294,10 @@ class Catalog extends Component {
         }
       break;
       default:
-        console.log("updateMetadata: no switch case found");
+        // console.log("updateMetadata: no switch case found");
     }
     if(metadataBody) {
-      console.log(this.props.user.token);
+      // console.log(this.props.user.token);
       fetch('/api/v1/update_metadata', {
         method: 'POST',
         headers: {
@@ -366,7 +366,7 @@ class Catalog extends Component {
         </div>
       );
     } else {
-      const tags = this.props.catalogModel.tags.length>0?this.props.catalogModel.tags.join(", "):"None"
+      const tags = this.props.catalogModel.tags.length>0?this.props.catalogModel.tags.join(", "):null
       return (
           <Container className="catalogContainer display-block">
             <div className="row justify-content-md-left">
@@ -383,6 +383,7 @@ class Catalog extends Component {
                     html={tags}
                     onBlur={this.updateMetadataModel}
                     data-metadatafield="Tags"
+                    placeholder={"Add comma-separated Tags"}
                     style= {{display: "inline", minWidth: "100px"}}
                   />
                 </i>
@@ -404,6 +405,7 @@ class Catalog extends Component {
                   html={this.catalogDescription()}
                   onBlur={this.updateMetadataModel}
                   data-metadatafield="Description"
+                  placeholder={"Add a description"}
                 />
               </div>
             </div>

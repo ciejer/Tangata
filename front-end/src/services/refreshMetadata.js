@@ -1,5 +1,5 @@
 export async function refreshMetadata(user) {
-    console.log(user);
+    // console.log(user);
     const response = await fetch('/api/v1/refresh_metadata', {
         method: 'POST', 
         headers: {

@@ -325,9 +325,9 @@ class AutocompleteTextField extends React.Component {
   handleSelection(idx) {
     const { matchStart, matchLength, fullOptions } = this.state;
     const { spacer, onSelect } = this.props;
-    console.log("handleSelection");
-    console.log(idx);
-    console.log(fullOptions);
+    // console.log("handleSelection");
+    // console.log(idx);
+    // console.log(fullOptions);
     const slug = fullOptions[idx];
     const value = this.recentValue;
     const part1 = value.substring(0, matchStart);
@@ -354,8 +354,8 @@ class AutocompleteTextField extends React.Component {
     const input = this.refInput.current;
 
     const slug = this.getMatch(str, caret, options, fullOptions);
-    console.log("updateHelper");
-    console.log(slug);
+    // console.log("updateHelper");
+    // console.log(slug);
     if (slug) {
       const caretPos = getCaretCoordinates(input, caret);
       const rect = input.getBoundingClientRect();

@@ -1,5 +1,5 @@
 export async function postRegisterUser(registerBody) {
-    console.log(registerBody);
+    // console.log(registerBody);
     const response = await fetch('/api/v1/users', {
         method: 'POST', 
         headers: {

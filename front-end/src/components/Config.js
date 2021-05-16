@@ -25,7 +25,7 @@ export default function Config(props) {
   };
 
 
-  console.log(props.userConfig);
+  // console.log(props.userConfig);
   
   function updateConfigValue(newValue, updatedField) {
     var newConfig = {...props.userConfig};
@@ -35,21 +35,21 @@ export default function Config(props) {
   }
 
   function uploadFile(uploadedFiles, uploadType) {
-    console.log(uploadedFiles[0]);
+    // console.log(uploadedFiles[0]);
     if(uploadedFiles.length>0) {
       const uploadData = new FormData();
       uploadData.append('file', uploadedFiles[0]);
       postFileUpload(uploadData, uploadType, props.user)
       .then(response=> {
-        console.log(response);
+        // console.log(response);
         if(response.ok === true) {
-          console.log("Success");
+          // console.log("Success");
           props.toastSender("" + uploadType + " Upload Successful.","success");
         } else {
           response.text()
           .then(responseText=> {
-            console.log(response);
-            console.log(responseText);
+            // console.log(response);
+            // console.log(responseText);
             props.toastSender("" + uploadType + " Upload Failed: \n" + responseText,"error");
           });
         }
@@ -64,15 +64,15 @@ export default function Config(props) {
         uploadData.append('file', keyFile);
         postFileUpload(uploadData, 'dbt_ Cloud Key', props.user)
         .then(response=> {
-          console.log(response);
+          // console.log(response);
           if(response.ok === true) {
-            console.log("Success");
+            // console.log("Success");
             props.toastSender("dbt_ Cloud Key Upload Successful.","success");
           } else {
             response.text()
             .then(responseText=> {
-              console.log(response);
-              console.log(responseText);
+              // console.log(response);
+              // console.log(responseText);
               props.toastSender("dbt_ Cloud Key Upload Failed: \n" + responseText,"error");
             });
           }
@@ -92,25 +92,25 @@ export default function Config(props) {
     getDBTCloudAccounts(props.user)
     .then(response=> response.json())
     .then(returnedDBTCloudAccounts => {
-      console.log(returnedDBTCloudAccounts);
+      // console.log(returnedDBTCloudAccounts);
       setdbtAccounts(returnedDBTCloudAccounts);
       selectAccount();
     })
   }
 
   function selectAccount() {
-    console.log("Account Selected")
-    console.log(dbtAccountRef.current.value);
+    // console.log("Account Selected")
+    // console.log(dbtAccountRef.current.value);
     getDBTCloudJobs(props.user, dbtAccountRef.current.value)
     .then(response=> response.json())
     .then(returnedDBTCloudJobs => {
-      console.log(returnedDBTCloudJobs);
+      // console.log(returnedDBTCloudJobs);
       setdbtDocsJobs(returnedDBTCloudJobs);
     });
   }
 
   function listDBTDocsJobs() {
-    console.log(dbtDocsJobs);
+    // console.log(dbtDocsJobs);
     return dbtDocsJobs.map((job, index) => {return(<option key={"dbt job "+index} value={job.id}>{job.id}: {job.name}</option>)})
   }
   function dbtDocsJobsSelect() {
