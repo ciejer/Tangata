@@ -1,7 +1,7 @@
 This program is offered under commercial license, and via the AGPL license.
 For commercial enquiries, contact chris@chrisjenkins.nz.
 
-##License Reasoning:
+## License Reasoning:
 During the initial development of this project, I became increasingly aware of the potential to replicate the paywalled functionality of software I am deeply passionate about.
 With back-end connections to the dbt_ runtime, cloud api, and metadata files, the steps to full replication of the dbt_ cloud toolset will continue to decrease; and with the growth of the dbt_ ecosystem I can easily see a path to hostile forks from AWS et al sweeping the rug from under our Fishtown friends. Among the Open Source License suite, only AGPL safeguards against this scenario. As a dbt_ community member, my intention is to allow all use within our businesses that we require to drive data adoption; I believe this approach is the safest way to do so without disrupting the ecosystem.
 
