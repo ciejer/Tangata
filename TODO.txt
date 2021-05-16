@@ -1,34 +1,59 @@
-Setup user config
-Move git key to user config
+
 Allow config of 'released' branch other than 'master'
 Update readme and todo - move tasks to github issues
 Delete local branches once pr'ed
-Figure out why autocomplete isn't working in prod
 Create API call for downstream tests / models, to populate into test & references (from manifest.json) - this will allow sideways lineage to show what's tested against a model and what's joined to it.
-Import new model to modelbuilder on select from search
-Add Column Logic: 'definition' property for logic. Still needs sourcefields to be populated
-Refine GUI - make room for logic in output field, shrink models
-Change model from models.response to just models
-    Change model name to "alias", freeing up name for database object name
-Add option to use dbt refs or qualified names
 Enhance ordering of search results
-Add "creator" and "contributors" to catalog from git history
+Untangle lineage (see s_achievement_litmos)
+Use YAWN for other yaml parsing
 
-
-Add aggregations & groups to output
-
-Conditions column enhancements
+#ModelBuilder todo:
+- Figure out why autocomplete isn't working in prod
+- Move context menu to sub component
+- Import new model to modelbuilder on select from search
+- Add Column Logic: 'definition' property for logic. Still needs sourcefields to be populated
+- Refine GUI - make room for logic in output field, shrink models
+- Change model from models.response to just models
+    - Change model name to "alias", freeing up name for database object name
+- Add option to use dbt refs or qualified names
+- Add aggregations & groups to output
+-Conditions column enhancements
     Try some sort of Functions formatting (Concatenate)
     Autocomplete differently on typed trigger character
     Hide joined model join columns from condition autocomplete
     Highlight keywords & object references differently
+- Untangle lineage lines with many models on screen
+- Create Outputs columns
+- Highlight join logic
+    - field = field
+    - more complex
+- Highlight Group by / granularity
+- Table vs View
+- Show field type category
+- Zoom out / zoom in between catalog and new model / edit model screen
+- Colour blind mode
+- Allow changing already created objects
+- Suggest table / incremental / view based on usage
+    - Collect usage stats from database
+    - Ask expected frequency
+        - Use standard tags for dbt project: 5min, hourly, daily, weekly etc
+    - Feed frequency requirements up to parent models (and highlight where issues)
+- Implement dummy dbt_ macros
+    - request dummy for all found macros
+- Allow creation of simple dbt_ macros
+- Allow more granular visibility of field types
+- Force best practise git behaviour - can't edit main branch
+    - Allow override
+- Implement security for sensitive models
+- Store data profiling info in model.json
+    - Implement security around data in sensitive models
 
-Create Outputs columns
-
-Later:
-Move context menu to sub component
-Untangle lineage (see s_achievement_litmos)
-Create git branch per user
-Use YAWN for other yaml parsing
-Add debounce to search queries - to avoid spamming server
-replace user textbox with login process and unique UID
+- Front end
+    - Display model in canvas
+    - Drag model around
+    - Create join interface
+    - Add fields to select interface
+    - Add aggregation interface
+    - Require group if aggregated
+    - Highlight grouping fields
+    - Generate SQL function
