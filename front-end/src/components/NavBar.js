@@ -185,7 +185,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
 
     return(
     <Navbar className="navbar-dark bg-brand position-fixed w-100 z-100" expand="xl">
-        <Navbar.Brand href="/">TANGATA</Navbar.Brand>
+        <Navbar.Brand href="/">TĀNGATA</Navbar.Brand>
         {/* <a className="navbar-brand bg-brand" href="/">TANGATA</a> */}
         <Navbar.Toggle aria-controls="navbarContent"/>
         <Navbar.Collapse id="navbarContent" className="justify-content-between">
