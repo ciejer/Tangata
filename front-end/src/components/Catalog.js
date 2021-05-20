@@ -195,7 +195,6 @@ class Catalog extends Component {
                   data-metadatafield="ColumnDescription"
                   data-columnName={value[0].toLowerCase()}
                   placeholder={"Add a description"}
-                  style={{"white-space": "pre"}}
                 />
             </td>
             <td>

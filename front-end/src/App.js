@@ -109,6 +109,13 @@ class App extends Component {
     if(this.state.openSQLPanel === true) this.setState({"openSQLPanel": false});
   }
   componentDidMount() {
+    if(window.location.port === '8080') { // python version
+      console.log('python')
+      this.setState({"hostVersion": "python"})
+    } else {
+      console.log('node')
+      this.setState({"hostVersion": "node"})
+    }
     if(Object.keys(this.state.user).length === 0) {
       if(sessionStorage.getItem("user")) {
         getUserConfig(JSON.parse(sessionStorage.getItem("user")).user)
@@ -119,6 +126,7 @@ class App extends Component {
       }
       
     }
+    document.title = 'Tāngata';
   }
 
   setUser = (newUser) => {
@@ -188,8 +196,8 @@ class App extends Component {
   } 
   
   render() {
-    
-    if(Object.keys(this.state.user).length === 0) {
+    console.log(window.location.port)
+    if(this.state.hostVersion !== 'python' && Object.keys(this.state.user).length === 0) {
       return (
         <div id="main">
           <Login
@@ -199,15 +207,15 @@ class App extends Component {
         </div>
       )
     } else {
-      
-      const socket = io({
+      var socket = null
+      if(this.state.hostVersion !== 'python') { // TODO: remove python filter from sockets. It's crowding my console.
+      socket = io({
         auth: (cb) => {
           cb({
             token: this.state.user
           });
         }
       });
-  
       socket.on("connect", () => {
         // either with send()
         socket.send("Hello!");
@@ -216,6 +224,9 @@ class App extends Component {
         // console.log("Toast received");
         this.toastSender(data.message, data.type);
       });
+    }
+  
+      
       return (
         <div id="main" onClick={this.handleAllClicks} onContextMenu={this.handleAllClicks}>
           <NavBar

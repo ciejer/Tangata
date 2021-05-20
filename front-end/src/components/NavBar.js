@@ -184,7 +184,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
     }
 
     return(
-    <Navbar className="navbar-dark bg-brand position-fixed w-100 z-100" expand="xl">
+    <Navbar className="navbar-dark bg-brand position-fixed w-100 z-100" expand="lg">
         <Navbar.Brand href="/">TĀNGATA</Navbar.Brand>
         {/* <a className="navbar-brand bg-brand" href="/">TANGATA</a> */}
         <Navbar.Toggle aria-controls="navbarContent"/>
@@ -202,7 +202,7 @@ export const NavBar = ({addModel, logState, openSQLPanel, openModelBuilder, open
             <div className="navbar-nav p-2">
                 <div className={"nav-item nav-link mr-sm-2"+(userConfig.dbtmethod!=="UploadMetadata"?null:" d-none")} role="button" onClick={() => reloadDBT()}>Refresh dbt_ catalog</div>
                 <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => createPR()}>Submit changes</div>
-                <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => openSQLPanel()}>Open SQL Panel </div>
+                {/* <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => openSQLPanel()}>Open SQL Panel </div> */}
                 {debugLogState(reactState)}
                 <div className="nav-item nav-link mr-sm-2" role="button" onClick={() => logout()}>Logout {userConfig.firstname}</div>
             {/* <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>

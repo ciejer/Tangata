@@ -1,5 +1,6 @@
 import {Button, Form, Tabs, Tab, TabContainer } from 'react-bootstrap';
 import React, { useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { postUserConfig } from "../services/postUserConfig";
 import { postFileUpload } from "../services/postFileUpload";
 import { refreshMetadata } from "../services/refreshMetadata";
@@ -10,6 +11,7 @@ export default function Config(props) {
   const [dbtMethod, setdbtMethod] = useState('LiveDB');
   const [dbtAccounts, setdbtAccounts] = useState({});
   const [dbtDocsJobs, setdbtDocsJobs] = useState({});
+  const [license, setLicense] = useState({});
   const sshKeyRef = useRef(null);
   const dbtCloudKey = useRef(null);
   const dbtAccountRef = useRef(null);
@@ -160,8 +162,25 @@ export default function Config(props) {
         </Form.Group>);
     } else return null;
   }
+  
+
+  const getLicense = () => {
+    fetch('/license.md', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/text',
+        'Content-Type': 'application/text',
+      }
+    })
+    .then(response=> response.text())
+    .then(resText => {
+      setLicense(resText);
+    });
+}
+getLicense();
 
   if(props.appState === "Config") {
+    console.log(license);
     return (
       <div className="container mt-3">
         <h1>Config</h1>
@@ -331,6 +350,7 @@ export default function Config(props) {
               <div className={props.userConfig.dbtmethod==="UploadMetadata"?null:"d-none"}>
                 <p><i>To run without connecting to your database, the catalog requires metadata from dbt_.<br/>
                 Run <code>dbt docs generate</code> in your dbt_ project, and upload the Manifest and Catalog from /target.</i></p>
+                <p><i>To automate this upload, download <code>tangata_refresh.py</code> from the Tangata git repository, and run it in the root of your project.</i></p> 
                 <Form.Group size="lg" controlId="uploadManifestJSON">
                   <Form.Label>Upload manifest.json</Form.Label>
                   <Form.File
@@ -384,6 +404,9 @@ export default function Config(props) {
                 {dbtDocsJobsSelect()}
               </div>
             </Form>
+          </Tab>
+          <Tab eventKey="license" title="License" className="border-right border-left border-bottom p-3">
+            <ReactMarkdown children={license} />
           </Tab>
           {/* <Tab eventKey="password" title="Change Password" className="border-right border-left border-bottom p-3">
           <Form>

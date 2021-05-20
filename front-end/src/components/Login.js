@@ -58,6 +58,8 @@ export default function Login(props) {
   }
 
   return (
+    <>
+    <nav class="navbar-dark bg-brand position-fixed w-100 z-100 navbar navbar-expand-xl navbar-light"><div class="navbar-brand">TĀNGATA</div></nav>
     <div className="Login">
       <Tabs defaultActiveKey="login" id="loginOrRegister">
         <Tab eventKey="login" title="Login">
@@ -127,7 +129,30 @@ export default function Login(props) {
           </Form>
         </Tab>
       </Tabs>
-      
+      <div className="container md-3 text-center col-md-5 mt-3">
+        <blockquote>
+          <p>“Hutia te rito o te harakeke<br/>
+          Kei whea to kōmako e kō?<br/>
+          Ki mai ki ahau<br/>
+          He aha te mea nui o te Ao?<br/>
+          Maku e kī atu,<br/>
+          <b>he tāngata, he tāngata, he tāngata</b>..."</p>
+        </blockquote>
+        <p>
+          If the heart of the harakeke <em>(flax plant)</em> was removed,<br/>
+          where would the bellbird sing?<br/>
+          If I was asked what was the most important thing in the world<br/>
+          I would be compelled to reply,<br/>
+          it is people, it is people, it is people.<br/>
+          <em>Ngaroto</em>
+        </p>
+        <p>
+          In te ao Māori (the Māori world view), Tāngata (<em>TAHNG-uh-tuh</em>) describes something much larger than an addressed group of people: it describes <em>whakapapa</em>, the surrounding network of ancestors and descendants we are connected to.<br/>
+          With this work we intend to follow these principles to put our people first: not just the data &amp; analytics engineers, but those around our workplaces that know the deep details of how our businesses actually run.<br/>
+          These people are the lifeblood of what we do - and to keep moving forward, we need their context far more than ever.
+        </p>
+      </div>
     </div>
+    </>
   );
 }

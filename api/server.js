@@ -16,9 +16,9 @@ const { Octokit } = require("@octokit/rest");//Octokit is github api, for creati
 const simpleGit = require('simple-git'); //simple-git is git client, for cloning to local, branching, and making changes where dbt can run & compile.
 const gitlog = require("gitlog").default;
 
-const privateKey = fs.readFileSync('C:\\Certbot\\live\\sqlgui.chrisjenkins.nz\\privkey.pem', 'utf8');
-const certificate = fs.readFileSync('C:\\Certbot\\live\\sqlgui.chrisjenkins.nz\\cert.pem', 'utf8');
-const ca = fs.readFileSync('C:\\Certbot\\live\\sqlgui.chrisjenkins.nz\\chain.pem', 'utf8');
+const privateKey = fs.readFileSync('C:\\Certbot\\live\\tangata.chrisjenkins.nz\\privkey.pem', 'utf8');
+const certificate = fs.readFileSync('C:\\Certbot\\live\\tangata.chrisjenkins.nz\\cert.pem', 'utf8');
+const ca = fs.readFileSync('C:\\Certbot\\live\\tangata.chrisjenkins.nz\\chain.pem', 'utf8');
 const credentials = {
 	key: privateKey,
 	cert: certificate,
@@ -575,7 +575,10 @@ const checkoutChangeBranch = (id) => {
   
 }
 
-
+app.get('/license.md', auth.optional, (req, res) => { //TODO: remove once new model api available
+  console.log("license");
+  res.send(fs.readFileSync('../LICENSE.MD', 'utf-8'));
+});
 
 
 app.get('/api/model_old/:modelJsonFilename', auth.required, (req, res) => { //TODO: remove once new model api available
@@ -924,6 +927,7 @@ app.post('/api/v1/file_upload', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
     // console.log("Upload File");
+    // console.log("Got Files: " + JSON.stringify(req.files));
     // console.log("Got File: " + JSON.stringify(req.files.file));
     // console.log("Got Headers: " + JSON.stringify(req.headers));
     if(req.headers.uploadtype === "ProfilesYML") {

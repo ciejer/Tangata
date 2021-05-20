@@ -1,0 +1,13 @@
+No need for:
+login
+id
+git
+pr's
+
+
+Add front-end logic for disabling:
+login
+git
+
+Create:
+Populate catalog.json and catalogindex.json (manually created for now)
