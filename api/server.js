@@ -1,6 +1,6 @@
 const express = require('express');
-var spawn = require('child_process').spawn;
-var socketio = require('socket.io')(8080);
+var spawn = require('child_process').spawnSync;
+var socketio = require('socket.io')(8000);
 var passportSocketIo = require('passport.socketio');
 const app = express();
 const http = require('http');
@@ -41,7 +41,7 @@ var userSockets = {};
 app.use(express.json(), fileUpload());
 
 app.use(require('./routes/index'));
-app.use(express.static(path.join(__dirname, '/../front-end/build/')));
+app.use(express.static(path.join(__dirname, '/../../../GitHub/tangata_client/build/')));
 
 // place holder for the data
 // const users = [];
@@ -115,7 +115,6 @@ const compileCatalogNodes = (id) => {
   catalog = JSON.parse(rawCatalog);
   rawManifest = fs.readFileSync('./user_folders/'+id+'/dbt/target/manifest.json');
   manifest = JSON.parse(rawManifest);
-  var git = simpleGit('./user_folders/'+id+'/dbt');
   var tempCatalogNodes = {};
   for (const [key, value] of Object.entries(catalog.nodes)) {
     tempCatalogNodes[key] = populateFullCatalogNode(key, "node"); //push node to model
@@ -177,8 +176,23 @@ const compileSearchIndex = (catalogToIndex) => {
 }
 const getGitHistory = async (fullCatalog, id) => {
   var gitFields = []
+
+  // var git = simpleGit('./user_folders/'+id+'/dbt');
+  // git.listRemote(['--get-url'], (err, data) => {
+  //   if (!err) {
+  //      console.log('Remote url for repository at ' + __dirname + ':');
+  //      console.log(data);
+  //   }
+  // }).then(remoteURL => {
+  const gitRunner = spawn("cd ./user_folders/"+id+"/dbt && git remote -v", {shell: true});
+  gitRemote = gitRunner.stdout.toString().split("\t")[2].split(" ")[0];
+  console.log(gitRemote);
+  commitBaseURL = gitRemote.replace(".git","") + "/commits/";
+  
+  if(commitBaseURL.includes("@")) {
+    commitBaseURL = "http://" + commitBaseURL.split("@")[1].replace(":","/");
+  }
   for (let i = 0; i < Object.entries(fullCatalog).length; i++) {
-    // var git = simpleGit('./user_folders/'+id+'/dbt');
     const options = {
       repo: './user_folders/'+id+'/dbt',
       number: 50,
@@ -187,6 +201,12 @@ const getGitHistory = async (fullCatalog, id) => {
       file: Object.entries(fullCatalog)[i][1].model_path
     };
     eachGitLog = gitlog(options);
+    for(thisCommit in eachGitLog) {
+      console.log(thisCommit);
+      console.log(commitBaseURL);
+      console.log(thisCommit.hash);
+      eachGitLog[thisCommit].originURL = commitBaseURL + eachGitLog[thisCommit].hash;
+    }
     // console.log(Object.entries(fullCatalog)[i][1].model_path);
     // let path = './user_folders/'+id+'/dbt/'+Object.entries(fullCatalog)[i][1].model_path.replaceAll('\\','/');
     // let eachGitLog = await git.log(path)
@@ -197,6 +217,8 @@ const getGitHistory = async (fullCatalog, id) => {
     Object.entries(fullCatalog)[i][1].all_contributors = [...new Set(eachGitLog.map(thisCommit => thisCommit.authorName))];
     Object.entries(fullCatalog)[i][1].all_commits = eachGitLog;
   }
+  // })
+  
 }
 
 const getModelLineage = (fullCatalog, id) => {
