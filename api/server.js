@@ -187,7 +187,7 @@ const getGitHistory = async (fullCatalog, id) => {
   const gitRunner = spawn("cd ./user_folders/"+id+"/dbt && git remote -v", {shell: true});
   gitRemote = gitRunner.stdout.toString().split("\t")[2].split(" ")[0];
   console.log(gitRemote);
-  commitBaseURL = gitRemote.replace(".git","") + "/commits/";
+  commitBaseURL = gitRemote.replace(".git","") + "/commit/";
   
   if(commitBaseURL.includes("@")) {
     commitBaseURL = "http://" + commitBaseURL.split("@")[1].replace(":","/");
@@ -202,20 +202,23 @@ const getGitHistory = async (fullCatalog, id) => {
     };
     eachGitLog = gitlog(options);
     for(thisCommit in eachGitLog) {
-      console.log(thisCommit);
-      console.log(commitBaseURL);
-      console.log(thisCommit.hash);
+      // console.log(thisCommit);
+      // console.log(commitBaseURL);
+      // console.log(thisCommit.hash);
       eachGitLog[thisCommit].originURL = commitBaseURL + eachGitLog[thisCommit].hash;
     }
     // console.log(Object.entries(fullCatalog)[i][1].model_path);
     // let path = './user_folders/'+id+'/dbt/'+Object.entries(fullCatalog)[i][1].model_path.replaceAll('\\','/');
     // let eachGitLog = await git.log(path)
     // console.log(eachGitLog);
-    Object.entries(fullCatalog)[i][1].created_by = eachGitLog[eachGitLog.length-1].authorName;
-    Object.entries(fullCatalog)[i][1].created_date = eachGitLog[eachGitLog.length-1].authorDate;
-    Object.entries(fullCatalog)[i][1].created_relative_date = eachGitLog[eachGitLog.length-1].authorDateRel;
-    Object.entries(fullCatalog)[i][1].all_contributors = [...new Set(eachGitLog.map(thisCommit => thisCommit.authorName))];
-    Object.entries(fullCatalog)[i][1].all_commits = eachGitLog;
+    if(eachGitLog.length > 0) {
+      Object.entries(fullCatalog)[i][1].created_by = eachGitLog[eachGitLog.length-1].authorName;
+      Object.entries(fullCatalog)[i][1].created_date = eachGitLog[eachGitLog.length-1].authorDate;
+      Object.entries(fullCatalog)[i][1].created_relative_date = eachGitLog[eachGitLog.length-1].authorDateRel;
+      Object.entries(fullCatalog)[i][1].all_contributors = [...new Set(eachGitLog.map(thisCommit => thisCommit.authorName))];
+      Object.entries(fullCatalog)[i][1].all_commits = eachGitLog;
+
+    }
   }
   // })
   
@@ -232,7 +235,7 @@ const getModelLineage = (fullCatalog, id) => {
             tempLineage.push({ id: currentRecursedModel.nodeID+"_"+value, source: currentRecursedModel.nodeID, target: value, animated: true }); //push edge
           }
           if(tempLineage.filter((item, index) => { return (item.id === value)}).length===0) {
-            tempLineage.push({ id: value, data: { label: value.split(".").pop().replace(/_/g, '_\u200B') }, connectable: false}); //push node
+            tempLineage.push({ id: value, data: { label: value.split(".").pop().replace(/_/g, '_\u200B') }, "className": "lineage_"+value.split(".")[0]+"_node", connectable: false}); //push node
           }
           recurseForwardLineage(fullCatalog[value], id);
         });
@@ -246,7 +249,7 @@ const getModelLineage = (fullCatalog, id) => {
             tempLineage.push({ id: currentRecursedModel.nodeID+"_"+value, target: currentRecursedModel.nodeID, source: value, animated: true }); //push edge
           }
           if(tempLineage.filter((item, index) => { return(item.id === value)}).length===0) {
-            tempLineage.push({ id: value, data: { label: value.split(".").pop().replace(/_/g, '_\u200B') }, connectable: false}); //push node
+            tempLineage.push({ id: value, data: { label: value.split(".").pop().replace(/_/g, '_\u200B') }, "className": "lineage_"+value.split(".")[0]+"_node", connectable: false}); //push node
           }
           recurseBackLineage(fullCatalog[value], id);
         });
@@ -254,7 +257,7 @@ const getModelLineage = (fullCatalog, id) => {
     };
     // console.log(currentModel);
     recurseBackLineage(currentModel, id);
-    tempLineage.push({ id: currentModel.nodeID, style: {"borderColor": "tomato","borderWidth": "2px"}, connectable: false, data: { label: currentModel.name.replace(/_/g, '_\u200B') }}); //push node
+    tempLineage.push({ id: currentModel.nodeID, style: {"borderColor": "tomato","borderWidth": "2px"}, "className": "lineage_"+currentModel.nodeID.split(".")[0]+"_node", connectable: false, data: { label: currentModel.name.replace(/_/g, '_\u200B') }}); //push node
     recurseForwardLineage(currentModel, id);
     // return Array.from(new Set(tempLineage));
     return tempLineage.filter((item, index) => {
@@ -627,9 +630,9 @@ app.post('/api/v1/reload_dbt', auth.required, (req, res) => {
     if(userConfig(id).dbtmethod === "LiveDB") {
       // console.log('Running dbt_...')
       const dbtRunner = spawn("cd ./user_folders/"+id+"/dbt && dbt deps && dbt docs generate --profiles-dir ../", {shell: true});
-      dbtRunner.stderr.on('data', function (data) {
-        console.error("dbt_ error:", data.toString());
-      });
+      // dbtRunner.stderr.on('data', function (data) {
+      //   console.error("dbt_ error:", data.toString());
+      // });
       dbtRunner.stdout.on('data', function (data) {
         // console.log("dbt_ output:", data.toString());
       });
