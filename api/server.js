@@ -760,6 +760,45 @@ app.post('/api/v1/update_metadata', auth.required, (req, res) => {
         currentSchemaYMLModelColumn[req.body.property_name] = req.body.new_value;
         // console.log(currentSchemaYMLModelColumn);
         fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
+      
+      } else if(req.body.updateMethod==='yamlModelColumnTest') {
+        console.log(req.body);
+        const schemaYMLPath = findOrCreateMetadataYML(req.body.yaml_path, req.body.model_path, req.body.model, req.body.node_id.split(".")[2], req.body.node_id.split(".")[0], id);
+        // console.log(schemaYMLPath);
+        // console.log("^ path that contains model yml config");
+        let currentSchemaYML = yaml.load(fs.readFileSync(schemaYMLPath,'utf8'));
+        let currentSchemaYMLModel = {}
+        if(req.body.node_id.split(".")[0] === 'model') {
+          currentSchemaYMLModel = currentSchemaYML.models.filter(model => model.name === req.body.model)[0];
+        } else {
+          currentSchemaYMLModel = currentSchemaYML.sources.filter(source => source.name === req.body.node_id.split(".")[2])[0].tables.filter(source_table => source_table.name === req.body.model)[0];
+        }
+        // console.log(currentSchemaYMLModel);
+        if(currentSchemaYMLModel.columns) {
+          var currentSchemaYMLModelColumn = currentSchemaYMLModel.columns.filter(column => column.name === req.body.column)[0];
+          // console.log(currentSchemaYMLModelColumn);
+          if(!currentSchemaYMLModelColumn) {
+            // console.log('adding column');
+            currentSchemaYMLModel.columns.push({
+              "name": req.body.column
+            });
+            var currentSchemaYMLModelColumn = currentSchemaYMLModel.columns.filter(column => column.name === req.body.column)[0];
+          }
+        } else { //add columns section
+          currentSchemaYMLModel.columns = [];
+          currentSchemaYMLModel.columns.push({
+            "name": req.body.column
+          });
+          var currentSchemaYMLModelColumn = currentSchemaYMLModel.columns.filter(column => column.name === req.body.column)[0];
+        }
+        // console.log(currentSchemaYMLModelColumn);
+        if(req.body.new_value.length > 0) {
+          currentSchemaYMLModelColumn["tests"] = req.body.new_value;
+        } else {
+          delete currentSchemaYMLModelColumn["tests"];
+        }
+        // console.log(currentSchemaYMLModelColumn);
+        fs.writeFileSync(schemaYMLPath, yaml.dump(currentSchemaYML), 'utf8', (err) => {if (err) console.log(err);});
       }
       // console.log("response body: ");
       // console.log(res.body);
@@ -767,6 +806,7 @@ app.post('/api/v1/update_metadata', auth.required, (req, res) => {
     });
   });
 });
+
 
 app.post('/api/v1/create_pr', auth.required, (req, res) => {
   const { payload: { id } } = req;
