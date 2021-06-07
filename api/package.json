@@ -43,6 +43,7 @@
     "js-yaml": "^4.0.0",
     "js2py": "^1.0.3-3",
     "jsonwebtoken": "^8.5.1",
+    "lunr": "^2.3.9",
     "mongoose": "^5.12.7",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",

@@ -9,6 +9,7 @@ const fs = require('fs');
 const path = require("path");
 const yaml = require('js-yaml');
 const YAWN = require('yawn-yaml/cjs');
+const lunr = require('lunr');
 const request = require('request');
 const mongoose = require('mongoose');
 const fileUpload = require('express-fileupload');
@@ -416,6 +417,33 @@ const searchModels = (searchString, id) => {
   }
 }
 
+const searchModels2 = (searchString, id) => {
+  console.log("test");
+  if(Object.keys(fullCatalog(id)).length > 0) {
+    var catObjects = Object.values(fullCatalog(id));
+    var catIndex = lunr(function (idx) {
+      idx.ref('nodeID');
+      idx.field('name', {boost: 1.5});
+      idx.field('description', {boost: 1});
+      idx.field('tag', {extractor: function (doc) { return doc.tags }});
+      idx.field('column', {extractor: function (doc) { return doc.columns }});
+      // TODO: add column descriptions
+      catObjects.forEach(function(doc) {
+        idx.add(doc);
+      });
+    });
+    // var queryOptions = searchQuery.parse(searchString,searchOptions);
+    var searchResults = catIndex.search(searchString);
+    var foundModels = []
+    for(thisResult in searchResults) {
+      console.log(searchResults[thisResult].ref);
+      console.log(fullCatalog(id)[searchResults[thisResult].ref]);
+      foundModels.push({"nodeID": searchResults[thisResult].ref, "modelName": fullCatalog(id)[searchResults[thisResult].ref].name, "modelDescription": fullCatalog(id)[searchResults[thisResult].ref].description, "modelTags": fullCatalog(id)[searchResults[thisResult].ref].tags})
+    }
+    return foundModels;
+  }
+}
+
 const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schema, model_or_source, id) => {
   // console.log("findOrCreateMetadataYML");
   // console.log(yaml_path);
@@ -600,6 +628,27 @@ const checkoutChangeBranch = (id) => {
   
 }
 
+var isObject = function(item) {
+  return (item && typeof item === 'object' && !Array.isArray(item));
+}
+
+const mergeDeep = function(target, source) {
+  let output = Object.assign({}, target);
+  if (isObject(target) && isObject(source)) {
+    Object.keys(source).forEach(key => {
+      if (isObject(source[key])) {
+        if (!(key in target))
+          Object.assign(output, { [key]: source[key] });
+        else
+          output[key] = mergeDeep(target[key], source[key]);
+      } else {
+        Object.assign(output, { [key]: source[key] });
+      }
+    });
+  }
+  return output;
+};
+
 app.get('/license.md', auth.optional, (req, res) => { //TODO: remove once new model api available
   console.log("license");
   res.send(fs.readFileSync('../LICENSE.MD', 'utf-8'));
@@ -694,25 +743,7 @@ app.post('/api/v1/update_metadata', auth.required, (req, res) => {
             jsonToInsert += "}";
           }
           jsonToInsert = JSON.parse(jsonToInsert);
-          var isObject = function(item) {
-            return (item && typeof item === 'object' && !Array.isArray(item));
-          }
-          var mergeDeep = function(target, source) {
-            let output = Object.assign({}, target);
-            if (isObject(target) && isObject(source)) {
-              Object.keys(source).forEach(key => {
-                if (isObject(source[key])) {
-                  if (!(key in target))
-                    Object.assign(output, { [key]: source[key] });
-                  else
-                    output[key] = mergeDeep(target[key], source[key]);
-                } else {
-                  Object.assign(output, { [key]: source[key] });
-                }
-              });
-            }
-            return output;
-          };
+          
           dbtProjectYML.json = mergeDeep(dbtProjectYML.json, jsonToInsert);
           fs.writeFileSync(dbtProjectPath, dbtProjectYML.yaml, 'utf8', (err) => {if (err) console.log(err);});
         } else {
@@ -948,6 +979,45 @@ app.get('/api/v1/model_search/:searchString', auth.required, (req, res) => {
     returnValue.searchString = req.params.searchString;
     // console.log(returnValue.searchString);
     res.json(returnValue);
+  });
+});
+
+
+app.get('/api/v1/model_search2/:searchString', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    // console.log("Search: "+req.params.searchString);
+    // console.log(result.toAuthJSON()._id);
+    let returnValue = {"results": searchModels2(req.params.searchString, id)};
+    returnValue.searchString = req.params.searchString;
+    // console.log(returnValue.searchString);
+    res.json(returnValue);
+  });
+});
+
+app.get('/api/v1/model_tree', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    // console.log("Search: "+req.params.searchString);
+    // console.log(result.toAuthJSON()._id);
+    let all_models = catalogIndex(id).filter(indexRecord => indexRecord.type === "model_name").map(function(item) {
+      let last;
+      let obj = item["nodeID"].split('.').reduce((o, val) => {
+        if (typeof last == 'object') {
+          last = last[val] = {};
+        } else {
+          last = o[val] = {};
+        }
+      
+        return o;
+      }, {});
+      return obj; 
+    });
+    var resultObject = all_models.reduce(function(result, currentObject) {
+      result = mergeDeep(result, currentObject)
+      return result;
+    });
+    res.json(resultObject);
   });
 });
 
