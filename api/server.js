@@ -277,10 +277,30 @@ const getModelLineage = (fullCatalog, id) => {
   }
 }
 
+const compileIndex = (assemblingFullCatalog) => {
+  console.log("test");
+  if(Object.keys(assemblingFullCatalog).length > 0) {
+    var catObjects = Object.values(assemblingFullCatalog);
+    var catIndex = lunr(function (idx) {
+      idx.ref('nodeID');
+      idx.field('name', {boost: 1.5});
+      idx.field('description', {boost: 1});
+      idx.field('tag', {extractor: function (doc) { return doc.tags }});
+      idx.field('column', {extractor: function (doc) { return doc.columns }});
+      // TODO: add column descriptions
+      catObjects.forEach(function(doc) {
+        idx.add(doc);
+      });
+      return idx;
+    });
+    return catIndex;
+  }
+}
+
 const compileCatalog = (id) => {
   if (fs.existsSync('./user_folders/'+id+'/dbt/target/catalog.json')) {
     var assemblingFullCatalog = compileCatalogNodes(id);
-    var assemblingCatalogIndex = compileSearchIndex(assemblingFullCatalog);
+    var assemblingCatalogIndex = compileIndex(assemblingFullCatalog, id);
     getModelLineage(assemblingFullCatalog, id); //this updates fullCatalog before it gets saved
     getGitHistory(assemblingFullCatalog, id)
     .then(dummyField => {
@@ -418,30 +438,17 @@ const searchModels = (searchString, id) => {
 }
 
 const searchModels2 = (searchString, id) => {
-  console.log("test");
-  if(Object.keys(fullCatalog(id)).length > 0) {
-    var catObjects = Object.values(fullCatalog(id));
-    var catIndex = lunr(function (idx) {
-      idx.ref('nodeID');
-      idx.field('name', {boost: 1.5});
-      idx.field('description', {boost: 1});
-      idx.field('tag', {extractor: function (doc) { return doc.tags }});
-      idx.field('column', {extractor: function (doc) { return doc.columns }});
-      // TODO: add column descriptions
-      catObjects.forEach(function(doc) {
-        idx.add(doc);
-      });
-    });
-    // var queryOptions = searchQuery.parse(searchString,searchOptions);
-    var searchResults = catIndex.search(searchString);
-    var foundModels = []
-    for(thisResult in searchResults) {
-      console.log(searchResults[thisResult].ref);
-      console.log(fullCatalog(id)[searchResults[thisResult].ref]);
-      foundModels.push({"nodeID": searchResults[thisResult].ref, "modelName": fullCatalog(id)[searchResults[thisResult].ref].name, "modelDescription": fullCatalog(id)[searchResults[thisResult].ref].description, "modelTags": fullCatalog(id)[searchResults[thisResult].ref].tags})
-    }
-    return foundModels;
+  
+  // var queryOptions = searchQuery.parse(searchString,searchOptions);
+  catIndex = lunr.Index.load(catalogIndex(id))
+  var searchResults = catIndex.search(searchString + "*");
+  var foundModels = []
+  for(thisResult in searchResults) {
+    // console.log(searchResults[thisResult].ref);
+    // console.log(fullCatalog(id)[searchResults[thisResult].ref]);
+    foundModels.push({"nodeID": searchResults[thisResult].ref, "modelName": fullCatalog(id)[searchResults[thisResult].ref].name, "modelDescription": fullCatalog(id)[searchResults[thisResult].ref].description, "modelTags": fullCatalog(id)[searchResults[thisResult].ref].tags})
   }
+  return foundModels;
 }
 
 const findOrCreateMetadataYML = (yaml_path, model_path, model_name, source_schema, model_or_source, id) => {
@@ -970,20 +977,20 @@ app.get('/api/v1/open_git_connection', auth.required, (req, res) => {
   });
 });
 
+// app.get('/api/v1/model_search/:searchString', auth.required, (req, res) => {
+//   const { payload: { id } } = req;
+//   Users.findById(id, function(err, result) {
+//     // console.log("Search: "+req.params.searchString);
+//     // console.log(result.toAuthJSON()._id);
+//     let returnValue = {"results": searchModels(req.params.searchString, id)};
+//     returnValue.searchString = req.params.searchString;
+//     // console.log(returnValue.searchString);
+//     res.json(returnValue);
+//   });
+// });
+
+
 app.get('/api/v1/model_search/:searchString', auth.required, (req, res) => {
-  const { payload: { id } } = req;
-  Users.findById(id, function(err, result) {
-    // console.log("Search: "+req.params.searchString);
-    // console.log(result.toAuthJSON()._id);
-    let returnValue = {"results": searchModels(req.params.searchString, id)};
-    returnValue.searchString = req.params.searchString;
-    // console.log(returnValue.searchString);
-    res.json(returnValue);
-  });
-});
-
-
-app.get('/api/v1/model_search2/:searchString', auth.required, (req, res) => {
   const { payload: { id } } = req;
   Users.findById(id, function(err, result) {
     // console.log("Search: "+req.params.searchString);
@@ -1000,9 +1007,9 @@ app.get('/api/v1/model_tree', auth.required, (req, res) => {
   Users.findById(id, function(err, result) {
     // console.log("Search: "+req.params.searchString);
     // console.log(result.toAuthJSON()._id);
-    let all_models = catalogIndex(id).filter(indexRecord => indexRecord.type === "model_name").map(function(item) {
+    let all_models = Object.keys(fullCatalog(id)).map(function(item) {
       let last;
-      let obj = item["nodeID"].split('.').reduce((o, val) => {
+      let obj = item.split('.').reduce((o, val) => {
         if (typeof last == 'object') {
           last = last[val] = {};
         } else {
