@@ -299,9 +299,13 @@ const compileIndex = (assemblingFullCatalog) => {
 
 const compileCatalog = (id) => {
   if (fs.existsSync('./user_folders/'+id+'/dbt/target/catalog.json')) {
+    console.log("assembling catalog");
     var assemblingFullCatalog = compileCatalogNodes(id);
+    console.log("compiling index");
     var assemblingCatalogIndex = compileIndex(assemblingFullCatalog, id);
+    console.log("calculating lineage");
     getModelLineage(assemblingFullCatalog, id); //this updates fullCatalog before it gets saved
+    console.log("updating git history");
     getGitHistory(assemblingFullCatalog, id)
     .then(dummyField => {
       fs.writeFileSync('./user_folders/'+id+'/catalog.json', JSON.stringify(assemblingFullCatalog), (err) => {
@@ -312,6 +316,7 @@ const compileCatalog = (id) => {
       });
       // console.log("Metadata Refresh Complete");
       sendToast(id, "Metadata has been refreshed successfully.", "success");
+      console.log("refresh success");
     });
     
   } else {
@@ -1025,6 +1030,25 @@ app.get('/api/v1/model_tree', auth.required, (req, res) => {
       return result;
     });
     res.json(resultObject);
+  });
+});
+
+app.get('/api/v1/db_tree', auth.required, (req, res) => {
+  const { payload: { id } } = req;
+  Users.findById(id, function(err, result) {
+    // console.log("Search: "+req.params.searchString);
+    // console.log(result.toAuthJSON()._id);
+    var currentCatalog = fullCatalog(id);
+    let all_models = Object.keys(currentCatalog).map(function(item) {
+      let obj = {
+        "database": currentCatalog[item].database,
+        "schema": currentCatalog[item].schema,
+        "name": currentCatalog[item].name,
+        "nodeID": currentCatalog[item].nodeID};
+      // console.log(obj);
+      return obj; 
+    });
+    res.json({"db_models": all_models});
   });
 });
 
