@@ -451,8 +451,8 @@ const searchModels2 = (searchString, id) => {
   for(thisResult in searchResults) {
     // console.log(searchResults[thisResult].ref);
     // console.log(fullCatalog(id)[searchResults[thisResult].ref]);
-    foundModels.push({"nodeID": searchResults[thisResult].ref, "modelName": fullCatalog(id)[searchResults[thisResult].ref].name, "modelDescription": fullCatalog(id)[searchResults[thisResult].ref].description, "modelTags": fullCatalog(id)[searchResults[thisResult].ref].tags})
-  }
+    foundModels.push({"nodeID": searchResults[thisResult].ref, "modelName": fullCatalog(id)[searchResults[thisResult].ref].name, "modelDescription": fullCatalog(id)[searchResults[thisResult].ref].description, "modelTags": fullCatalog(id)[searchResults[thisResult].ref].tags, "promteStatus": 0})
+  } //TODO: add promotion / demotion to Node version
   return foundModels;
 }
 
@@ -1014,16 +1014,34 @@ app.get('/api/v1/model_tree', auth.required, (req, res) => {
     // console.log(result.toAuthJSON()._id);
     let all_models = Object.keys(fullCatalog(id)).map(function(item) {
       let last;
-      let obj = item.split('.').reduce((o, val) => {
-        if (typeof last == 'object') {
-          last = last[val] = {};
-        } else {
-          last = o[val] = {};
-        }
-      
-        return o;
-      }, {});
-      return obj; 
+      if(fullCatalog(id)[item].model_type === "node") {
+        let modelPath = fullCatalog(id)[item].model_path.replaceAll('\\','/');
+        let obj = modelPath.substr(0,modelPath.lastIndexOf(('.'))).split('/').reduce((o, val) => {
+          if (typeof last == 'object') {
+            last = last[val] = {"nodeID": item, "promote_status": 1};
+          } else {
+            last = o[val] = {};
+          }
+        
+          return o;
+        }, {});
+        return obj;
+      } else if(fullCatalog(id)[item].model_type === "source") {
+        removedProjectName = item.split('.');
+        removedProjectName.splice(1,1);
+        removedProjectName[0] = 'sources'
+        item.split('.').splice(1,1)
+        let obj = removedProjectName.reduce((o, val) => {
+          if (typeof last == 'object') {
+            last = last[val] = {"nodeID": item, "promote_status": 1}; //fullCatalog(id)[item].promote_status};
+          } else {
+            last = o[val] = {};
+          }
+        
+          return o;
+        }, {});
+        return obj; 
+      }
     });
     var resultObject = all_models.reduce(function(result, currentObject) {
       result = mergeDeep(result, currentObject)
